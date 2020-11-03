@@ -1,1 +1,2 @@
-# dsu-fabric-ssapp
+# ssapp-template
+template to be used when building a new SSApp
