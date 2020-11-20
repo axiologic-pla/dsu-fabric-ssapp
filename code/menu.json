@@ -1,7 +1,5 @@
 {
   "defaultMenuConfig": {
-    "pagePrefix": "?",
-    "historyType": "query",
     "icon": "fa-bars",
     "type": "route",
     "component": "psk-page-loader",
@@ -10,20 +8,15 @@
   },
   "pages": [
     {
-      "name": "Packages"
-    },
-    {
-      "name": "Batches"
-    },
-    {
-      "name": "Products"
-    },
-    {
-      "name": "Add batch",
+      "name": "Batches",
       "indexed": false
     },
     {
-      "name": "Create package",
+      "name": "Products",
+      "indexed": false
+    },
+    {
+      "name": "Add batch",
       "indexed": false
     },
     {
