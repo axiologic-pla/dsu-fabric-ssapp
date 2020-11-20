@@ -26,7 +26,7 @@ export default class ManageProductController extends ContainerController {
         debugger;
         this.DSUStorage.getItem(constants.PRODUCTS_STORAGE_PATH, "json", (err, products) => {
             if (err) {
-                throw err;
+                products = [];
             }
             this.products = products;
             if (typeof this.productIndex !== "undefined") {
