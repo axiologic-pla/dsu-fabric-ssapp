@@ -23,7 +23,6 @@ export default class ManageProductController extends ContainerController {
             options: Languages.getListAsVM()
         };
 
-        debugger;
         this.DSUStorage.getItem(constants.PRODUCTS_STORAGE_PATH, "json", (err, products) => {
             if (err) {
                 products = [];
