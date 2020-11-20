@@ -23,9 +23,8 @@ function getPostHandlerFor(apiname){
 		if (typeof options.headers === "undefined") {
 			options.headers = {};
 		}
-		options.headers["x-blockchain-domain-request"] = true;
 		const baseURL = getBaseURL();
-		url = `${baseURL}${url}`;
+		url = `${baseURL}${url}#x-blockchain-domain-request`;
 		fetch(url, {
 			method: 'POST',
 			headers: options.headers,
