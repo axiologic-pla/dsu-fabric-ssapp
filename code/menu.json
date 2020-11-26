@@ -9,14 +9,17 @@
   "pages": [
     {
       "name": "Batches",
+      "tags": "batches",
       "indexed": false
     },
     {
       "name": "Products",
+      "tags": "products",
       "indexed": false
     },
     {
       "name": "Add batch",
+      "tags": "add-batch",
       "indexed": false
     },
     {
@@ -26,7 +29,12 @@
     },
     {
       "name": "Add product",
+      "tags": "add-product",
       "indexed": false
+    },
+    {
+      "name": "Audit",
+      "tags": "audit"
     }
   ]
 }
