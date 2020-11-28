@@ -1,2 +1,6 @@
 seed
 node_modules
+/code/constitution
+/code/pages
+/code/scripts
+/code/resources
