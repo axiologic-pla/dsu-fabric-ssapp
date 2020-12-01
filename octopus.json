@@ -32,6 +32,14 @@
         },
         {
           "type": "copy",
+          "src": "../web-server/dsu-fabric/assets",
+          "target": "./code/assets",
+          "options": {
+            "overwrite": true
+          }
+        },
+        {
+          "type": "copy",
           "src": "../web-server/dsu-fabric/config.json",
           "target": "./code/config.json",
           "options": {
