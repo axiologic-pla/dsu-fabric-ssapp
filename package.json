@@ -16,7 +16,7 @@
     "url": "git+https://github.com/PrivateSky/ssapp-template.git"
   },
   "dependencies": {
-    "octopus": "git+https://github.com/PrivateSky/octopus.git#1.0.1"
+    "octopus": "git+https://github.com/PrivateSky/octopus.git#1.0.6"
   },
   "keywords": [
     "ssapp"
