@@ -1,6 +1,8 @@
 seed
-node_modules
+/node_modules
 /code/constitution
-/code/pages
-/code/scripts
+/code/scripts/bundles
 /code/resources
+/temp
+/builds
+/.idea

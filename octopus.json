@@ -3,52 +3,6 @@
   "dependencies": [],
   "prebuild": [
     {
-      "name": "Copy content from DSU-Fabric",
-      "src": "",
-      "actions": [
-        {
-          "type": "copy",
-          "src": "../web-server/dsu-fabric/pages",
-          "target": "./code/pages",
-          "options": {
-            "overwrite": true
-          }
-        },
-        {
-          "type": "copy",
-          "src": "../web-server/dsu-fabric/scripts",
-          "target": "./code/scripts",
-          "options": {
-            "overwrite": true
-          }
-        },
-        {
-          "type": "copy",
-          "src": "../web-server/dsu-fabric/assets",
-          "target": "./code/resources",
-          "options": {
-            "overwrite": true
-          }
-        },
-        {
-          "type": "copy",
-          "src": "../web-server/dsu-fabric/assets",
-          "target": "./code/assets",
-          "options": {
-            "overwrite": true
-          }
-        },
-        {
-          "type": "copy",
-          "src": "../web-server/dsu-fabric/config.json",
-          "target": "./code/config.json",
-          "options": {
-            "overwrite": true
-          }
-        }
-      ]
-    },
-    {
       "name": "PSK bundles",
       "src": "",
       "actions": [
@@ -84,6 +38,14 @@
           "type": "copy",
           "src": "../privatesky/psknode/bundles/webshims.js",
           "target": "code/scripts/bundles/webshims.js",
+          "options": {
+            "overwrite": true
+          }
+        },
+        {
+          "type": "copy",
+          "src": "../privatesky/psknode/bundles/iframeBoot.js",
+          "target": "code/scripts/bundles/iframeBoot.js",
           "options": {
             "overwrite": true
           }
