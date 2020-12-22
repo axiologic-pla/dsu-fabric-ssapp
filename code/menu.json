@@ -8,14 +8,16 @@
   },
   "pages": [
     {
-      "name": "Batches",
-      "tags": "batches",
-      "indexed": false
+      "name": "Products",
+      "tags": "products"
     },
     {
-      "name": "Products",
-      "tags": "products",
-      "indexed": false
+      "name": "Batches",
+      "tags": "batches"
+    },
+    {
+      "name": "Audit",
+      "tags": "audit"
     },
     {
       "name": "Add batch",
@@ -31,10 +33,6 @@
       "name": "Add product",
       "tags": "add-product",
       "indexed": false
-    },
-    {
-      "name": "Audit",
-      "tags": "audit"
     }
   ]
 }
