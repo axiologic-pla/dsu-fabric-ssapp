@@ -9,6 +9,7 @@ export default class Product {
     manufName = " ";
     version = 1;
     files = [];
+    reportURL = `${window.top.location.origin}/default-report.html`;
 
     constructor(product) {
         if (typeof product !== undefined) {
