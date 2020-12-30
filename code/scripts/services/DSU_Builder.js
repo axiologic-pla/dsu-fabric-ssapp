@@ -74,7 +74,7 @@ export default class DSU_Builder {
 
         this.ensureHolderInfo( (err)=>{
             if(err){
-                return callback(createOpenDSUErrorWrapper("Holder missconfiguration in the wallet", err));
+                return OpenDSUSafeCallback(callback)(createOpenDSUErrorWrapper("Holder missconfiguration in the wallet", err));
             }
             obtainTransaction();
         });
