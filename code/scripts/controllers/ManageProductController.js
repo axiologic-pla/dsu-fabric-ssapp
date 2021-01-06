@@ -97,26 +97,32 @@ export default class ManageProductController extends ContainerController {
                 }
 
                 console.log("Product DSU KeySSI:", keySSI);
-                this.buildConstProductDSU(product.gtin, keySSI, (err, gtinSSI) => {
+                let finish = (err) => {
                     if (err) {
-                        if (err) {
-                            this.closeModal();
-                            return this.showErrorModalAndRedirect("Const Product DSU build failed.", "products");
-                        }
-                    }
-                    product.keySSI = gtinSSI;
-
-                    console.log("ConstProductDSU GTIN_SSI:", gtinSSI);
-
-                    this.persistProduct(product, (err) => {
-                        if (err) {
-                            this.closeModal();
-                            return this.showErrorModalAndRedirect("Product keySSI failed to be stored in your wallet.", "products");
-                        }
                         this.closeModal();
-                        this.History.navigateToPageByTag("products");
-                    })
-                });
+                        return this.showErrorModalAndRedirect("Product keySSI failed to be stored in your wallet.", "products");
+                    }
+                    this.closeModal();
+                    this.History.navigateToPageByTag("products");
+                }
+
+                if(typeof product.keySSI === "undefined"){
+                    return this.buildConstProductDSU(product.gtin, keySSI, (err, gtinSSI) => {
+                        if (err) {
+                            if (err) {
+                                this.closeModal();
+                                return this.showErrorModalAndRedirect("Const Product DSU build failed.", "products");
+                            }
+                        }
+                        product.keySSI = gtinSSI;
+
+                        console.log("ConstProductDSU GTIN_SSI:", gtinSSI);
+
+                        this.persistProduct(product, finish);
+                    });
+                }
+
+                this.persistProduct(product, finish);
             });
         });
     }
