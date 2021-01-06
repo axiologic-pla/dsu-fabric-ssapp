@@ -1,4 +1,4 @@
-export default class StorageService {
+export default class SharedStorage {
 
     APP_TYPE = {
         CARDINAL: 'cardinal',

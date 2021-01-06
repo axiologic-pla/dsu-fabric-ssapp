@@ -1,10 +1,10 @@
 import constants from '../constants.js';
-import StorageService from "./StorageService.js";
+import SharedStorage from "./SharedDBStorageService.js";
 
 export default class LogService {
 
 	constructor(dsuStorage) {
-		this.storageService = new StorageService(dsuStorage);
+		this.storageService = new SharedStorage(dsuStorage);
 	}
 
 	log (logDetails) {
@@ -19,7 +19,7 @@ export default class LogService {
 				...logDetails,
 				timestamp: new Date().getTime()
 			});
-			this.storageService.setItem(constants.LOGS_STORAGE_PATH, JSON.stringify(logs), (err) => {
+			this.storageService.setItem(constants.LOGS_TABLE, JSON.stringify(logs), (err) => {
 				if (err) {
 					return console.log("Error adding a log.")
 				}
@@ -28,7 +28,7 @@ export default class LogService {
 	}
 
 	getLogs (callback) {
-		this.storageService.getItem(constants.LOGS_STORAGE_PATH, 'json', (err, logs) => {
+		this.storageService.getItem(constants.LOGS_TABLE, (err, logs) => {
 			if (err) {
 				return callback(err);
 			}
