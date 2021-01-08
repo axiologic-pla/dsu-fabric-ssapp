@@ -31,9 +31,8 @@ function getPostHandlerFor(apiname){
 		}).then((response) => {
 			return response.text().then((data) => {
 				if (!response.ok) {
-					throw new Error(`Post request failed.`);
+					return callback(new Error(`Post to ${url} request failed.` + response.statusText));
 				}
-
 				callback(undefined, data);
 			})
 		}).catch(err => {

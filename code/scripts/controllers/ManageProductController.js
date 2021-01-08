@@ -40,7 +40,7 @@ export default class ManageProductController extends ContainerController {
             this.addLanguageTypeFilesListener(event)
         });
 
-        this.storageService.getItem(constants.PRODUCTS_TABLE, (err, products) => {
+        this.storageService.getArray(constants.PRODUCTS_TABLE, (err, products) => {
             this.products = products;
             if (typeof this.productIndex !== "undefined") {
                 this.model.product = new Product(this.getLastVersionProduct());
@@ -92,6 +92,7 @@ export default class ManageProductController extends ContainerController {
             this.displayModal("Creating product....");
             this.buildProductDSU(product, (err, keySSI) => {
                 if (err) {
+                    console.log(err);
                     this.closeModal();
                     return this.showErrorModalAndRedirect("Product DSU build failed.", "products");
                 }
@@ -99,11 +100,11 @@ export default class ManageProductController extends ContainerController {
                 console.log("Product DSU KeySSI:", keySSI);
                 this.buildConstProductDSU(product.gtin, keySSI, (err, gtinSSI) => {
                     if (err) {
-                        if (err) {
-                            this.closeModal();
-                            return this.showErrorModalAndRedirect("Const Product DSU build failed.", "products");
-                        }
+                        console.log(err);
+                        this.closeModal();
+                        return this.showErrorModalAndRedirect("Const Product DSU build failed.", "products");
                     }
+
                     product.keySSI = gtinSSI;
 
                     console.log("ConstProductDSU GTIN_SSI:", gtinSSI);
@@ -263,7 +264,7 @@ export default class ManageProductController extends ContainerController {
     }
 
     updateProductDSU(transactionId, product, callback) {
-        this.storageService.getItem(constants.PRODUCT_KEYSSI_STORAGE_TABLE, (err, keySSIs) => {
+        this.storageService.getObject(constants.PRODUCT_KEYSSI_STORAGE_TABLE, (err, keySSIs) => {
             if (err) {
                 return callback(err);
             }
@@ -394,17 +395,17 @@ export default class ManageProductController extends ContainerController {
             logType: 'PRODUCT_LOG'
         });
 
-        this.storageService.setItem(constants.PRODUCTS_TABLE, JSON.stringify(this.products), callback);
+        this.storageService.setArray(constants.PRODUCTS_TABLE, this.products, callback);
     }
 
     persistKeySSI(keySSI, gtin, callback) {
-        this.storageService.getItem(constants.PRODUCT_KEYSSI_STORAGE_TABLE, (err, keySSIs) => {
+        this.storageService.getObject(constants.PRODUCT_KEYSSI_STORAGE_TABLE, (err, keySSIs) => {
             if (typeof keySSIs === "undefined" || keySSIs === null) {
                 keySSIs = {};
             }
 
             keySSIs[gtin] = keySSI;
-            this.storageService.setItem(constants.PRODUCT_KEYSSI_STORAGE_TABLE, JSON.stringify(keySSIs), callback);
+            this.storageService.setObject(constants.PRODUCT_KEYSSI_STORAGE_TABLE, keySSIs, callback);
         });
     }
 

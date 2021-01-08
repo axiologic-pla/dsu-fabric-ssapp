@@ -9,11 +9,7 @@ export default class batchesController extends ContainerController {
         this.setModel({});
         this.storageService = new SharedStorage(this.DSUStorage);
 
-        this.storageService.getItem(constants.BATCHES_STORAGE_TABLE, (err, batches) =>{
-            if (typeof batches === "undefined" || batches === null) {
-                batches = [];
-            }
-
+        this.storageService.getArray(constants.BATCHES_STORAGE_TABLE, (err, batches) =>{
             batches.forEach((batch)=>{
                 batch.code = this.generateSerializationForBatch(batch);
                 let wrongBatch = JSON.parse(JSON.stringify(batch));

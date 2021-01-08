@@ -14,16 +14,7 @@ export default class ProductsController extends ContainerController {
 		}, 'products');
 
 
-		this.storageService.getItem(constants.PRODUCTS_TABLE, (err, products) => {
-			if(err){
-				//todo: implement better error handling
-				//throw err;
-			}
-
-			if (typeof products === "undefined" || products === null) {
-				return this.model.products = [];
-			}
-
+		this.storageService.getArray(constants.PRODUCTS_TABLE, (err, products) => {
 			const lastVersionProducts = products.map(product => {
 				const versions = Object.values(product)[0];
 				return versions[versions.length - 1];

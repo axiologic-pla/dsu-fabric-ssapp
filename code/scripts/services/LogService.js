@@ -19,7 +19,7 @@ export default class LogService {
 				...logDetails,
 				timestamp: new Date().getTime()
 			});
-			this.storageService.setItem(constants.LOGS_TABLE, JSON.stringify(logs), (err) => {
+			this.storageService.setArray(constants.LOGS_TABLE, logs, (err) => {
 				if (err) {
 					return console.log("Error adding a log.")
 				}
@@ -28,15 +28,6 @@ export default class LogService {
 	}
 
 	getLogs (callback) {
-		this.storageService.getItem(constants.LOGS_TABLE, (err, logs) => {
-			if (err) {
-				return callback(err);
-			}
-
-			if (typeof logs === "undefined" || logs === null) {
-				return callback(undefined, []);
-			}
-			callback(undefined, logs)
-		});
+		this.storageService.getArray(constants.LOGS_TABLE, callback);
 	}
 }
