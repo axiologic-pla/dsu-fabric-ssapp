@@ -2,7 +2,7 @@ import ContainerController from '../../cardinal/controllers/base-controllers/Con
 import Product from '../models/Product.js';
 import Languages from "../models/Languages.js";
 import constants from '../constants.js';
-import StorageService from '../services/StorageService.js';
+import SharedStorage from '../services/SharedDBStorageService.js';
 import DSU_Builder from '../services/DSU_Builder.js';
 import UploadTypes from "../models/UploadTypes.js";
 import utils from "../utils.js";
@@ -19,7 +19,7 @@ export default class ManageProductController extends ContainerController {
     constructor(element, history) {
         super(element, history);
         this.setModel({});
-        this.storageService = new StorageService(this.DSUStorage);
+        this.storageService = new SharedStorage(this.DSUStorage);
         this.logService = new LogService(this.DSUStorage);
 
         let state = this.History.getState();
@@ -40,7 +40,7 @@ export default class ManageProductController extends ContainerController {
             this.addLanguageTypeFilesListener(event)
         });
 
-        this.storageService.getItem(constants.PRODUCTS_STORAGE_PATH, "json", (err, products) => {
+        this.storageService.getArray(constants.PRODUCTS_TABLE, (err, products) => {
             this.products = products;
             if (typeof this.productIndex !== "undefined") {
                 this.model.product = new Product(this.getLastVersionProduct());
@@ -269,7 +269,7 @@ export default class ManageProductController extends ContainerController {
     }
 
     updateProductDSU(transactionId, product, callback) {
-        this.storageService.getItem(constants.PRODUCT_KEYSSI_STORAGE_PATH, "json", (err, keySSIs) => {
+        this.storageService.getObject(constants.PRODUCT_KEYSSI_STORAGE_TABLE, (err, keySSIs) => {
             if (err) {
                 return callback(err);
             }
@@ -400,17 +400,17 @@ export default class ManageProductController extends ContainerController {
             logType: 'PRODUCT_LOG'
         });
 
-        this.storageService.setItem(constants.PRODUCTS_STORAGE_PATH, JSON.stringify(this.products), callback);
+        this.storageService.setArray(constants.PRODUCTS_TABLE, this.products, callback);
     }
 
     persistKeySSI(keySSI, gtin, callback) {
-        this.storageService.getItem(constants.PRODUCT_KEYSSI_STORAGE_PATH, "json", (err, keySSIs) => {
+        this.storageService.getObject(constants.PRODUCT_KEYSSI_STORAGE_TABLE, (err, keySSIs) => {
             if (typeof keySSIs === "undefined" || keySSIs === null) {
                 keySSIs = {};
             }
 
             keySSIs[gtin] = keySSI;
-            this.storageService.setItem(constants.PRODUCT_KEYSSI_STORAGE_PATH, JSON.stringify(keySSIs), callback);
+            this.storageService.setObject(constants.PRODUCT_KEYSSI_STORAGE_TABLE, keySSIs, callback);
         });
     }
 

@@ -1,29 +1,20 @@
 import ContainerController from "../../cardinal/controllers/base-controllers/ContainerController.js";
 import constants from "../constants.js";
-import StorageService from '../services/StorageService.js';
+import SharedStorage from '../services/SharedDBStorageService.js';
 
 export default class ProductsController extends ContainerController {
 	constructor(element, history) {
 		super(element, history);
 
 		this.setModel({});
-		this.storageService = new StorageService(this.DSUStorage);
+		this.storageService = new SharedStorage(this.DSUStorage);
 
 		this.model.addExpression('productsListLoaded',  () => {
 			return typeof this.model.products !== "undefined";
 		}, 'products');
 
 
-		this.storageService.getItem(constants.PRODUCTS_STORAGE_PATH, 'json', (err, products) => {
-			if(err){
-				//todo: implement better error handling
-				//throw err;
-			}
-
-			if (typeof products === "undefined" || products === null) {
-				return this.model.products = [];
-			}
-
+		this.storageService.getArray(constants.PRODUCTS_TABLE, (err, products) => {
 			const lastVersionProducts = products.map(product => {
 				const versions = Object.values(product)[0];
 				return versions[versions.length - 1];
