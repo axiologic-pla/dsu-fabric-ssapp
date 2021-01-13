@@ -383,7 +383,7 @@ export default class ManageProductController extends ContainerController {
             this.products = [];
         }
 
-        product.gs1Data = `(01)${product.gtin}(21)WRONG(10)${Utils.generateID(6)}(17)111111`;
+        product.gs1Data = `(01)${product.gtin}(21)${Utils.generateNumericID(12)}(10)${Utils.generateID(6)}(17)111111`;
         if (typeof this.productIndex !== "undefined" && this.productIndex >= 0) {
             this.products[this.productIndex][product.gtin].push(product);
         } else {
