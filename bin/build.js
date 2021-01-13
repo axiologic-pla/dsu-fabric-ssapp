@@ -55,7 +55,7 @@ function updateDossier(bar, callback) {
                 return callback(err);
             }
 
-            bar.getKeySSI((err, barKeySSI) => {
+            bar.getKeySSIAsString((err, barKeySSI) => {
                 if (err) {
                     return callback(err);
                 }

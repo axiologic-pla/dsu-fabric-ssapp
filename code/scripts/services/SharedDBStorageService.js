@@ -42,7 +42,7 @@ export default class SharedStorage{
         }
     }
 
-    getItemInDB(key, value,  callback) {
+    setItemInDB(key, value,  callback) {
         if(typeof value == "string"){
             value = {__stringValue:value};
         }
@@ -63,6 +63,7 @@ export default class SharedStorage{
 
     setItem(key, value,  callback) {
         if(this.mydb){
+            console.log("Set Item:", SHARED_DB_FOLDER+key);
             this.DSUStorage.setItem(SHARED_DB_FOLDER+key, value, callback);
         } else {
             this.waitForDb(this.setItem, [key,value,callback]);
@@ -84,6 +85,7 @@ export default class SharedStorage{
 
     setObject(key, value,  callback) {
         if(this.mydb){
+            console.log("Set Object:", SHARED_DB_FOLDER+key);
             this.DSUStorage.setObject(SHARED_DB_FOLDER+key, value, callback);
         } else {
             this.waitForDb(this.setObject, [key,value,callback]);
@@ -105,6 +107,7 @@ export default class SharedStorage{
 
     setArray(key, value,  callback) {
         if(this.mydb){
+            console.log("Set Array:", SHARED_DB_FOLDER+key);
             this.DSUStorage.setObject(SHARED_DB_FOLDER+key, value, callback);
         } else {
             this.waitForDb(this.setArray, [key,value,callback]);
