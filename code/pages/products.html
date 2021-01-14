@@ -19,8 +19,16 @@
                         <psk-label label="GTIN"></psk-label>
                     </psk-layout-item>
                     <psk-layout-item onclick="this.dispatchEvent(new Event('edit-product'))" gtin="@gtin">
-                        <b><psk-label label="@gtin"></psk-label></b>
+                        <b>
+                            <psk-label label="@gtin"></psk-label>
+                        </b>
                     </psk-layout-item>
+                    <psk-layout template-columns="1fr 2fr">
+                        <psk-layout-item></psk-layout-item>
+                        <psk-layout-item>
+                            <psk-button event-name="transfer" label="Transfer" gtin="@gtin"></psk-button>
+                        </psk-layout-item>
+                    </psk-layout>
                 </psk-layout>
                 <div slot="no-data">No Products.</div>
             </psk-for-each>
@@ -29,6 +37,13 @@
             </div>
         </psk-condition>
         <div style="min-height: 30px;"></div>
-        <psk-button event-name="add-product" label="Add Product"></psk-button>
+        <psk-layout template-columns="1fr 1fr 1fr">
+            <psk-layout-item>
+                <psk-button event-name="add-product" label="Add Product"></psk-button>
+            </psk-layout-item>
+            <psk-layout-item>
+                <psk-button event-name="get-transferred-product" label="Get Transferred Product"></psk-button>
+            </psk-layout-item>
+        </psk-layout>
     </psk-container>
 </psk-page>

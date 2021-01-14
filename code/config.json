@@ -8,6 +8,8 @@
   "modals": {
     "selectLanguageAndType": "select-language-and-type-modal.html",
     "viewKeySSIModal": "view-keyssi-modal.html",
-    "loadingModal": "loading-modal.html"
+    "loadingModal": "loading-modal.html",
+    "transferProductModal": "transfer-product-modal.html",
+    "getTransferredProductModal": "get-transferred-product-modal.html"
   }
 }
