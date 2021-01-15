@@ -73,14 +73,18 @@ export default class ProductsController extends ContainerController {
                 }
 
                 const product = JSON.parse($$.Buffer.from(response, "base64").toString());
-                this.addProductToProductsList(new Product(product), (err)=>{});
+                this.addProductToProductsList(new Product(product), (err)=>{
+                    if (err) {
+                        return console.log(err);
+                    }
+
+                    this.History.navigateToPageByTag("audit");
+                });
             });
         });
 
         this.on('edit-product', (event) => {
-            let target = event.target;
-            let targetProduct = target.getAttribute("gtin");
-            const index = parseInt(targetProduct.replace(/\D/g, ''));
+            const index = this.getProductIndex(event);
             if (this.model.products[index].transferred) {
                 event.stopImmediatePropagation();
                 return;
@@ -114,7 +118,7 @@ export default class ProductsController extends ContainerController {
         this.logService.log({
             logInfo: product,
             username: this.model.username,
-            action: "Added transferred product",
+            action: `Transferred product from ${product.manufName}`,
             logType: 'PRODUCT_LOG'
         });
 

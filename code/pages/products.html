@@ -8,27 +8,35 @@
                     </psk-layout-item>
                     <psk-layout-item>
                         <psk-layout template-columns="2fr 7fr">
-                            <psk-layout-item onclick="this.dispatchEvent(new Event('edit-product'))" gtin="@gtin">
+                            <psk-layout-item>
                                 <psk-label label="Product name:"></psk-label>
                             </psk-layout-item>
-                            <psk-layout-item onclick="this.dispatchEvent(new Event('edit-product'))" gtin="@gtin">
+                            <psk-layout-item>
                                 <b>
                                     <psk-label label="@name"></psk-label>
                                 </b>
                             </psk-layout-item>
 
-                            <psk-layout-item onclick="this.dispatchEvent(new Event('edit-product'))" gtin="@gtin">
+                            <psk-layout-item>
                                 <psk-label label="GTIN:"></psk-label>
                             </psk-layout-item>
-                            <psk-layout-item onclick="this.dispatchEvent(new Event('edit-product'))" gtin="@gtin">
+                            <psk-layout-item>
                                 <b>
                                     <psk-label label="@gtin"></psk-label>
                                 </b>
                             </psk-layout-item>
 
                             <psk-condition condition="@transferred">
+
                                 <psk-layout-item slot="condition-false">
-                                    <psk-button event-name="transfer" label="Transfer" gtin="@gtin"></psk-button>
+                                    <psk-layout template-columns="1fr 1fr">
+                                        <psk-layout-item>
+                                            <psk-button event-name="transfer" label="Transfer" gtin="@gtin"></psk-button>
+                                        </psk-layout-item>
+                                        <psk-layout-item>
+                                            <psk-button event-name="edit-product" label="Edit" gtin="@gtin"></psk-button>
+                                        </psk-layout-item>
+                                    </psk-layout>
                                 </psk-layout-item>
                                 <psk-layout-item slot="condition-true">
                                     <psk-layout template-columns="11fr 1fr">
