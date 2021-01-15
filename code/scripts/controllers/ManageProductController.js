@@ -78,11 +78,27 @@ export default class ManageProductController extends ContainerController {
 
         })
 
-        /*
-        opendsu.http.doGet("/getSSIForMainDSU", function(err,res){
-            window.rawDossier =...
-            this.DSUStorage.enableDirectAccess();
-        }) */
+        const opendsu = require("opendsu");
+        opendsu.loadAPI("http").doGet("/getSSIForMainDSU", function(err,res){
+            console.log("Response .......", err, res);
+            if (err) {
+                return console.log(err);
+            }
+
+            let config = opendsu.loadApi("config");
+
+            let mainSSI = opendsu.loadApi("keyssi").parse(res);
+            if(mainSSI.getHint() == "server"){
+                config.disableLocalVault();
+            }
+            opendsu.loadAPI("resolver").loadDSU(res, (err, mainDSU) => {
+                if (err) {
+                    return console.log(err);
+                }
+                window.rawDossier = mainDSU;
+                this.DSUStorage.enableDirectAccess();
+            });
+        })
 
         this.on("add-product", (event) => {
             let product = this.model.product;
