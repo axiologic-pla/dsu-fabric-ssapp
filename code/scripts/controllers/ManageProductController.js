@@ -79,8 +79,11 @@ export default class ManageProductController extends ContainerController {
         })
 
         this.on("add-product", (event) => {
+            if (this.model.product.transferred) {
+                return;
+            }
+            this.model.product.transferred = false;
             let product = this.model.product;
-
             if (!this.isValid(product)) {
                 return;
             }

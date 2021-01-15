@@ -9,6 +9,7 @@ export default class Product {
     manufName = " ";
     version = 1;
     files = [];
+    transferred = false;
     reportURL = `${window.top.location.origin}/default-report.html`;
 
     constructor(product) {
