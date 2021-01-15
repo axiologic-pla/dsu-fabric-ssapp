@@ -56,9 +56,8 @@ export default class ProductsController extends ContainerController {
                     action: `Transferred product`,
                     logType: 'PRODUCT_LOG'
                 });
-                this.storageService.setArray(constants.PRODUCTS_TABLE, this.products, ()=>{
-                    this.History.navigateToPageByTag("products");
-                });
+
+                this.storageService.setArray(constants.PRODUCTS_TABLE, this.products, ()=>{});
             });
         });
 
@@ -82,6 +81,10 @@ export default class ProductsController extends ContainerController {
             let target = event.target;
             let targetProduct = target.getAttribute("gtin");
             const index = parseInt(targetProduct.replace(/\D/g, ''));
+            if (this.model.products[index].transferred) {
+                event.stopImmediatePropagation();
+                return;
+            }
             this.History.navigateToPageByTag("manage-product", {index: index});
         }, {capture: true});
 
