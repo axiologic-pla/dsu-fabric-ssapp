@@ -78,8 +78,17 @@ export default class ManageProductController extends ContainerController {
 
         })
 
+        /*
+        opendsu.http.doGet("/getSSIForMainDSU", function(err,res){
+            window.rawDossier =...
+            this.DSUStorage.enableDirectAccess();
+        }) */
+
         this.on("add-product", (event) => {
             let product = this.model.product;
+
+            this.DSUStorage.beginBatch();
+
             if (!this.isValid(product)) {
                 return;
             }
@@ -103,18 +112,21 @@ export default class ManageProductController extends ContainerController {
                     }
                     this.closeModal();
                     this.History.navigateToPageByTag("products");
+                    this.DSUStorage.commitBatch((err,res) => {
+                        if(err){
+                            console.log(err);
+                        }
+                    });
                 }
 
                 if(typeof product.keySSI === "undefined"){
                     return this.buildConstProductDSU(product.gtin, keySSI, (err, gtinSSI) => {
                         if (err) {
-                            if (err) {
-                                this.closeModal();
-                                return this.showErrorModalAndRedirect("Const Product DSU build failed.", "products");
-                            }
+                            this.closeModal();
+                            return this.showErrorModalAndRedirect("Const Product DSU build failed.", "products");
                         }
-                        product.keySSI = gtinSSI;
 
+                        product.keySSI = gtinSSI;
                         console.log("ConstProductDSU GTIN_SSI:", gtinSSI);
 
                         this.persistProduct(product, finish);
