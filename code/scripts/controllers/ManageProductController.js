@@ -21,6 +21,7 @@ export default class ManageProductController extends ContainerController {
         this.setModel({});
         this.storageService = new SharedStorage(this.DSUStorage);
         this.logService = new LogService(this.DSUStorage);
+        this.DSUStorage.enableDirectAccess();
 
         let state = this.History.getState();
         this.productIndex = state !== undefined ? state.index : undefined;
@@ -78,31 +79,8 @@ export default class ManageProductController extends ContainerController {
 
         })
 
-        const opendsu = require("opendsu");
-        opendsu.loadAPI("http").doGet("/getSSIForMainDSU", function(err,res){
-            console.log("Response .......", err, res);
-            if (err) {
-                return console.log(err);
-            }
-
-            let config = opendsu.loadApi("config");
-
-            let mainSSI = opendsu.loadApi("keyssi").parse(res);
-            if(mainSSI.getHint() == "server"){
-                config.disableLocalVault();
-            }
-            opendsu.loadAPI("resolver").loadDSU(res, (err, mainDSU) => {
-                if (err) {
-                    return console.log(err);
-                }
-                window.rawDossier = mainDSU;
-                this.DSUStorage.enableDirectAccess();
-            });
-        })
-
         this.on("add-product", (event) => {
             let product = this.model.product;
-
             this.DSUStorage.beginBatch();
 
             if (!this.isValid(product)) {
