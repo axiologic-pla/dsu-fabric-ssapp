@@ -54,10 +54,10 @@ export default class ManageProductController extends ContainerController {
 
             dsuBuilder.ensureHolderInfo((err, holderInfo) => {
                 if (!err && holderInfo) {
-                    console.log(holderInfo)
                     this.model.product.manufName = holderInfo.userDetails.company;
                     this.model.username = holderInfo.userDetails.username;
                 } else {
+                    printOpenDSUError(err, holderInfo);
                     this.showErrorModalAndRedirect("Invalid configuration detected! Configure your wallet properly in the Holder section!", "products");
                     // this.History.navigateToPageByTag("error");
                 }
@@ -81,8 +81,14 @@ export default class ManageProductController extends ContainerController {
 
         this.on("add-product", (event) => {
             let product = this.model.product;
-            this.DSUStorage.beginBatch();
-
+            try{
+                this.DSUStorage.beginBatch();
+            }catch(err){
+                reportUserRelevantError("Dropping previous user input");
+                this.DSUStorage.cancelBatch( (err,res) =>{
+                    this.DSUStorage.beginBatch();
+                })
+            }
             if (!this.isValid(product)) {
                 return;
             }
@@ -95,6 +101,7 @@ export default class ManageProductController extends ContainerController {
             this.buildProductDSU(product, (err, keySSI) => {
                 if (err) {
                     this.closeModal();
+                    printOpenDSUError(err)
                     return this.showErrorModalAndRedirect("Product DSU build failed.", "products");
                 }
 
@@ -102,6 +109,7 @@ export default class ManageProductController extends ContainerController {
                 let finish = (err) => {
                     if (err) {
                         this.closeModal();
+                        printOpenDSUError(err);
                         return this.showErrorModalAndRedirect("Product keySSI failed to be stored in your wallet.", "products");
                     }
                     this.closeModal();
@@ -117,6 +125,7 @@ export default class ManageProductController extends ContainerController {
                     return this.buildConstProductDSU(product.gtin, keySSI, (err, gtinSSI) => {
                         if (err) {
                             this.closeModal();
+                            printOpenDSUError(err);
                             return this.showErrorModalAndRedirect("Const Product DSU build failed.", "products");
                         }
 
