@@ -21,7 +21,6 @@ export default class ManageProductController extends ContainerController {
         this.setModel({});
         this.storageService = new SharedStorage(this.DSUStorage);
         this.logService = new LogService(this.DSUStorage);
-        this.DSUStorage.enableDirectAccess();
 
         let state = this.History.getState();
         this.productIndex = state !== undefined ? state.index : undefined;
@@ -57,7 +56,7 @@ export default class ManageProductController extends ContainerController {
                     this.model.product.manufName = holderInfo.userDetails.company;
                     this.model.username = holderInfo.userDetails.username;
                 } else {
-                    printOpenDSUError(err, holderInfo);
+                    printOpenDSUError(createOpenDSUErrorWrapper("Invalid configuration detected!", err));
                     this.showErrorModalAndRedirect("Invalid configuration detected! Configure your wallet properly in the Holder section!", "products");
                     // this.History.navigateToPageByTag("error");
                 }
@@ -101,7 +100,7 @@ export default class ManageProductController extends ContainerController {
             this.buildProductDSU(product, (err, keySSI) => {
                 if (err) {
                     this.closeModal();
-                    printOpenDSUError(err)
+                    printOpenDSUError(createOpenDSUErrorWrapper("Product DSU build failed!",err))
                     return this.showErrorModalAndRedirect("Product DSU build failed.", "products");
                 }
 
@@ -109,15 +108,16 @@ export default class ManageProductController extends ContainerController {
                 let finish = (err) => {
                     if (err) {
                         this.closeModal();
-                        printOpenDSUError(err);
+                        printOpenDSUError(createOpenDSUErrorWrapper("Product keySSI failed to be stored in your wallet.",err))
                         return this.showErrorModalAndRedirect("Product keySSI failed to be stored in your wallet.", "products");
                     }
-                    this.closeModal();
-                    this.History.navigateToPageByTag("products");
+
                     this.DSUStorage.commitBatch((err,res) => {
                         if(err){
-                            console.log(err);
+                            printOpenDSUError(createOpenDSUErrorWrapper("Failed to commit batch. Concurrency issues or other issue",err))
                         }
+                        this.closeModal();
+                        this.History.navigateToPageByTag("products");
                     });
                 }
 
@@ -125,13 +125,12 @@ export default class ManageProductController extends ContainerController {
                     return this.buildConstProductDSU(product.gtin, keySSI, (err, gtinSSI) => {
                         if (err) {
                             this.closeModal();
-                            printOpenDSUError(err);
-                            return this.showErrorModalAndRedirect("Const Product DSU build failed.", "products");
+                            printOpenDSUError(createOpenDSUErrorWrapper("Failed to create an Immutable Product DSU!",err))
+                            return this.showErrorModalAndRedirect("Failed to create an Immutable Product DSU!", "products");
                         }
 
                         product.keySSI = gtinSSI;
                         console.log("ConstProductDSU GTIN_SSI:", gtinSSI);
-
                         this.persistProduct(product, finish);
                     });
                 }
@@ -412,9 +411,9 @@ export default class ManageProductController extends ContainerController {
             username: this.model.username,
             action: "Created product",
             logType: 'PRODUCT_LOG'
+        }, ()=>{
+            this.storageService.setArray(constants.PRODUCTS_TABLE, this.products, callback);
         });
-
-        this.storageService.setArray(constants.PRODUCTS_TABLE, this.products, callback);
     }
 
     persistKeySSI(keySSI, gtin, callback) {

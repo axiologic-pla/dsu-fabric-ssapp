@@ -4,20 +4,22 @@ const SHARED_DB_FOLDER = "/sharedDB/data/";
 
 export default class SharedStorage{
     constructor(dsuStorage) {
-        this.DSUStorage = dsuStorage;
         this.mydb = window.sharedDbCache;
-        if(this.mydb == undefined){
-            this.getSharedSSI( (err,sharedSSI) => {
-                if(!err && sharedSSI){
-                    let opendsu = require("opendsu");
-                    let db = opendsu.loadAPI("db");
-                    this.mydb = db.getSharedDB(sharedSSI, SHARED_DB);
-                    window.sharedDbCache = this.mydb;
-                } else {
-                    alert("Wrong configuration as user/holder:" + err);
-                }
-            })
-        }
+        this.DSUStorage = dsuStorage;
+        this.DSUStorage.enableDirectAccess( ()=>{
+            if(this.mydb == undefined){
+                this.getSharedSSI( (err,sharedSSI) => {
+                    if(!err && sharedSSI){
+                        let opendsu = require("opendsu");
+                        let db = opendsu.loadAPI("db");
+                        this.mydb = db.getSharedDB(sharedSSI, SHARED_DB);
+                        window.sharedDbCache = this.mydb;
+                    } else {
+                        alert("Wrong configuration as user/holder:" + err);
+                    }
+                })
+            }
+        });
     }
 
     waitForDb(func, args){

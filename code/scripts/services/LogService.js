@@ -7,7 +7,7 @@ export default class LogService {
 		this.storageService = new SharedStorage(dsuStorage);
 	}
 
-	log (logDetails) {
+	log (logDetails, callback) {
 		if (logDetails === null || logDetails === undefined) {
 			return;
 		}
@@ -23,6 +23,7 @@ export default class LogService {
 				if (err) {
 					return console.log("Error adding a log.")
 				}
+				callback(err, true);
 			});
 		})
 	}

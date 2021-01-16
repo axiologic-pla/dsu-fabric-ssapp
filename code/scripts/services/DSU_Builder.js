@@ -12,19 +12,22 @@ export default class DSU_Builder {
             let {url, headers} = data;
             let scope = "";
 
-            crypto.createPresentationToken(this.holderInfo.ssi, scope, this.credential, (err, presentationToken)=>{
-                if(err){
-                    return callback(err);
-                }
+            if(typeof this.holderInfo != "undefined"){
+                crypto.createPresentationToken(this.holderInfo.ssi, scope, this.credential, (err, presentationToken)=>{
+                    if(err){
+                        return callback(err);
+                    }
 
-                headers["Authorization"] = presentationToken;
+                    headers["Authorization"] = presentationToken;
+                    return callback(undefined, {url, headers});
+                });
+            }else {
+                console.log("Unexpected case");
                 return callback(undefined, {url, headers});
-            });
+            }
 
         });
     }
-
-
 
     ensureHolderInfo(callback) {
         function getJSON(pth, callback){

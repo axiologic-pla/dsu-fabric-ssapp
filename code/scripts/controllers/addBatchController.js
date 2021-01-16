@@ -35,6 +35,7 @@ export default class addBatchController extends ContainerController {
         }
         this.storageService.getArray(constants.PRODUCTS_TABLE, (err, products) => {
                 if (err || !products) {
+                    printOpenDSUError(createOpenDSUErrorWrapper("Failed to retrieve products list!", err));
                     return this.showErrorModalAndRedirect("Failed to retrieve products list! Create a product first!", "products", 5000);
                 }
                 const options = [];
@@ -47,6 +48,15 @@ export default class addBatchController extends ContainerController {
         );
 
         this.on("add-batch", () => {
+            try{
+                this.DSUStorage.beginBatch();
+            }catch(err){
+                reportUserRelevantError("Dropping previous user input");
+                this.DSUStorage.cancelBatch( (err,res) =>{
+                    this.DSUStorage.beginBatch();
+                })
+            }
+
             let batch = this.model.batch;
             if(!batch.expiryForDisplay){
                 return this.showError("Invalid date");
@@ -76,12 +86,14 @@ export default class addBatchController extends ContainerController {
 
                 let error = batch.validate();
                 if(err){
+                    printOpenDSUError(createOpenDSUErrorWrapper("Invalid batch info",err));
                     return this.showErrorModalAndRedirect("Invalid batch info" + err.message, "batches");
                 }
 
                 this.displayModal("Creating new batch...");
                 this.buildBatchDSU(batch, (err, keySSI) => {
                     if (err){
+                        printOpenDSUError(createOpenDSUErrorWrapper("Batch DSU build failed.",err));
                         return this.showErrorModalAndRedirect("Batch DSU build failed.", "batches");
                     }
                     batch.keySSI = keySSI;
@@ -89,19 +101,28 @@ export default class addBatchController extends ContainerController {
 
                     this.buildImmutableDSU(batch, (err, gtinSSI) => {
                         if (err) {
+                            printOpenDSUError(createOpenDSUErrorWrapper("Failed to build immutable DSU",err));
                             return this.showErrorModalAndRedirect("Failed to build immutable DSU", "batches");
                         }
                         this.persistBatchInWallet(batch, (err) => {
                             if (err) {
-                                return this.showErrorModalAndRedirect("Failing to store Batch keySSI!");
+                                printOpenDSUError(createOpenDSUErrorWrapper("Failing to store Batch keySSI!", err));
+                                return this.showErrorModalAndRedirect("Failing to store Batch keySSI!", "batches");
                             }
                             this.logService.log({
                                 logInfo:batch,
                                 username: this.model.username,
                                 action: "Created Batch ",
                                 logType: 'BATCH_LOG'
+                            }, ()=>{
+                                this.DSUStorage.commitBatch((err,res) => {
+                                    if(err){
+                                        printOpenDSUError(createOpenDSUErrorWrapper("Failed to commit batch. Concurrency issues or other issue",err))
+                                    }
+                                    this.closeModal();
+                                    this.History.navigateToPageByTag("batches");
+                                });
                             });
-                            this.History.navigateToPageByTag("batches");
                         });
                     });
                 });
