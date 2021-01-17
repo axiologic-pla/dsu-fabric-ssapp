@@ -53,11 +53,15 @@ export default class ProductsController extends ContainerController {
                 this.logService.log({
                     logInfo: product,
                     username: this.model.username,
-                    action: `Transferred product`,
+                    action: `Transferred product to ${response}`,
                     logType: 'PRODUCT_LOG'
-                });
+                }, (err) => {
+                    if (err) {
+                        return console.log(err);
+                    }
 
-                this.storageService.setArray(constants.PRODUCTS_TABLE, this.products, ()=>{});
+                    this.storageService.setArray(constants.PRODUCTS_TABLE, this.products, ()=>{});
+                });
             });
         });
 
@@ -74,6 +78,7 @@ export default class ProductsController extends ContainerController {
 
                 const product = JSON.parse($$.Buffer.from(response, "base64").toString());
                 this.addProductToProductsList(new Product(product), (err)=>{
+                    console.log("Added product to product list", err);
                     if (err) {
                         return console.log(err);
                     }
@@ -120,12 +125,16 @@ export default class ProductsController extends ContainerController {
             username: this.model.username,
             action: `Transferred product from ${product.manufName}`,
             logType: 'PRODUCT_LOG'
-        });
+        }, (err) => {
+            if (err) {
+                return callback(err);
+            }
 
-        const prodElement = {};
-        product.transferred = false;
-        prodElement[product.gtin] = [product];
-        this.products.push(prodElement);
-        this.storageService.setArray(constants.PRODUCTS_TABLE, this.products, callback);
+            const prodElement = {};
+            product.transferred = false;
+            prodElement[product.gtin] = [product];
+            this.products.push(prodElement);
+            this.storageService.setArray(constants.PRODUCTS_TABLE, this.products, callback);
+        });
     }
 }
