@@ -244,7 +244,15 @@ export default class ManageProductController extends ContainerController {
                 if (err) {
                     return callback(err);
                 }
-                dsuBuilder.mount(transactionId, "/product", productDSUKeySSI, (err) => {
+
+                let keySSIInstance = productDSUKeySSI;
+                if (typeof keySSIInstance === "string") {
+                    const keySSISpace = require("opendsu").loadAPI("keyssi");
+                    keySSIInstance = keySSISpace.parse(keySSIInstance);
+                }
+                let sReadProductKeySSI = keySSIInstance.derive();
+                console.log("Sread product DSU /./.,/./.,/.,/.,/.,kl;'////////////////////////////", sReadProductKeySSI.getIdentifier(true));
+                dsuBuilder.mount(transactionId, "/product", sReadProductKeySSI.getIdentifier(), (err) => {
                     if (err) {
                         return callback(err);
                     }
