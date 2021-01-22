@@ -23,7 +23,7 @@ export default class ManageProductController extends ContainerController {
         this.logService = new LogService(this.DSUStorage);
 
         let state = this.History.getState();
-        this.productIndex = state !== undefined ? state.index : undefined;
+        this.gtin = typeof state !== "undefined" ? state.gtin : undefined;
         this.model.languages = {
             label: "Language",
             placeholder: "Select a language",
@@ -40,9 +40,9 @@ export default class ManageProductController extends ContainerController {
             this.addLanguageTypeFilesListener(event)
         });
 
-        this.storageService.getArray(constants.PRODUCTS_TABLE, (err, products) => {
+        this.storageService.getObject(constants.PRODUCTS_TABLE, (err, products) => {
             this.products = products;
-            if (typeof this.productIndex !== "undefined") {
+            if (typeof this.gtin !== "undefined") {
                 this.model.product = new Product(this.getLastVersionProduct());
                 let imagePath = `${constants.DATA_STORAGE_PATH}${this.model.product.gtin}${constants.PRODUCT_IMAGE_FILE}`;
                 this.model.product.photo = utils.getFetchUrl(`/download${imagePath}`);
@@ -80,11 +80,11 @@ export default class ManageProductController extends ContainerController {
 
         this.on("add-product", (event) => {
             let product = this.model.product;
-            try{
+            try {
                 this.DSUStorage.beginBatch();
-            }catch(err){
+            } catch (err) {
                 reportUserRelevantError("Dropping previous user input");
-                this.DSUStorage.cancelBatch( (err,res) =>{
+                this.DSUStorage.cancelBatch((err, res) => {
                     this.DSUStorage.beginBatch();
                 })
             }
@@ -92,15 +92,11 @@ export default class ManageProductController extends ContainerController {
                 return;
             }
 
-            if (this.sameProductVersionExists()) {
-                return this.showErrorModalAndRedirect("A product with the same GTIN already exists.", "products");
-            }
-
             this.displayModal("Creating product....");
             this.buildProductDSU(product, (err, keySSI) => {
                 if (err) {
                     this.closeModal();
-                    printOpenDSUError(createOpenDSUErrorWrapper("Product DSU build failed!",err))
+                    printOpenDSUError(createOpenDSUErrorWrapper("Product DSU build failed!", err))
                     return this.showErrorModalAndRedirect("Product DSU build failed.", "products");
                 }
 
@@ -108,24 +104,24 @@ export default class ManageProductController extends ContainerController {
                 let finish = (err) => {
                     if (err) {
                         this.closeModal();
-                        printOpenDSUError(createOpenDSUErrorWrapper("Product keySSI failed to be stored in your wallet.",err))
+                        printOpenDSUError(createOpenDSUErrorWrapper("Product keySSI failed to be stored in your wallet.", err))
                         return this.showErrorModalAndRedirect("Product keySSI failed to be stored in your wallet.", "products");
                     }
 
-                    this.DSUStorage.commitBatch((err,res) => {
-                        if(err){
-                            printOpenDSUError(createOpenDSUErrorWrapper("Failed to commit batch. Concurrency issues or other issue",err))
+                    this.DSUStorage.commitBatch((err, res) => {
+                        if (err) {
+                            printOpenDSUError(createOpenDSUErrorWrapper("Failed to commit batch. Concurrency issues or other issue", err))
                         }
                         this.closeModal();
                         this.History.navigateToPageByTag("products");
                     });
                 }
 
-                if(typeof product.keySSI === "undefined"){
+                if (typeof product.keySSI === "undefined") {
                     return this.buildConstProductDSU(product.gtin, keySSI, (err, gtinSSI) => {
                         if (err) {
                             this.closeModal();
-                            printOpenDSUError(createOpenDSUErrorWrapper("Failed to create an Immutable Product DSU!",err))
+                            printOpenDSUError(createOpenDSUErrorWrapper("Failed to create an Immutable Product DSU!", err))
                             return this.showErrorModalAndRedirect("Failed to create an Immutable Product DSU!", "products");
                         }
 
@@ -141,9 +137,10 @@ export default class ManageProductController extends ContainerController {
     }
 
     getLastVersionProduct() {
-        const productVersions = Object.values(this.products[this.productIndex])[0];
+        const productVersions = this.products[this.gtin];
         return productVersions[productVersions.length - 1];
     }
+
 
     addLanguageTypeFilesListener(event) {
         let actionModalModel = {
@@ -216,24 +213,6 @@ export default class ManageProductController extends ContainerController {
         return true;
     }
 
-    sameProductVersionExists() {
-        if (typeof this.products === "undefined" || this.products === null || this.products.length === 0) {
-            return false;
-        }
-        if (typeof this.productIndex === "undefined") {
-            const products = this.products.map(product => {
-                return Object.keys(product)[0];
-            });
-
-            this.productIndex = products.findIndex(gtin => gtin === this.model.product.gtin);
-        }
-        if (this.productIndex >= 0 && this.getLastVersionProduct().version === this.model.product.version) {
-            return true;
-        }
-
-        return false;
-    }
-
     buildConstProductDSU(gtin, productDSUKeySSI, callback) {
         dsuBuilder.getTransactionId((err, transactionId) => {
             if (err) {
@@ -251,7 +230,6 @@ export default class ManageProductController extends ContainerController {
                     keySSIInstance = keySSISpace.parse(keySSIInstance);
                 }
                 let sReadProductKeySSI = keySSIInstance.derive();
-                console.log("Sread product DSU /./.,/./.,/.,/.,/.,kl;'////////////////////////////", sReadProductKeySSI.getIdentifier(true));
                 dsuBuilder.mount(transactionId, "/product", sReadProductKeySSI.getIdentifier(), (err) => {
                     if (err) {
                         return callback(err);
@@ -326,7 +304,7 @@ export default class ManageProductController extends ContainerController {
             if (err) {
                 return callback(err);
             }
-            dsuBuilder.addFileDataToDossier(transactionId, basePath +  product.photo, this.productPhoto, (err) => {
+            dsuBuilder.addFileDataToDossier(transactionId, basePath + product.photo, this.productPhoto, (err) => {
                 if (err) {
                     return callback(err);
                 }
@@ -407,12 +385,10 @@ export default class ManageProductController extends ContainerController {
         }
 
         product.gs1Data = `(01)${product.gtin}(21)${Utils.generateNumericID(12)}(10)${Utils.generateID(6)}(17)111111`;
-        if (typeof this.productIndex !== "undefined" && this.productIndex >= 0) {
-            this.products[this.productIndex][product.gtin].push(product);
+        if (typeof this.gtin !== "undefined" && typeof this.products[this.gtin] !== "undefined") {
+            this.products[this.gtin].push(product);
         } else {
-            const prodElement = {};
-            prodElement[product.gtin] = [product];
-            this.products.push(prodElement);
+            this.products[product.gtin] = [product];
         }
 
         product.creationTime = utils.convertDateTOGMTFormat(new Date());
@@ -421,8 +397,8 @@ export default class ManageProductController extends ContainerController {
             username: this.model.username,
             action: "Created product",
             logType: 'PRODUCT_LOG'
-        }, ()=>{
-            this.storageService.setArray(constants.PRODUCTS_TABLE, this.products, callback);
+        }, () => {
+            this.storageService.setObject(constants.PRODUCTS_TABLE, this.products, callback);
         });
     }
 

@@ -15,17 +15,13 @@ export default class ProductsController extends ContainerController {
         this.logService = new LogService(this.DSUStorage);
 
         this.model.addExpression('productsListLoaded', () => {
-            return typeof this.model.products !== "undefined";
-        }, 'products');
+            return typeof this.model.productsForDisplay !== "undefined";
+        }, 'productsForDisplay');
 
 
-        this.storageService.getArray(constants.PRODUCTS_TABLE, (err, products) => {
+        this.storageService.getObject(constants.PRODUCTS_TABLE, (err, products) => {
             this.products = products;
-            const lastVersionProducts = products.map(product => {
-                const versions = Object.values(product)[0];
-                return versions[versions.length - 1];
-            });
-            this.model.products = lastVersionProducts;
+            this.model.productsForDisplay = Object.values(products).map(productVersions => productVersions[productVersions.length - 1]);
         });
 
         this.on("add-product", (event) => {
@@ -34,10 +30,10 @@ export default class ProductsController extends ContainerController {
         });
 
         this.on("transfer", (event) => {
-            const productIndex = this.getProductIndex(event);
-            const gtin = this.model.products[productIndex].gtin;
-            this.products[productIndex][gtin][this.products[productIndex][gtin].length - 1].transferred = true;
-            const product = this.model.products[productIndex];
+            const gtin = event.target.getAttribute("gtin");
+            this.products[gtin][this.products[gtin].length - 1].transferred = true;
+
+            const product = this.products[gtin][this.products[gtin].length - 1];
             let actionModalModel = {
                 title: "Enter the company name to which the product is transferred",
                 transferCode: $$.Buffer.from(JSON.stringify(product)).toString("base64"),
@@ -60,7 +56,9 @@ export default class ProductsController extends ContainerController {
                         return console.log(err);
                     }
 
-                    this.storageService.setArray(constants.PRODUCTS_TABLE, this.products, ()=>{});
+                    this.storageService.setObject(constants.PRODUCTS_TABLE, this.products, ()=>{
+                        this.model.productsForDisplay = Object.values(this.products).map(productVersions => productVersions[productVersions.length - 1]);
+                    });
                 });
             });
         });
@@ -78,23 +76,17 @@ export default class ProductsController extends ContainerController {
 
                 const product = JSON.parse($$.Buffer.from(response, "base64").toString());
                 this.addProductToProductsList(new Product(product), (err)=>{
-                    console.log("Added product to product list", err);
                     if (err) {
                         return console.log(err);
                     }
-
-                    this.History.navigateToPageByTag("audit");
+                    this.model.productsForDisplay = Object.values(this.products).map(productVersions => productVersions[productVersions.length - 1]);
                 });
             });
         });
 
         this.on('edit-product', (event) => {
-            const index = this.getProductIndex(event);
-            if (this.model.products[index].transferred) {
-                event.stopImmediatePropagation();
-                return;
-            }
-            this.History.navigateToPageByTag("manage-product", {index: index});
+            const gtin = event.target.getAttribute("gtin");
+            this.History.navigateToPageByTag("manage-product", {gtin: gtin});
         }, {capture: true});
 
 
@@ -107,18 +99,9 @@ export default class ProductsController extends ContainerController {
         });
     }
 
-    getProductIndex(event){
-        let target = event.target;
-        let targetProduct = target.getAttribute("gtin");
-        const gtin = targetProduct.replace(/\D/g, '');
-        const index = this.model.products.findIndex(product => product.gtin === gtin);
-        return index;
-    }
-
     addProductToProductsList(product, callback) {
-        const prodIndex = this.products.findIndex(prod => prod.gtin === product.gtin);
-        if (prodIndex >= 0) {
-            return callback();
+        if (typeof this.products[product.gtin] !== "undefined" && this.products[product.gtin].length) {
+            return callback(undefined, undefined);
         }
         this.logService.log({
             logInfo: product,
@@ -130,11 +113,9 @@ export default class ProductsController extends ContainerController {
                 return callback(err);
             }
 
-            const prodElement = {};
             product.transferred = false;
-            prodElement[product.gtin] = [product];
-            this.products.push(prodElement);
-            this.storageService.setArray(constants.PRODUCTS_TABLE, this.products, callback);
+            this.products[product.gtin] = [product];
+            this.storageService.setObject(constants.PRODUCTS_TABLE, this.products, callback);
         });
     }
 }

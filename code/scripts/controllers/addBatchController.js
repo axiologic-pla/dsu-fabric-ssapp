@@ -16,9 +16,9 @@ export default class addBatchController extends ContainerController {
         this.storageService = new SharedStorage(this.DSUStorage);
         this.logService = new LogService(this.DSUStorage);
 
-        dsuBuilder.ensureHolderInfo( (err, holderInfo) => {
-            if(!err){
-                this.model.username  = holderInfo.userDetails.username;
+        dsuBuilder.ensureHolderInfo((err, holderInfo) => {
+            if (!err) {
+                this.model.username = holderInfo.userDetails.username;
             } else {
                 this.showErrorModalAndRedirect("Invalid configuration detected! Configure your wallet properly in the Holder section!", "batches");
             }
@@ -33,32 +33,28 @@ export default class addBatchController extends ContainerController {
             label: "Version",
             placeholder: "Select a version"
         }
-        this.storageService.getArray(constants.PRODUCTS_TABLE, (err, products) => {
-                if (err || !products) {
-                    printOpenDSUError(createOpenDSUErrorWrapper("Failed to retrieve products list!", err));
-                    return this.showErrorModalAndRedirect("Failed to retrieve products list! Create a product first!", "products", 5000);
-                }
-                const options = [];
-                products.forEach(product => {
-                    const gtin = Object.keys(product)[0];
-                    options.push({label: gtin, value: gtin});
-                });
-                this.model.products.options = options;
+        this.storageService.getObject(constants.PRODUCTS_TABLE, (err, products) => {
+            if (err || !products) {
+                printOpenDSUError(createOpenDSUErrorWrapper("Failed to retrieve products list!", err));
+                return this.showErrorModalAndRedirect("Failed to retrieve products list! Create a product first!", "products", 5000);
             }
-        );
+            const options = [];
+            Object.keys(products).forEach(gtin => options.push({label: gtin, value: gtin}));
+            this.model.products.options = options;
+        });
 
         this.on("add-batch", () => {
-            try{
+            try {
                 this.DSUStorage.beginBatch();
-            }catch(err){
+            } catch (err) {
                 reportUserRelevantError("Dropping previous user input");
-                this.DSUStorage.cancelBatch( (err,res) =>{
+                this.DSUStorage.cancelBatch((err, res) => {
                     this.DSUStorage.beginBatch();
                 })
             }
 
             let batch = this.model.batch;
-            if(!batch.expiryForDisplay){
+            if (!batch.expiryForDisplay) {
                 return this.showError("Invalid date");
             }
             batch.expiry = utils.convertDateToISO(batch.expiryForDisplay);
@@ -67,33 +63,33 @@ export default class addBatchController extends ContainerController {
                 /*if(err){
                     return this.showErrorModalAndRedirect("Failed to retrieve products list", "batches");
                 } */
-                try{
+                try {
                     console.log(this.model.batch.serialNumbers);
-                    if(this.model.batch.serialNumbers != ""){
+                    if (this.model.batch.serialNumbers != "") {
                         this.model.batch.serialNumbersArray = this.model.batch.serialNumbers.split(/[\r\n ,]+/);
                         if (this.model.batch.serialNumbersArray.length === 0 || this.model.batch.serialNumbersArray[0] === '') {
                             return this.showError("Invalid list of serial numbers");
                         }
                         this.model.batch.defaultSerialNumber = this.model.batch.serialNumbersArray[0];
-                        console.log("defaultSerialNumber:",this.model.batch.defaultSerialNumber);
+                        console.log("defaultSerialNumber:", this.model.batch.defaultSerialNumber);
                         batch.addSerialNumbers(batch.serialNumbersArray);
                     } else {
                         return this.showError(err, "Invalid list of serial numbers");
                     }
-                } catch(err){
+                } catch (err) {
                     return this.showError(err, "Invalid list of serial numbers");
                 }
 
                 let error = batch.validate();
-                if(err){
-                    printOpenDSUError(createOpenDSUErrorWrapper("Invalid batch info",err));
+                if (err) {
+                    printOpenDSUError(createOpenDSUErrorWrapper("Invalid batch info", err));
                     return this.showErrorModalAndRedirect("Invalid batch info" + err.message, "batches");
                 }
 
                 this.displayModal("Creating new batch...");
                 this.buildBatchDSU(batch, (err, keySSI) => {
-                    if (err){
-                        printOpenDSUError(createOpenDSUErrorWrapper("Batch DSU build failed.",err));
+                    if (err) {
+                        printOpenDSUError(createOpenDSUErrorWrapper("Batch DSU build failed.", err));
                         return this.showErrorModalAndRedirect("Batch DSU build failed.", "batches");
                     }
                     batch.keySSI = keySSI;
@@ -101,7 +97,7 @@ export default class addBatchController extends ContainerController {
 
                     this.buildImmutableDSU(batch, (err, gtinSSI) => {
                         if (err) {
-                            printOpenDSUError(createOpenDSUErrorWrapper("Failed to build immutable DSU",err));
+                            printOpenDSUError(createOpenDSUErrorWrapper("Failed to build immutable DSU", err));
                             return this.showErrorModalAndRedirect("Failed to build immutable DSU", "batches");
                         }
                         this.persistBatchInWallet(batch, (err) => {
@@ -110,14 +106,14 @@ export default class addBatchController extends ContainerController {
                                 return this.showErrorModalAndRedirect("Failing to store Batch keySSI!", "batches");
                             }
                             this.logService.log({
-                                logInfo:batch,
+                                logInfo: batch,
                                 username: this.model.username,
                                 action: "Created Batch ",
                                 logType: 'BATCH_LOG'
-                            }, ()=>{
-                                this.DSUStorage.commitBatch((err,res) => {
-                                    if(err){
-                                        printOpenDSUError(createOpenDSUErrorWrapper("Failed to commit batch. Concurrency issues or other issue",err))
+                            }, () => {
+                                this.DSUStorage.commitBatch((err, res) => {
+                                    if (err) {
+                                        printOpenDSUError(createOpenDSUErrorWrapper("Failed to commit batch. Concurrency issues or other issue", err))
                                     }
                                     this.closeModal();
                                     this.History.navigateToPageByTag("batches");
@@ -139,9 +135,9 @@ export default class addBatchController extends ContainerController {
         })
 
         this.model.onChange("products.value", (event) => {
-            this.storageService.getArray(constants.PRODUCTS_TABLE, (err, products) => {
-                this.productIndex = products.findIndex(product => Object.keys(product)[0] === this.model.products.value);
-                this.selectedProduct = products[this.productIndex][this.model.products.value];
+            this.storageService.getObject(constants.PRODUCTS_TABLE, (err, products) => {
+                this.gtin = this.model.products.value;
+                this.selectedProduct = products[this.gtin];
                 this.model.versions.options = this.selectedProduct.map(prod => {
                     return {label: prod.version, value: prod.version};
                 });
@@ -149,7 +145,7 @@ export default class addBatchController extends ContainerController {
         })
 
         this.model.onChange("versions.value", (event) => {
-            if (typeof this.productIndex === "undefined") {
+            if (typeof this.gtin === "undefined") {
                 return this.showError("A product should be selected before selecting a version");
             }
 
@@ -198,7 +194,7 @@ export default class addBatchController extends ContainerController {
                 return callback(err);
             }
 
-            if(!batch.gtin || !batch.batchNumber || !batch.expiry){
+            if (!batch.gtin || !batch.batchNumber || !batch.expiry) {
                 return this.showError("GTIN, batchNumber and expiry date are mandatory");
                 return;
             }
