@@ -230,7 +230,7 @@ export default class ManageProductController extends ContainerController {
                     keySSIInstance = keySSISpace.parse(keySSIInstance);
                 }
                 let sReadProductKeySSI = keySSIInstance.derive();
-                dsuBuilder.mount(transactionId, "/product", sReadProductKeySSI.getIdentifier(), (err) => {
+                dsuBuilder.mount(transactionId, "/product", keySSIInstance.getIdentifier(), (err) => {
                     if (err) {
                         return callback(err);
                     }
