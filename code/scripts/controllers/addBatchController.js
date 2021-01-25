@@ -15,7 +15,7 @@ export default class addBatchController extends ContainerController {
         this.setModel({});
         this.storageService = new SharedStorage(this.DSUStorage);
         this.logService = new LogService(this.DSUStorage);
-
+        this.versionOffset = 1;
         dsuBuilder.ensureHolderInfo((err, holderInfo) => {
             if (!err) {
                 this.model.username = holderInfo.userDetails.username;
@@ -138,6 +138,7 @@ export default class addBatchController extends ContainerController {
             this.storageService.getObject(constants.PRODUCTS_TABLE, (err, products) => {
                 this.gtin = this.model.products.value;
                 this.selectedProduct = products[this.gtin];
+                this.versionOffset = this.selectedProduct[0].version;
                 this.model.versions.options = this.selectedProduct.map(prod => {
                     return {label: prod.version, value: prod.version};
                 });
@@ -149,7 +150,7 @@ export default class addBatchController extends ContainerController {
                 return this.showError("A product should be selected before selecting a version");
             }
 
-            const versionIndex = parseInt(this.model.versions.value) - 1;
+            const versionIndex = parseInt(this.model.versions.value) - this.versionOffset;
             const product = this.selectedProduct[versionIndex];
             this.model.batch.language = product.language;
             this.model.batch.version = product.version;

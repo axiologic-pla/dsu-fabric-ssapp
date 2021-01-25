@@ -125,7 +125,7 @@ export default class ManageProductController extends ContainerController {
                             return this.showErrorModalAndRedirect("Failed to create an Immutable Product DSU!", "products");
                         }
 
-                        product.keySSI = gtinSSI;
+                        product.keySSI = keySSI;
                         console.log("ConstProductDSU GTIN_SSI:", gtinSSI);
                         this.persistProduct(product, finish);
                     });
@@ -268,6 +268,7 @@ export default class ManageProductController extends ContainerController {
     }
 
     updateProductDSU(transactionId, product, callback) {
+        debugger
         dsuBuilder.setKeySSI(transactionId, product.keySSI, (err) => {
             if (err) {
                 return callback(err);
@@ -296,7 +297,7 @@ export default class ManageProductController extends ContainerController {
     }
 
     addProductFilesToDSU(transactionId, product, callback) {
-        const basePath = '/' + product.version;
+        const basePath = '/product/' + product.version;
         product.photo = PRODUCT_IMAGE_FILE;
         product.leaflet = LEAFLET_ATTACHMENT_FILE;
         const productStorageFile = basePath + PRODUCT_STORAGE_FILE;
