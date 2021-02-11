@@ -34,10 +34,19 @@ export default class Batch {
 
     addSerialNumbers(arr){
         let crypto = require("opendsu").loadAPI("crypto");
-        let bf = crypto.createBloomFilter({ estimatedElementCount: arr.length, falsePositiveTolerance: 0.000001 });
+        let bf;
+        if(this.bloomFilterSerialisation){
+            bf = crypto.createBloomFilter(this.bloomFilterSerialisation);
+        }else{
+            bf = crypto.createBloomFilter({ estimatedElementCount: arr.length, falsePositiveTolerance: 0.000001 });
+        }
         arr.forEach( sn => {
             bf.insert(sn);
         });
         this.bloomFilterSerialisation = bf.bloomFilterSerialisation();
+    }
+    appnedSerialNumbrs(arr){
+        let crypto = require("opendsu").loadAPI("crypto");
+        let bf = crypto.createBloomFilter({ estimatedElementCount: arr.length, falsePositiveTolerance: 0.000001 });
     }
 }

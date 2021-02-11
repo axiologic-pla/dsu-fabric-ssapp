@@ -11,7 +11,10 @@ const dsuBuilder = new DSU_Builder();
 export default class addBatchController extends ContainerController {
     constructor(element, history) {
         super(element, history);
-        let batch = new Batch();
+        let state = this.History.getState();
+        const editMode = state && state.batchData;
+        const editData = editMode ? JSON.parse(state.batchData) : undefined;
+        let batch = new Batch(editData);
         this.setModel({});
         this.storageService = new SharedStorage(this.DSUStorage);
         this.logService = new LogService(this.DSUStorage);
@@ -25,14 +28,32 @@ export default class addBatchController extends ContainerController {
         })
 
         this.model.batch = batch;
+        this.model.editMode = editMode;
+        this.model.action = editMode ? "Save batch" : "Add batch"
         this.model.products = {
             label: "Product",
             placeholder: "Select a product"
         }
+
         this.model.versions = {
             label: "Version",
             placeholder: "Select a version"
         }
+
+        if(editMode){
+            this.storageService.getObject(constants.PRODUCTS_TABLE, (err, products) => {
+                this.selectedProduct = products[this.model.batch.gtin];
+                this.versionOffset = this.selectedProduct[0].version;
+                const options =  this.selectedProduct.map(prod => {
+                    return {label: prod.version, value: prod.version};
+                });
+                this.model.versions.options = options;
+            });
+            this.model.versions.placeholder =  batch.version;
+            this.model.versions.value =  batch.version;
+            this.gtin = this.model.batch.gtin;
+        }
+
         this.storageService.getObject(constants.PRODUCTS_TABLE, (err, products) => {
             if (err || !products) {
                 printOpenDSUError(createOpenDSUErrorWrapper("Failed to retrieve products list!", err));
@@ -95,11 +116,8 @@ export default class addBatchController extends ContainerController {
                     batch.keySSI = keySSI;
                     batch.creationTime = utils.convertDateTOGMTFormat(new Date());
 
-                    this.buildImmutableDSU(batch, (err, gtinSSI) => {
-                        if (err) {
-                            printOpenDSUError(createOpenDSUErrorWrapper("Failed to build immutable DSU", err));
-                            return this.showErrorModalAndRedirect("Failed to build immutable DSU", "batches");
-                        }
+
+                    const persistBatch = ()=>{
                         this.persistBatchInWallet(batch, (err) => {
                             if (err) {
                                 printOpenDSUError(createOpenDSUErrorWrapper("Failing to store Batch keySSI!", err));
@@ -120,7 +138,20 @@ export default class addBatchController extends ContainerController {
                                 });
                             });
                         });
-                    });
+                    }
+
+                    if(!this.model.editMode){
+                        this.buildImmutableDSU(batch, (err, gtinSSI) => {
+                            if (err) {
+                                printOpenDSUError(createOpenDSUErrorWrapper("Failed to build immutable DSU", err));
+                                return this.showErrorModalAndRedirect("Failed to build immutable DSU", "batches");
+                            }
+                            persistBatch();
+                        });
+                    }else{
+                        persistBatch();
+                    }
+
                 });
             });
         });
@@ -133,6 +164,7 @@ export default class addBatchController extends ContainerController {
                 }
             })
         })
+
 
         this.model.onChange("products.value", (event) => {
             this.storageService.getObject(constants.PRODUCTS_TABLE, (err, products) => {
@@ -162,6 +194,8 @@ export default class addBatchController extends ContainerController {
             this.feedbackEmitter = e.detail;
         });
     }
+
+
 
     buildBatchDSU(batch, callback) {
         dsuBuilder.getTransactionId((err, transactionId) => {
@@ -225,8 +259,12 @@ export default class addBatchController extends ContainerController {
             if (typeof batches === "undefined" || batches === null) {
                 batches = [];
             }
-
-            batches.push(batch);
+            const batchIndex = batches.findIndex(elem=>elem.batchNumber === batch.batchNumber)
+            if(batchIndex >= 0){
+                batches[batchIndex] = batch;
+            }else{
+                batches.push(batch);
+            }
             this.storageService.setArray(constants.BATCHES_STORAGE_TABLE, batches, callback);
         });
     }

@@ -22,6 +22,11 @@ export default class batchesController extends ContainerController {
         this.on("add-batch", () => {
             this.History.navigateToPageByTag("add-batch");
         });
+        this.on('edit-product', (event) => {
+            const batchNumber = event.target.getAttribute("batch-data");
+            const batchData = this.model.batches.find(element=> element.batchNumber === batchNumber);
+            this.History.navigateToPageByTag("add-batch", {'batchData': JSON.stringify(batchData)});
+        }, {capture: true});
     }
 
     generateSerializationForBatch(batch) {
