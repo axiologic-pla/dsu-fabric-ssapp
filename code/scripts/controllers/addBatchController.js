@@ -36,7 +36,7 @@ export default class addBatchController extends ContainerController {
         }
 
         this.model.versions = {
-            label: "Version",
+            label: "Product version",
             placeholder: "Select a version"
         }
 
