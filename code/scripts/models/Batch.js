@@ -3,6 +3,7 @@ export default class Batch {
     batchNumber;
     expiryForDisplay;
     version = 1;
+    versionLabel = "";
     serialNumbers = "430239925150";
     defaultSerialNumber = "0";
     bloomFilterSerialisation;

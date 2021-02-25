@@ -154,7 +154,13 @@ export default class addBatchController extends ContainerController {
       const product = this.selectedProduct[versionIndex];
 
       this.model.batch.language = product.language;
-      this.model.batch.version = this.model.versions.value !== "latest" ? product.version : this.model.versions.value;
+      if (this.model.versions.value === "latest") {
+        this.model.batch.version = this.model.versions.value;
+        this.model.batch.versionLabel = this.model.versions.value;
+      } else {
+        this.model.batch.version = product.version;
+        this.model.batch.versionLabel = product.batchSpecificVersion ? product.version + " - (batch specific)" : product.version;
+      }
       this.model.batch.gtin = product.gtin;
       this.model.batch.product = product.keySSI;
     })
@@ -184,7 +190,8 @@ export default class addBatchController extends ContainerController {
           this.selectedProduct = products[gtin];
           this.versionOffset = this.selectedProduct[0].version;
           const options = this.selectedProduct.map(prod => {
-            return {label: prod.version + "", value: prod.version + ""};
+            let labelValue = prod.batchSpecificVersion ? " - (batch specific)" : ""
+            return {label: prod.version + labelValue, value: prod.version + ""};
           });
           options.unshift({label: "latest version", value: "latest"});
           resolve(options);

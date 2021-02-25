@@ -1,53 +1,58 @@
 <psk-page title="Batches">
     <psk-container controller-name="batchesController">
         <psk-for-each data-view-model="@batches">
-            <psk-layout template-columns="200px auto" gap="20px">
+            <psk-layout gap="10px" class="border-bottom" template-columns="200px 22em 10em" >
                 <psk-layout-item>
-                    <psk-barcode-generator type="gs1datamatrix" size="16" data="@code"></psk-barcode-generator>
+                    <psk-barcode-generator data="@code" size="16" type="gs1datamatrix"></psk-barcode-generator>
                 </psk-layout-item>
-                <div>
-                    <psk-layout  template-columns="10em 10em" style="margin-top: 20px">
-                        <psk-label label="Batch number:"></psk-label>
-                        <b>
-                            <psk-label label="@batchNumber"></psk-label>
-                        </b>
-                    </psk-layout >
-                    <psk-layout   template-columns="10em 10em">
-                        <psk-label label="Expiration date:"></psk-label>
-                        <psk-date-input class="expiryForDisplay-date" value="@expiryForDisplay" read-only style="margin-top: 11px"></psk-date-input>
-
-                    </psk-layout >
-
-                    <psk-button event-name="edit-product" label="Edit" batch-data="@batchNumber"></psk-button>
-
-                </div>
-
+                <psk-layout-item>
+                    <psk-layout style="margin-top: 20px; margin-bottom: 2px" template-columns="10em 10em">
+                        <psk-label class="no-padding" label="Batch number:"></psk-label>
+                        <b><psk-label class="no-padding" label="@batchNumber"></psk-label></b>
+                    </psk-layout>
+                    <psk-layout style="margin-bottom: 2px" template-columns="10em 10em">
+                        <psk-label class="no-padding" label="Expiration date:"></psk-label>
+                        <psk-date-input class="expiration-date no-padding-left" read-only value="@expiryForDisplay"></psk-date-input>
+                    </psk-layout>
+                    <psk-layout style="margin-bottom: 2px" template-columns="10em 10em">
+                        <psk-label class="no-padding" label="Version"></psk-label>
+                        <b><psk-label class="no-padding" label="@versionLabel"></psk-label></b>
+                    </psk-layout>
+                    <psk-layout template-columns="10em 10em">
+                        <psk-label class="no-padding" label="GTIN"></psk-label>
+                        <b><psk-label class="no-padding" label="@gtin"></psk-label></b>
+                    </psk-layout>
+                </psk-layout-item>
+                <psk-layout-item>
+                    <psk-button batch-data="@batchNumber" event-name="edit-product" label="Edit"></psk-button>
+                </psk-layout-item>
             </psk-layout>
             <div slot="no-data">No Batches.</div>
         </psk-for-each>
         <div style="min-height: 30px;"></div>
-        <psk-button label="Add batch" event-name="add-batch"></psk-button>
+        <psk-button event-name="add-batch" label="Add batch"></psk-button>
         <psk-list-feedbacks></psk-list-feedbacks>
 
 
         <psk-label label="WRONG SN for testing "></psk-label>
         <psk-for-each data-view-model="@batches">
-            <psk-layout template-columns="200px auto" gap="20px">
+            <psk-layout gap="20px" template-columns="200px auto">
                 <psk-layout-item>
-                    <psk-barcode-generator type="gs1datamatrix" size="16" data="@wrongCode"></psk-barcode-generator>
+                    <psk-barcode-generator data="@wrongCode" size="16" type="gs1datamatrix"></psk-barcode-generator>
                 </psk-layout-item>
                 <div>
-                    <psk-layout  template-columns="10em 10em" style="margin-top: 30px">
+                    <psk-layout style="margin-top: 30px" template-columns="10em 10em">
                         <psk-label label="Batch number:"></psk-label>
                         <b>
                             <psk-label label="@batchNumber"></psk-label>
                         </b>
-                    </psk-layout >
-                    <psk-layout   template-columns="10em 10em">
+                    </psk-layout>
+                    <psk-layout template-columns="10em 10em">
                         <psk-label label="Expiration date:"></psk-label>
-                        <psk-date-input class="expiryForDisplay-date" value="@expiryForDisplay" read-only style="margin-top: 11px"></psk-date-input>
+                        <psk-date-input read-only style="margin-top: 11px"
+                                        value="@expiryForDisplay"></psk-date-input>
 
-                    </psk-layout >
+                    </psk-layout>
                 </div>
 
             </psk-layout>
