@@ -60,18 +60,13 @@ export default class DSU_Builder {
 
     getTransactionId(callback) {
 
-        let obtainTransaction = ()=>{
+        let obtainTransaction = () => {
             doPost(`/${this.holderInfo.domain}/begin`, (err, transactionId) => {
                 if (err) {
                     return callback(err);
                 }
-                const url = `/${this.holderInfo.domain}/setDLDomain/${transactionId}`;
-                doPost(url, this.holderInfo.domain, (err) => {
-                    if (err) {
-                        return callback(err);
-                    }
-                    return callback(undefined, transactionId);
-                });
+
+                return callback(undefined, transactionId);
             });
         }
 
@@ -88,7 +83,7 @@ export default class DSU_Builder {
         doPost(url, keyssi, callback);
     }
 
-    setGtinSSI(transactionId, dlDomain, gtin, batch, expiration, callback) {
+    setGtinSSI(transactionId, dlDomain, bricksDomain, gtin, batch, expiration, callback) {
         if (typeof expiration === "function") {
             callback = expiration;
             expiration = undefined;
@@ -99,7 +94,11 @@ export default class DSU_Builder {
             batch = undefined;
         }
 
-        const body = {dlDomain, gtin, batch, expiration};
+        if (bricksDomain == undefined) {
+            bricksDomain = dlDomain
+        }
+
+        const body = {dlDomain, bricksDomain, gtin, batch, expiration};
         const url = `/${this.holderInfo.domain}/gtin/${transactionId}`;
         doPost(url, JSON.stringify(body), callback);
     }
