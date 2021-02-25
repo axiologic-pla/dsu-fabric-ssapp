@@ -8,6 +8,7 @@ export default class Product {
     leaflet = "";
     manufName = " ";
     version = 1;
+    batchSpecificVersion = false;
     files = [];
     transferred = false;
     reportURL = `${window.top.location.origin}/default-report.html`;

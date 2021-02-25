@@ -5,7 +5,11 @@
         <psk-text-input label="Name" value="@product.name" required></psk-text-input>
         <psk-textarea label="Description" value="@product.description" required></psk-textarea>
         <psk-img-input src="@product.photo" event-name="product-photo-selected" label="Photo"></psk-img-input>
-        <psk-text-input label="Version" value="@product.version" read-only></psk-text-input>
+        <psk-layout  template-columns="auto auto" gap="1em">
+            <psk-text-input label="Version" value="@product.version" read-only></psk-text-input>
+            <psk-checkbox  label="Check if this is a batch specific version" name="batchSpecific"
+            checkbox-label="Batch specific" value="@product.batchSpecificVersion"></psk-checkbox>
+        </psk-layout>
         <psk-form class="language-leaflets-grid">
             <psk-button event-name="add-language-leaflet">
                 <!--<psk-icon icon="plus"></psk-icon>-->
