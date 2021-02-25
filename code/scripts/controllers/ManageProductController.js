@@ -47,6 +47,7 @@ export default class ManageProductController extends ContainerController {
                 let imagePath = `${constants.DATA_STORAGE_PATH}${this.model.product.gtin}${constants.PRODUCT_IMAGE_FILE}`;
                 this.model.product.photo = utils.getFetchUrl(`/download${imagePath}`);
                 this.model.product.version++;
+                this.model.product.batchSpecificVersion = false;
             } else {
                 this.model.product = new Product();
             }
