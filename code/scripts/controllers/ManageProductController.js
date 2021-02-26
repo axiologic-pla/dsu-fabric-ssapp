@@ -117,7 +117,6 @@ export default class ManageProductController extends ContainerController {
                         this.History.navigateToPageByTag("products");
                     });
                 }
-
                 if (typeof product.keySSI === "undefined") {
                     return this.buildConstProductDSU(product.gtin, keySSI, (err, gtinSSI) => {
                         if (err) {
@@ -219,8 +218,7 @@ export default class ManageProductController extends ContainerController {
             if (err) {
                 return callback(err);
             }
-
-            dsuBuilder.setGtinSSI(transactionId, dsuBuilder.holderInfo.domain, gtin, (err) => {
+            dsuBuilder.setGtinSSI(transactionId, dsuBuilder.holderInfo.domain, dsuBuilder.holderInfo.subdomain, gtin, (err) => {
                 if (err) {
                     return callback(err);
                 }
@@ -269,7 +267,6 @@ export default class ManageProductController extends ContainerController {
     }
 
     updateProductDSU(transactionId, product, callback) {
-        debugger
         dsuBuilder.setKeySSI(transactionId, product.keySSI, (err) => {
             if (err) {
                 return callback(err);
