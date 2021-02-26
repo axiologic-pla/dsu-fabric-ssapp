@@ -296,8 +296,7 @@ export default class addBatchController extends ContainerController {
             if (!batch.gtin || !batch.batchNumber || !batch.expiry) {
                 return this.showError("GTIN, batchNumber and expiry date are mandatory");
             }
-
-            dsuBuilder.setGtinSSI(transactionId, dsuBuilder.holderInfo.domain, batch.gtin, batch.batchNumber, batch.expiry, (err) => {
+            dsuBuilder.setGtinSSI(transactionId, dsuBuilder.holderInfo.domain, dsuBuilder.holderInfo.subdomain, batch.gtin, batch.batchNumber, batch.expiry, (err) => {
                 if (err) {
                     return callback(err);
                 }
