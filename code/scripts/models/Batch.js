@@ -7,6 +7,9 @@ export default class Batch {
     serialNumbers = "430239925150";
     defaultSerialNumber = "0";
     bloomFilterSerialisation;
+    recalled = false;
+    recalledMessage = "";
+    defaultMessage = "";
 
     constructor(batch) {
         if (typeof batch !== undefined) {

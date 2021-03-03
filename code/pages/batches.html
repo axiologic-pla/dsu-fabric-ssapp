@@ -6,7 +6,13 @@
                     <psk-barcode-generator data="@code" size="16" type="gs1datamatrix"></psk-barcode-generator>
                 </psk-layout-item>
                 <psk-layout-item>
-                    <psk-layout style="margin-top: 20px; margin-bottom: 2px" template-columns="10em 10em">
+                    <psk-layout style="margin-top: 20px;">
+                        <psk-condition condition="@recalled">
+                            <b><psk-label slot="condition-true" class="no-padding" label="Recalled"></psk-label></b>
+                        </psk-condition>
+                    </psk-layout>
+
+                    <psk-layout style="margin-bottom: 2px" template-columns="10em 10em">
                         <psk-label class="no-padding" label="Batch number:"></psk-label>
                         <b><psk-label class="no-padding" label="@batchNumber"></psk-label></b>
                     </psk-layout>

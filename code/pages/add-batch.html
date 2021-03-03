@@ -29,6 +29,11 @@
             </psk-condition>
         </psk-form-row>
         <psk-form-row>
+            <psk-checkbox  label="Check to recall this batch" name="batchSpecific" checked="@batch.recalled" value="@batch.recalled"></psk-checkbox>
+            <psk-textarea  label="Recall message" value="@batch.recalledMessage" placeholder="This text will be displayed to user after QR code is scanned if batch is recalled" required></psk-textarea>
+            <psk-textarea  label="Default message" value="@batch.defaultMessage" placeholder="This text will be displayed to user after QR code is scanned" required></psk-textarea>
+        </psk-form-row>
+        <psk-form-row>
             <psk-condition condition="@editMode">
                 <psk-button slot="condition-true" label="Update batch" event-name="update-batch"></psk-button>
                 <psk-button slot="condition-false" label="Add batch" event-name="add-batch"></psk-button>

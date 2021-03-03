@@ -9,98 +9,98 @@ import LogService from "../services/LogService.js";
 const dsuBuilder = new DSU_Builder();
 
 export default class addBatchController extends ContainerController {
-    constructor(element, history) {
-        super(element, history);
-        let state = this.History.getState();
-        const editMode = state && state.batchData;
-        const editData = editMode ? JSON.parse(state.batchData) : undefined;
-        let batch = new Batch(editData);
-        this.setModel({});
-        this.storageService = new SharedStorage(this.DSUStorage);
-        this.logService = new LogService(this.DSUStorage);
-        this.versionOffset = 1;
-        dsuBuilder.ensureHolderInfo((err, holderInfo) => {
-            if (!err) {
-                this.model.username = holderInfo.userDetails.username;
-            } else {
-                this.showErrorModalAndRedirect("Invalid configuration detected! Configure your wallet properly in the Holder section!", "batches");
-            }
-        })
+  constructor(element, history) {
+    super(element, history);
+    let state = this.History.getState();
+    const editMode = state && state.batchData;
+    const editData = editMode ? JSON.parse(state.batchData) : undefined;
+    let batch = new Batch(editData);
+    this.setModel({});
+    this.storageService = new SharedStorage(this.DSUStorage);
+    this.logService = new LogService(this.DSUStorage);
+    this.versionOffset = 1;
+    dsuBuilder.ensureHolderInfo((err, holderInfo) => {
+      if (!err) {
+        this.model.username = holderInfo.userDetails.username;
+      } else {
+        this.showErrorModalAndRedirect("Invalid configuration detected! Configure your wallet properly in the Holder section!", "batches");
+      }
+    })
 
-        this.model.batch = batch;
-        this.model.editMode = editMode;
-        this.model.products = {
-            label: "Product",
-            placeholder: "Select a product"
-        }
+    this.model.batch = batch;
+    this.model.editMode = editMode;
+    this.model.products = {
+      label: "Product",
+      placeholder: "Select a product"
+    }
 
-        this.model.versions = {
-            label: "Product version",
-        }
+    this.model.versions = {
+      label: "Product version",
+    }
 
-        if(editMode){
+    if (editMode) {
       this.getVersionOptions(this.model.batch.gtin).then(result => {
         this.model.versions.options = result;
         this.model.versions.value = this.model.batch.version;
-                });
-            this.gtin = this.model.batch.gtin;
+      });
+      this.gtin = this.model.batch.gtin;
+    }
+
+    this.storageService.getObject(constants.PRODUCTS_TABLE, (err, products) => {
+      if (err || !products) {
+        printOpenDSUError(createOpenDSUErrorWrapper("Failed to retrieve products list!", err));
+        return this.showErrorModalAndRedirect("Failed to retrieve products list! Create a product first!", "products", 5000);
+      }
+      const options = [];
+      Object.keys(products).forEach(gtin => options.push({label: gtin, value: gtin}));
+      this.model.products.options = options;
+    });
+
+    this.on("add-batch", () => {
+      this.initBatch();
+      let batch = this.model.batch;
+      if (!batch.expiryForDisplay) {
+        return this.showError("Invalid date");
+      }
+      batch.expiry = utils.convertDateToISO(batch.expiryForDisplay);
+      batch.expiry = utils.convertDateFromISOToGS1Format(batch.expiry);
+      this.storageService.getArray(constants.BATCHES_STORAGE_TABLE, (err, batches) => {
+        /*if(err){
+            return this.showErrorModalAndRedirect("Failed to retrieve products list", "batches");
+        } */
+        try {
+          this.addSerialNumbers(batch);
+        } catch (err) {
+          return this.showError(err, "Invalid list of serial numbers");
         }
 
-        this.storageService.getObject(constants.PRODUCTS_TABLE, (err, products) => {
-            if (err || !products) {
-                printOpenDSUError(createOpenDSUErrorWrapper("Failed to retrieve products list!", err));
-                return this.showErrorModalAndRedirect("Failed to retrieve products list! Create a product first!", "products", 5000);
-            }
-            const options = [];
-            Object.keys(products).forEach(gtin => options.push({label: gtin, value: gtin}));
-            this.model.products.options = options;
-        });
-
-        this.on("add-batch", () => {
-      this.initBatch();
-            let batch = this.model.batch;
-            if (!batch.expiryForDisplay) {
-                return this.showError("Invalid date");
-            }
-            batch.expiry = utils.convertDateToISO(batch.expiryForDisplay);
-            batch.expiry = utils.convertDateFromISOToGS1Format(batch.expiry);
-            this.storageService.getArray(constants.BATCHES_STORAGE_TABLE, (err, batches) => {
-                /*if(err){
-                    return this.showErrorModalAndRedirect("Failed to retrieve products list", "batches");
-                } */
-                try {
-          this.addSerialNumbers(batch);
-                } catch (err) {
-                    return this.showError(err, "Invalid list of serial numbers");
-                }
-
-                let error = batch.validate();
-                if (err) {
-                    printOpenDSUError(createOpenDSUErrorWrapper("Invalid batch info", err));
-                    return this.showErrorModalAndRedirect("Invalid batch info" + err.message, "batches");
-                }
+        let error = batch.validate();
+        if (err) {
+          printOpenDSUError(createOpenDSUErrorWrapper("Invalid batch info", err));
+          return this.showErrorModalAndRedirect("Invalid batch info" + err.message, "batches");
+        }
         if (!this.model.editMode) {
-                this.displayModal("Creating new batch...");
-                this.buildBatchDSU(batch, (err, keySSI) => {
-                    if (err) {
-                        printOpenDSUError(createOpenDSUErrorWrapper("Batch DSU build failed.", err));
-                        return this.showErrorModalAndRedirect("Batch DSU build failed.", "batches");
-                    }
-                    batch.keySSI = keySSI;
-                    batch.creationTime = utils.convertDateTOGMTFormat(new Date());
+          this.displayModal("Creating new batch...");
+          this.buildBatchDSU(batch, (err, keySSI) => {
+            if (err) {
+              printOpenDSUError(createOpenDSUErrorWrapper("Batch DSU build failed.", err));
+              return this.showErrorModalAndRedirect("Batch DSU build failed.", "batches");
+            }
+            batch.keySSI = keySSI;
+            batch.creationTime = utils.convertDateTOGMTFormat(new Date());
 
-                        this.buildImmutableDSU(batch, (err, gtinSSI) => {
-                            if (err) {
-                                printOpenDSUError(createOpenDSUErrorWrapper("Failed to build immutable DSU", err));
-                                return this.showErrorModalAndRedirect("Failed to build immutable DSU", "batches");
-                            }
+            this.buildImmutableDSU(batch, (err, gtinSSI) => {
+              if (err) {
+                printOpenDSUError(createOpenDSUErrorWrapper("Failed to build immutable DSU", err));
+                return this.showErrorModalAndRedirect("Failed to build immutable DSU", "batches");
+              }
               this.persistBatch(batch);
-                        });
+            });
           });
 
         }
-                });
-            });
+      });
+    });
 
     this.on("update-batch", () => {
       this.initBatch();
@@ -112,28 +112,29 @@ export default class addBatchController extends ContainerController {
           return this.showErrorModalAndRedirect("Failed to update batch DSU", "batches");
         }
         this.persistBatch(batch);
-        });
+      });
     })
 
-        this.model.onChange("batch.batchNumber", (event) => {
-            this.storageService.getArray(constants.BATCHES_STORAGE_TABLE, (err, batches) => {
-                if (typeof batches !== "undefined" && batches !== null) {
-                    this.batches = batches;
-                    this.batchIndex = batches.findIndex(batch => this.model.batch.batchNumber === Object.keys(batch)[0]);
-                }
-            })
-        })
+    this.model.onChange("batch.batchNumber", (event) => {
+      this.storageService.getArray(constants.BATCHES_STORAGE_TABLE, (err, batches) => {
+        if (typeof batches !== "undefined" && batches !== null) {
+          this.batches = batches;
+          this.batchIndex = batches.findIndex(batch => this.model.batch.batchNumber === Object.keys(batch)[0]);
+        }
+      })
+    })
 
     this.model.onChange("products.value", async (event) => {
       this.model.versions.options = await this.getVersionOptions(this.model.products.value);
       this.model.versions.value = "latest";
-                this.gtin = this.model.products.value;
-        })
+      this.gtin = this.model.products.value;
+    })
 
-        this.model.onChange("versions.value", (event) => {
-            if (typeof this.gtin === "undefined") {
-                return this.showError("A product should be selected before selecting a version");
-            }
+
+    this.model.onChange("versions.value", (event) => {
+      if (typeof this.gtin === "undefined") {
+        return this.showError("A product should be selected before selecting a version");
+      }
 
       let versionIndex;
       if (this.model.versions.value !== "latest") {
@@ -151,8 +152,8 @@ export default class addBatchController extends ContainerController {
         return this.showError("All versions for this product are batch specific." +
           " Latest can not be applied, please select a batch specific version o add a new version for this product");
       }
-            const product = this.selectedProduct[versionIndex];
-            this.model.batch.language = product.language;
+      const product = this.selectedProduct[versionIndex];
+      this.model.batch.language = product.language;
       if (this.model.versions.value === "latest") {
         this.model.batch.version = this.model.versions.value;
         this.model.batch.versionLabel = this.model.versions.value;
@@ -160,14 +161,14 @@ export default class addBatchController extends ContainerController {
         this.model.batch.version = product.version;
         this.model.batch.versionLabel = product.batchSpecificVersion ? product.version + " - (batch specific)" : product.version;
       }
-            this.model.batch.gtin = product.gtin;
-            this.model.batch.product = product.keySSI;
-        })
+      this.model.batch.gtin = product.gtin;
+      this.model.batch.product = product.keySSI;
+    })
 
-        this.on('openFeedback', (e) => {
-            this.feedbackEmitter = e.detail;
-        });
-    }
+    this.on('openFeedback', (e) => {
+      this.feedbackEmitter = e.detail;
+    });
+  }
 
   initBatch() {
     try {
@@ -237,11 +238,11 @@ export default class addBatchController extends ContainerController {
     }
   }
 
-    buildBatchDSU(batch, callback) {
-        dsuBuilder.getTransactionId((err, transactionId) => {
-            if (err) {
-                return callback(err);
-            }
+  buildBatchDSU(batch, callback) {
+    dsuBuilder.getTransactionId((err, transactionId) => {
+      if (err) {
+        return callback(err);
+      }
       this.writeDataToBatchDSU(batch, transactionId, callback);
     });
   }
@@ -265,71 +266,71 @@ export default class addBatchController extends ContainerController {
       callback = ignoreMount;
       ignoreMount = false;
     }
-            let cleanBatch = JSON.parse(JSON.stringify(batch));
+    let cleanBatch = JSON.parse(JSON.stringify(batch));
 
-            delete cleanBatch.serialNumbers;
-            delete cleanBatch.defaultSerialNumber;
+    delete cleanBatch.serialNumbers;
+    delete cleanBatch.defaultSerialNumber;
 
-            dsuBuilder.addFileDataToDossier(transactionId, constants.BATCH_STORAGE_FILE, JSON.stringify(cleanBatch), (err) => {
-                if (err) {
-                    return callback(err);
-                }
+    dsuBuilder.addFileDataToDossier(transactionId, constants.BATCH_STORAGE_FILE, JSON.stringify(cleanBatch), (err) => {
+      if (err) {
+        return callback(err);
+      }
 
       if (ignoreMount) {
         return dsuBuilder.buildDossier(transactionId, callback);
       }
-                dsuBuilder.mount(transactionId, constants.PRODUCT_DSU_MOUNT_POINT, cleanBatch.product, (err) => {
-                    if (err) {
-                        return callback(err);
-                    }
-                    dsuBuilder.buildDossier(transactionId, callback);
-                });
-            });
-    }
+      dsuBuilder.mount(transactionId, constants.PRODUCT_DSU_MOUNT_POINT, cleanBatch.product, (err) => {
+        if (err) {
+          return callback(err);
+        }
+        dsuBuilder.buildDossier(transactionId, callback);
+      });
+    });
+  }
 
-    buildImmutableDSU(batch, callback) {
-        dsuBuilder.getTransactionId((err, transactionId) => {
-            if (err) {
-                return callback(err);
-            }
+  buildImmutableDSU(batch, callback) {
+    dsuBuilder.getTransactionId((err, transactionId) => {
+      if (err) {
+        return callback(err);
+      }
 
-            if (!batch.gtin || !batch.batchNumber || !batch.expiry) {
-                return this.showError("GTIN, batchNumber and expiry date are mandatory");
-            }
-            dsuBuilder.setGtinSSI(transactionId, dsuBuilder.holderInfo.domain, dsuBuilder.holderInfo.subdomain, batch.gtin, batch.batchNumber, batch.expiry, (err) => {
-                if (err) {
-                    return callback(err);
-                }
-                //TODO: derive a sReadSSI here...
-                dsuBuilder.mount(transactionId, "/batch", batch.keySSI, (err) => {
-                    if (err) {
-                        return callback(err);
-                    }
-                    dsuBuilder.buildDossier(transactionId, callback);
-                });
-            });
+      if (!batch.gtin || !batch.batchNumber || !batch.expiry) {
+        return this.showError("GTIN, batchNumber and expiry date are mandatory");
+      }
+      dsuBuilder.setGtinSSI(transactionId, dsuBuilder.holderInfo.domain, dsuBuilder.holderInfo.subdomain, batch.gtin, batch.batchNumber, batch.expiry, (err) => {
+        if (err) {
+          return callback(err);
+        }
+        //TODO: derive a sReadSSI here...
+        dsuBuilder.mount(transactionId, "/batch", batch.keySSI, (err) => {
+          if (err) {
+            return callback(err);
+          }
+          dsuBuilder.buildDossier(transactionId, callback);
         });
-    }
+      });
+    });
+  }
 
-    persistBatchInWallet(batch, callback) {
-        this.storageService.getArray(constants.BATCHES_STORAGE_TABLE, (err, batches) => {
-            if (err) {
-                // if no products file found an error will be captured here
-                //todo: improve error handling here
-                this.showError("Unknown error:" + err.message);
-                return callback(err);
-            }
-            if (typeof batches === "undefined" || batches === null) {
-                batches = [];
-            }
-            const batchIndex = batches.findIndex(elem=>elem.batchNumber === batch.batchNumber)
-            if(batchIndex >= 0){
-                batches[batchIndex] = batch;
-            }else{
-                batches.push(batch);
-            }
-            this.storageService.setArray(constants.BATCHES_STORAGE_TABLE, batches, callback);
-        });
-    }
+  persistBatchInWallet(batch, callback) {
+    this.storageService.getArray(constants.BATCHES_STORAGE_TABLE, (err, batches) => {
+      if (err) {
+        // if no products file found an error will be captured here
+        //todo: improve error handling here
+        this.showError("Unknown error:" + err.message);
+        return callback(err);
+      }
+      if (typeof batches === "undefined" || batches === null) {
+        batches = [];
+      }
+      const batchIndex = batches.findIndex(elem => elem.batchNumber === batch.batchNumber)
+      if (batchIndex >= 0) {
+        batches[batchIndex] = batch;
+      } else {
+        batches.push(batch);
+      }
+      this.storageService.setArray(constants.BATCHES_STORAGE_TABLE, batches, callback);
+    });
+  }
 
 };
