@@ -226,15 +226,13 @@ export default class addBatchController extends ContainerController {
   addSerialNumbers(batch) {
     const serialError = new Error("Error on add serial numbers");
 
-    if (this.model.batch.serialNumbers != "") {
+    if (this.model.batch.serialNumbers) {
       this.model.batch.serialNumbersArray = this.model.batch.serialNumbers.split(/[\r\n ,]+/);
       if (this.model.batch.serialNumbersArray.length === 0 || this.model.batch.serialNumbersArray[0] === '') {
         throw serialError;
       }
       this.model.batch.defaultSerialNumber = this.model.batch.serialNumbersArray[0];
       batch.addSerialNumbers(batch.serialNumbersArray);
-    } else {
-      throw serialError;
     }
   }
 

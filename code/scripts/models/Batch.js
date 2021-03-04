@@ -4,11 +4,11 @@ export default class Batch {
     expiryForDisplay;
     version = 1;
     versionLabel = "";
-    serialNumbers = "430239925150";
+    serialNumbers ;
     defaultSerialNumber = "0";
     bloomFilterSerialisation;
     recalled = false;
-    serialCheck = true;
+    serialCheck = false;
     incorectDateCheck = true;
     expiredDateCheck = true;
     recalledMessage = "";
