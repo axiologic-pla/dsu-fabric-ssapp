@@ -8,6 +8,9 @@ export default class Batch {
     defaultSerialNumber = "0";
     bloomFilterSerialisation;
     recalled = false;
+    serialCheck = true;
+    incorectDateCheck = true;
+    expiredDateCheck = true;
     recalledMessage = "";
     defaultMessage = "";
 

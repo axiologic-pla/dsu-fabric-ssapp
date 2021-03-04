@@ -29,9 +29,25 @@
             </psk-condition>
         </psk-form-row>
         <psk-form-row>
-            <psk-checkbox  label="Check to recall this batch" name="batchSpecific" checked="@batch.recalled" value="@batch.recalled"></psk-checkbox>
-            <psk-textarea  label="Recall message" value="@batch.recalledMessage" placeholder="This text will be displayed to user after QR code is scanned if batch is recalled" required></psk-textarea>
-            <psk-textarea  label="Default message" value="@batch.defaultMessage" placeholder="This text will be displayed to user after QR code is scanned" required></psk-textarea>
+            <psk-textarea  label="Batch message" value="@batch.defaultMessage" placeholder="This text will be displayed to user after QR code is scanned"></psk-textarea>
+            <psk-condition condition="@batch.recalled">
+                <psk-textarea  label="Recall message" value="@batch.recalledMessage" placeholder="This text will be displayed to user after QR code is scanned if batch is recalled" required></psk-textarea>
+            </psk-condition>
+            <psk-layout gap="10px" class="border-bottom" template-columns="auto auto auto auto" >
+                <psk-layout-item>
+                    <psk-checkbox  checkbox-label="Check to recall this batch" name="recalled" checked="@batch.recalled" value="@batch.recalled"></psk-checkbox>
+                </psk-layout-item>
+                <psk-layout-item>
+                    <psk-checkbox  checkbox-label="Serial number check" name="serialCheck" checked="@batch.serialCheck" value="@batch.serialCheck"></psk-checkbox>
+                </psk-layout-item>
+                <psk-layout-item>
+                    <psk-checkbox  checkbox-label="Incorect expiration date check" name="incorectDateCheck" checked="@batch.incorectDateCheck" value="@batch.incorectDateCheck"></psk-checkbox>
+                </psk-layout-item>
+                <psk-layout-item>
+                    <psk-checkbox  checkbox-label="Expired expiration date check" name="expiredDateCheck" checked="@batch.expiredDateCheck" value="@batch.expiredDateCheck"></psk-checkbox>
+                </psk-layout-item>
+            </psk-layout>
+
         </psk-form-row>
         <psk-form-row>
             <psk-condition condition="@editMode">
