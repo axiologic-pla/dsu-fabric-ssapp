@@ -27,6 +27,7 @@ export default class addBatchController extends ContainerController {
       }
     })
 
+
     this.model.batch = batch;
     this.model.editMode = editMode;
     this.model.products = {
@@ -59,6 +60,7 @@ export default class addBatchController extends ContainerController {
     this.on("add-batch", () => {
       this.initBatch();
       let batch = this.model.batch;
+      batch.serialNumbers = this.model.serialNumbers;
       if (!batch.expiryForDisplay) {
         return this.showError("Invalid date");
       }
@@ -105,6 +107,12 @@ export default class addBatchController extends ContainerController {
     this.on("update-batch", () => {
       this.initBatch();
       let batch = this.model.batch;
+      batch.serialNumbers = this.model.serialNumbers;
+      try {
+        this.addSerialNumbers(batch);
+      } catch (err) {
+        return this.showError(err, "Invalid list of serial numbers");
+      }
       this.displayModal("Updating batch... ");
       this.updateBatchDSU(batch, (err, gtinSSI) => {
         if (err) {
@@ -153,6 +161,7 @@ export default class addBatchController extends ContainerController {
           " Latest can not be applied, please select a batch specific version o add a new version for this product");
       }
       const product = this.selectedProduct[versionIndex];
+      this.model.productDescription = product.description;
       this.model.batch.language = product.language;
       if (this.model.versions.value === "latest") {
         this.model.batch.version = this.model.versions.value;
@@ -226,12 +235,12 @@ export default class addBatchController extends ContainerController {
   addSerialNumbers(batch) {
     const serialError = new Error("Error on add serial numbers");
 
-    if (this.model.batch.serialNumbers) {
-      this.model.batch.serialNumbersArray = this.model.batch.serialNumbers.split(/[\r\n ,]+/);
-      if (this.model.batch.serialNumbersArray.length === 0 || this.model.batch.serialNumbersArray[0] === '') {
+    if (batch.serialNumbers) {
+      batch.serialNumbersArray = batch.serialNumbers.split(/[\r\n ,]+/);
+      if (batch.serialNumbersArray.length === 0 || batch.serialNumbersArray[0] === '') {
         throw serialError;
       }
-      this.model.batch.defaultSerialNumber = this.model.batch.serialNumbersArray[0];
+      batch.defaultSerialNumber = batch.serialNumbersArray[0];
       batch.addSerialNumbers(batch.serialNumbersArray);
     }
   }

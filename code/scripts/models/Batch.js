@@ -4,7 +4,7 @@ export default class Batch {
     expiryForDisplay;
     version = 1;
     versionLabel = "";
-    serialNumbers ;
+    serialNumbers = "";
     defaultSerialNumber = "0";
     bloomFilterSerialisation;
     recalled = false;
@@ -51,9 +51,5 @@ export default class Batch {
             bf.insert(sn);
         });
         this.bloomFilterSerialisation = bf.bloomFilterSerialisation();
-    }
-    appnedSerialNumbrs(arr){
-        let crypto = require("opendsu").loadAPI("crypto");
-        let bf = crypto.createBloomFilter({ estimatedElementCount: arr.length, falsePositiveTolerance: 0.000001 });
     }
 }

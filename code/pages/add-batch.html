@@ -11,11 +11,15 @@
                 <psk-text-input slot="condition-true" label="Product" value="@batch.gtin" required read-only></psk-text-input>
                 <psk-select slot="condition-false" view-model="@products" required></psk-select>
             </psk-condition>
+        </psk-form-row>
 
+        <psk-form-row>
+            <psk-textarea label="Product description" value="@productDescription" read-only="true"></psk-textarea>
         </psk-form-row>
         <psk-form-row>
             <psk-select view-model="@versions" required></psk-select>
         </psk-form-row>
+
         <psk-form-row>
             <psk-condition condition="@editMode">
                 <psk-date-input slot="condition-true" read-only data-format="DD MM YYYY" label="Expiration date" value="@batch.expiryForDisplay" required></psk-date-input>
@@ -24,8 +28,8 @@
         </psk-form-row>
         <psk-form-row>
             <psk-condition condition="@editMode">
-                <psk-textarea  slot="condition-true" label="Add serial numbers for the batch separated by comma"  required></psk-textarea>
-                <psk-textarea  slot="condition-false" label="Serial numbers" value="@batch.serialNumbers" required></psk-textarea>
+                <psk-textarea  slot="condition-true" label="Add serial numbers for the batch separated by comma" value="@serialNumbers"  required></psk-textarea>
+                <psk-textarea  slot="condition-false" label="Serial numbers" value="@serialNumbers" required></psk-textarea>
             </psk-condition>
         </psk-form-row>
         <psk-form-row>
