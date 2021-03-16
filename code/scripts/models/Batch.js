@@ -45,7 +45,6 @@ export default class Batch {
   }
 
   addSerialNumbers(arr, bloomfilterType) {
-    let crypto = require("opendsu").loadAPI("crypto");
     let bf;
     let bfSerialisation;
     switch (bloomfilterType) {
@@ -66,6 +65,7 @@ export default class Batch {
   }
 
   getBloomFilterSerialisation(arr, bfSerialisation) {
+    let crypto = require("opendsu").loadAPI("crypto");
     let bf;
     if (bfSerialisation) {
       bf = crypto.createBloomFilter(bfSerialisation);

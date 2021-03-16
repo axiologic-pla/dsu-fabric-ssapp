@@ -268,16 +268,29 @@ export default class addBatchController extends ContainerController {
 
     if (batch.serialNumbers) {
       batch.serialNumbersArray = batch.serialNumbers.split(/[\r\n ,]+/);
-      batch.serialRecalledNumbersArray = batch.serialRecalledNumbers.split(/[\r\n ,]+/);
-      batch.serialDecomissionedNumbersArray = batch.serialDecomissionedNumbers.split(/[\r\n ,]+/);
       if (batch.serialNumbersArray.length === 0 || batch.serialNumbersArray[0] === '') {
         throw serialError;
       }
       batch.defaultSerialNumber = batch.serialNumbersArray[0];
       batch.addSerialNumbers(batch.serialNumbersArray, "validSerialNumbers");
+    }
+
+    if (batch.serialRecalledNumbers) {
+      batch.serialRecalledNumbersArray = batch.serialRecalledNumbers.split(/[\r\n ,]+/);
+      if (batch.serialRecalledNumbersArray.length === 0 || batch.serialRecalledNumbersArray[0] === '') {
+        throw serialError;
+      }
       batch.addSerialNumbers(batch.serialRecalledNumbersArray, "recalledSerialNumbers");
+    }
+
+    if (batch.serialDecomissionedNumbers) {
+      batch.serialDecomissionedNumbersArray = batch.serialDecomissionedNumbers.split(/[\r\n ,]+/);
+      if (batch.serialDecomissionedNumbersArray.length === 0 || batch.serialDecomissionedNumbersArray[0] === '') {
+        throw serialError;
+      }
       batch.addSerialNumbers(batch.serialDecomissionedNumbersArray, "decomissionedSerialNumbers");
     }
+
   }
 
   buildBatchDSU(batch, callback) {
