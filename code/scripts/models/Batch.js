@@ -7,11 +7,12 @@ export default class Batch {
   versionLabel = "";
   serialNumbers = "";
   recalledSerialNumbers = "";
-  decomissionedSerialNumners = "";
+  decommissionedSerialNumners = "";
   defaultSerialNumber = "0";
   bloomFilterSerialisation;
   bloomFilterRecalledSerialisation;
-  bloomFilterDecomissionedSerialisation;
+  bloomFilterdecommissionedSerialisation;
+  decommissionReason = "";
   recalled = false;
   serialCheck = false;
   incorectDateCheck = true;
@@ -56,9 +57,9 @@ export default class Batch {
         bf = this.getBloomFilterSerialisation(arr, this.bloomFilterRecalledSerialisation)
         this.bloomFilterRecalledSerialisation = bf.bloomFilterSerialisation();
         break
-      case "decomissionedSerialNumbers":
-        bf = this.getBloomFilterSerialisation(arr, this.bloomFilterDecomissionedSerialisation);
-        this.bloomFilterDecomissionedSerialisation = bf.bloomFilterSerialisation();
+      case "decommissionedSerialNumbers":
+        bf = this.getBloomFilterSerialisation(arr, this.bloomFilterdecommissionedSerialisation);
+        this.bloomFilterdecommissionedSerialisation = bf.bloomFilterSerialisation();
         break
     }
 

@@ -178,6 +178,12 @@ export default class addBatchController extends ContainerController {
     this.on('update-valid-serial', (event) => {
       this.updateSerialsModal(event.data)
     })
+    this.on('update-recalled-serial', (event) => {
+      this.updateSerialsModal(event.data)
+    })
+    this.on('update-decomssioned-serial', (event) => {
+      this.updateSerialsModal(event.data)
+    })
   }
 
   initBatch() {
@@ -186,7 +192,7 @@ export default class addBatchController extends ContainerController {
       let result  = this.model.batch;
       result.serialNumbers = this.model.serialNumbers;
       result.recalledSerialNumbers = this.model.recalledSerialNumbers;
-      result.decomissionedSerialNumbers = this.model.decomissionedSerialNumbers;
+      result.decommissionedSerialNumbers = this.model.decommissionedSerialNumbers;
       return result;
     } catch (err) {
       reportUserRelevantError("Dropping previous user input");
@@ -243,6 +249,7 @@ export default class addBatchController extends ContainerController {
       title: "Enter serial numbers separated by comma",
       acceptButtonText: 'Accept',
       denyButtonText: 'Cancel',
+      type: type,
       serialNumbers: ""
     }
     this.showModal('updateSerials', actionModalModel, (err, response) => {
@@ -251,13 +258,14 @@ export default class addBatchController extends ContainerController {
       }
       switch (type) {
         case "updateValid":
-          this.model.serialNumbers = response;
+          this.model.serialNumbers = response.serialNumbers
           break
         case "updateRecalled":
-          this.model.recalledSerialNumbers = response;
+          this.model.recalledSerialNumbers = response.serialNumbers
           break
-        case "updateDecomissioned":
-          this.model.decomissionedSerialNumbers = response;
+        case "updatedecommissioned":
+          this.model.decommissionedSerialNumbers = response.serialNumbers;
+          this.model.batch.decommissionReason = response.reason;
           break
       }
     });
@@ -283,12 +291,12 @@ export default class addBatchController extends ContainerController {
       batch.addSerialNumbers(batch.serialRecalledNumbersArray, "recalledSerialNumbers");
     }
 
-    if (batch.serialDecomissionedNumbers) {
-      batch.serialDecomissionedNumbersArray = batch.serialDecomissionedNumbers.split(/[\r\n ,]+/);
-      if (batch.serialDecomissionedNumbersArray.length === 0 || batch.serialDecomissionedNumbersArray[0] === '') {
+    if (batch.serialDecommissionedNumbers) {
+      batch.serialDecommissionedNumbersArray = batch.serialDecommissionedNumbers.split(/[\r\n ,]+/);
+      if (batch.serialDecommissionedNumbersArray.length === 0 || batch.serialDecommissionedNumbersArray[0] === '') {
         throw serialError;
       }
-      batch.addSerialNumbers(batch.serialDecomissionedNumbersArray, "decomissionedSerialNumbers");
+      batch.addSerialNumbers(batch.serialDecommissionedNumbersArray, "decomissionedSerialNumbers");
     }
 
   }
@@ -325,7 +333,7 @@ export default class addBatchController extends ContainerController {
 
     delete cleanBatch.serialNumbers;
     delete cleanBatch.recalledSerialNumbers;
-    delete cleanBatch.decomissionedSerialNumbers;
+    delete cleanBatch.decommissionedSerialNumbers;
     delete cleanBatch.defaultSerialNumber;
 
     dsuBuilder.addFileDataToDossier(transactionId, constants.BATCH_STORAGE_FILE, JSON.stringify(cleanBatch), (err) => {

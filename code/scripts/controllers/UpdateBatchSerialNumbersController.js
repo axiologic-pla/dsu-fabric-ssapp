@@ -6,6 +6,11 @@ export default class UpdateBatchSerialNumbersController extends ModalController 
         super(element, history);
         this.acceptButtonOnClick();
         this.denyButtonOnClick();
+        this.model.decommissionedType = this.model.type === "updatedecommissioned"
+        this.model.reason = {
+            options: [{label: "Lost", value: "lost"}, {label: "Stolen", value: "stolen"}, {label: "Damaged", value: "dameged"}],
+            placeholder: "Select a reason"
+        }
     }
     denyButtonOnClick() {
         this.on('deny-button-on-click', (event) => {
@@ -15,7 +20,7 @@ export default class UpdateBatchSerialNumbersController extends ModalController 
 
     acceptButtonOnClick() {
         this.on('accept-button-on-click', (event) => {
-            this._finishProcess(event, this.model.serialNumbers)
+            this._finishProcess(event, {serialNumbers: this.model.serialNumbers, reason: this.model.reason.value})
         });
     }
 
