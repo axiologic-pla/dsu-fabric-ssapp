@@ -12,7 +12,7 @@ export default class addBatchController extends ContainerController {
   constructor(element, history) {
     super(element, history);
     let state = this.History.getState();
-    const editMode = state && state.batchData;
+    const editMode = state != null && state.batchData != null;
     const editData = editMode ? JSON.parse(state.batchData) : undefined;
     let batch = new Batch(editData);
     this.setModel({});
@@ -31,13 +31,10 @@ export default class addBatchController extends ContainerController {
     this.model.batch = batch;
     this.model.editMode = editMode;
     this.model.products = {
-      label: "Product",
       placeholder: "Select a product"
     }
 
-    this.model.versions = {
-      label: "Product version",
-    }
+    this.model.versions = {}
 
     if (editMode) {
       this.getVersionOptions(this.model.batch.gtin).then(result => {
@@ -53,14 +50,15 @@ export default class addBatchController extends ContainerController {
         return this.showErrorModalAndRedirect("Failed to retrieve products list! Create a product first!", "products", 5000);
       }
       const options = [];
-      Object.keys(products).forEach(gtin => options.push({label: gtin, value: gtin}));
+      Object.values(products).forEach(prod => options.push({
+        label: prod[0].gtin + ' - ' + prod[0].name,
+        value: prod[0].gtin
+      }));
       this.model.products.options = options;
     });
 
     this.on("add-batch", () => {
-      this.initBatch();
-      let batch = this.model.batch;
-      batch.serialNumbers = this.model.serialNumbers;
+      let batch =  this.initBatch();
       if (!batch.expiryForDisplay) {
         return this.showError("Invalid date");
       }
@@ -105,9 +103,7 @@ export default class addBatchController extends ContainerController {
     });
 
     this.on("update-batch", () => {
-      this.initBatch();
-      let batch = this.model.batch;
-      batch.serialNumbers = this.model.serialNumbers;
+      let batch =  this.initBatch();
       try {
         this.addSerialNumbers(batch);
       } catch (err) {
@@ -171,17 +167,27 @@ export default class addBatchController extends ContainerController {
         this.model.batch.versionLabel = product.batchSpecificVersion ? product.version + " - (batch specific)" : product.version;
       }
       this.model.batch.gtin = product.gtin;
+      this.model.batch.productName = product.name;
       this.model.batch.product = product.keySSI;
     })
 
     this.on('openFeedback', (e) => {
       this.feedbackEmitter = e.detail;
     });
+
+    this.on('update-valid-serial', (event) => {
+      this.updateSerialsModal(event.data)
+    })
   }
 
   initBatch() {
     try {
       this.DSUStorage.beginBatch();
+      let result  = this.model.batch;
+      result.serialNumbers = this.model.serialNumbers;
+      result.recalledSerialNumbers = this.model.recalledSerialNumbers;
+      result.decomissionedSerialNumbers = this.model.decomissionedSerialNumbers;
+      return result;
     } catch (err) {
       reportUserRelevantError("Dropping previous user input");
       this.DSUStorage.cancelBatch((err, res) => {
@@ -232,16 +238,45 @@ export default class addBatchController extends ContainerController {
     });
   }
 
+  updateSerialsModal(type) {
+    let actionModalModel = {
+      title: "Enter serial numbers separated by comma",
+      acceptButtonText: 'Accept',
+      denyButtonText: 'Cancel',
+      serialNumbers: ""
+    }
+    this.showModal('updateSerials', actionModalModel, (err, response) => {
+      if (err || response === undefined) {
+        return;
+      }
+      switch (type) {
+        case "updateValid":
+          this.model.serialNumbers = response;
+          break
+        case "updateRecalled":
+          this.model.recalledSerialNumbers = response;
+          break
+        case "updateDecomissioned":
+          this.model.decomissionedSerialNumbers = response;
+          break
+      }
+    });
+  }
+
   addSerialNumbers(batch) {
     const serialError = new Error("Error on add serial numbers");
 
     if (batch.serialNumbers) {
       batch.serialNumbersArray = batch.serialNumbers.split(/[\r\n ,]+/);
+      batch.serialRecalledNumbersArray = batch.serialRecalledNumbers.split(/[\r\n ,]+/);
+      batch.serialDecomissionedNumbersArray = batch.serialDecomissionedNumbers.split(/[\r\n ,]+/);
       if (batch.serialNumbersArray.length === 0 || batch.serialNumbersArray[0] === '') {
         throw serialError;
       }
       batch.defaultSerialNumber = batch.serialNumbersArray[0];
-      batch.addSerialNumbers(batch.serialNumbersArray);
+      batch.addSerialNumbers(batch.serialNumbersArray, "validSerialNumbers");
+      batch.addSerialNumbers(batch.serialRecalledNumbersArray, "recalledSerialNumbers");
+      batch.addSerialNumbers(batch.serialDecomissionedNumbersArray, "decomissionedSerialNumbers");
     }
   }
 
@@ -276,6 +311,8 @@ export default class addBatchController extends ContainerController {
     let cleanBatch = JSON.parse(JSON.stringify(batch));
 
     delete cleanBatch.serialNumbers;
+    delete cleanBatch.recalledSerialNumbers;
+    delete cleanBatch.decomissionedSerialNumbers;
     delete cleanBatch.defaultSerialNumber;
 
     dsuBuilder.addFileDataToDossier(transactionId, constants.BATCH_STORAGE_FILE, JSON.stringify(cleanBatch), (err) => {

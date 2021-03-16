@@ -12,6 +12,31 @@ export default class Product {
     files = [];
     transferred = false;
     reportURL = `${window.top.location.origin}/default-report.html`;
+    isCodeEditable= true;
+    checkExpiryDate = {
+        options: [{
+            label: "Yes",
+            value: 'true'
+        },
+            {
+                label: "No",
+                value: "false"
+            }
+        ],
+        value: 'true'
+    };
+    checkIncorrectExpiryDate = {
+        options: [{
+            label: "Yes",
+            value: 'true'
+        },
+            {
+                label: "No",
+                value: "false"
+            }
+        ],
+        value: 'true'
+    };
 
     constructor(product) {
         if (typeof product !== undefined) {
@@ -23,6 +48,8 @@ export default class Product {
         if (this.gtin === "") {
             this.gtin = '05290931025615';
         }
+        //if it's not first version product name and code should not be changed
+        this.isCodeEditable = this.version===1;
     }
 
     validate() {

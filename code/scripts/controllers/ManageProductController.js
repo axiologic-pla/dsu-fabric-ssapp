@@ -31,7 +31,6 @@ export default class ManageProductController extends ContainerController {
         };
 
         this.model.languageTypeCards = []
-
         this.on("delete-language-leaflet", (event) => {
             this.model.languageTypeCards = this.model.languageTypeCards.filter(lf => !(lf.type.value === event.data.type.value && lf.language.value === event.data.language.value));
         });

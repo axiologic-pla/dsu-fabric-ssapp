@@ -10,6 +10,8 @@
     "viewKeySSIModal": "view-keyssi-modal.html",
     "loadingModal": "loading-modal.html",
     "transferProductModal": "transfer-product-modal.html",
-    "getTransferredProductModal": "get-transferred-product-modal.html"
+    "getTransferredProductModal": "get-transferred-product-modal.html",
+    "show2DMatrix": "modal2DMatrix.html",
+    "updateSerials": "update-batch-serial-numbers.html"
   }
 }

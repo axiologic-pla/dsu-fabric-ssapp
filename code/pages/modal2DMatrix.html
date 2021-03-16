@@ -1,0 +1,18 @@
+<psk-container controller-name="MatrixModalController">
+    <psk-modal opened>
+        <psk-label slot="title" class="title" label="@title"></psk-label>
+        <div class='content'>
+            <psk-layout columns="1">
+                <div class="align-center">
+                    <psk-barcode-generator  data="@code" size="16" type="gs1datamatrix"></psk-barcode-generator>
+                </div>
+
+            </psk-layout>
+        </div>
+    </psk-modal>
+</psk-container>
+<style>
+.align-center{
+    margin: auto;
+}
+</style>

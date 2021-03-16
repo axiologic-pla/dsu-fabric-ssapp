@@ -1,0 +1,17 @@
+<psk-container controller-name="UpdateBatchSerialNumbersController">
+    <psk-modal opened>
+        <psk-label slot="title" class="title" label="@title"></psk-label>
+        <div class='content'>
+            <psk-textarea value="@serialNumbers"></psk-textarea>
+            <div class="modal-action-menu">
+                <psk-button label="@denyButtonText" class="marketplace-manager-button" event-name="deny-button-on-click"></psk-button>
+                <psk-button label="@acceptButtonText" class="marketplace-manager-button" event-name="accept-button-on-click"></psk-button>
+            </div>
+        </div>
+    </psk-modal>
+</psk-container>
+<style>
+.align-center{
+    margin: auto;
+}
+</style>

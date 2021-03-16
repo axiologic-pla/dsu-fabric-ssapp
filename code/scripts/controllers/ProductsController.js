@@ -24,6 +24,18 @@ export default class ProductsController extends ContainerController {
             this.model.productsForDisplay = Object.values(products).map(productVersions => productVersions[productVersions.length - 1]);
         });
 
+        this.on("sort-data",(event)=>{
+           let activeSortButtons = this.element.querySelectorAll('.icon-button.active')
+
+            if(activeSortButtons.length>0){
+                activeSortButtons.forEach(elem=>{
+                    elem.classList.remove("active");
+                })
+            }
+            let sortCriteria = JSON.parse(event.data)
+            this.model.productsForDisplay.sort(utils.sortByProperty(sortCriteria.property, sortCriteria.direction));
+        })
+
         this.on("add-product", (event) => {
             event.stopImmediatePropagation();
             this.History.navigateToPageByTag("manage-product");

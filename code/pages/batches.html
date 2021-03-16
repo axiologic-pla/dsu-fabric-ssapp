@@ -1,70 +1,147 @@
 <psk-page title="Batches">
+    <h6>
     <psk-container controller-name="batchesController">
-        <psk-for-each data-view-model="@batches">
-            <psk-layout gap="10px" class="border-bottom" template-columns="200px 22em 10em" >
-                <psk-layout-item>
-                    <psk-barcode-generator data="@code" size="16" type="gs1datamatrix"></psk-barcode-generator>
-                </psk-layout-item>
-                <psk-layout-item>
-                    <psk-layout style="margin-top: 20px;">
-                        <psk-condition condition="@recalled">
-                            <b><psk-label slot="condition-true" class="no-padding" label="Recalled"></psk-label></b>
-                        </psk-condition>
-                    </psk-layout>
-
-                    <psk-layout style="margin-bottom: 2px" template-columns="10em 10em">
-                        <psk-label class="no-padding" label="Batch number:"></psk-label>
-                        <b><psk-label class="no-padding" label="@batchNumber"></psk-label></b>
-                    </psk-layout>
-                    <psk-layout style="margin-bottom: 2px" template-columns="10em 10em">
-                        <psk-label class="no-padding" label="Expiration date:"></psk-label>
-                        <psk-date-input class="expiration-date no-padding-left" read-only value="@expiryForDisplay"></psk-date-input>
-                    </psk-layout>
-                    <psk-layout style="margin-bottom: 2px" template-columns="10em 10em">
-                        <psk-label class="no-padding" label="Version"></psk-label>
-                        <b><psk-label class="no-padding" label="@versionLabel"></psk-label></b>
-                    </psk-layout>
-                    <psk-layout template-columns="10em 10em">
-                        <psk-label class="no-padding" label="GTIN"></psk-label>
-                        <b><psk-label class="no-padding" label="@gtin"></psk-label></b>
-                    </psk-layout>
-                </psk-layout-item>
-                <psk-layout-item>
-                    <psk-button batch-data="@batchNumber" event-name="edit-product" label="Edit"></psk-button>
-                </psk-layout-item>
+        <psk-layout align-content-y="center" align-items="left" class="table-header" column-gap="10px"
+                    template-columns="30fr 20fr 10fr 10fr 10fr 10fr 10fr">
+            <psk-layout align-content-y="center" class="border-right" template-columns="98fr 2fr">
+                <psk-label label="Product name"></psk-label>
+                <psk-layout align-content-y="center" rows="2">
+                    <psk-button class="icon-button" event-data='{"property": "productName", "direction": "asc"}'
+                                event-name="sort-data">
+                        <psk-icon icon="sort-up"></psk-icon>
+                    </psk-button>
+                    <psk-button class="icon-button" event-data='{"property": "productName", "direction": "desc"}'
+                                event-name="sort-data">
+                        <psk-icon icon="sort-down"></psk-icon>
+                    </psk-button>
+                </psk-layout>
             </psk-layout>
-            <div slot="no-data">No Batches.</div>
+
+            <psk-layout align-content-y="center" class="border-right" template-columns="98fr 2fr">
+                <psk-label label="Product Code (GTIN/NTIN)"></psk-label>
+                <psk-layout align-items="center" rows="2">
+                    <psk-button class="icon-button" event-data='{"property": "gtin", "direction": "asc"}'
+                                event-name="sort-data">
+                        <psk-icon icon="sort-up"></psk-icon>
+                    </psk-button>
+                    <psk-button class="icon-button" event-data='{"property": "gtin", "direction": "desc"}'
+                                event-name="sort-data">
+                        <psk-icon icon="sort-down"></psk-icon>
+                    </psk-button>
+                </psk-layout>
+            </psk-layout>
+
+            <psk-layout align-content-y="center" class="border-right" template-columns="98fr 2fr">
+                <psk-label label="Batch ID"></psk-label>
+                <psk-layout align-items="center" rows="2">
+                    <psk-button class="icon-button" event-data='{"property": "batchNumber", "direction": "asc"}'
+                                event-name="sort-data">
+                        <psk-icon icon="sort-up"></psk-icon>
+                    </psk-button>
+                    <psk-button class="icon-button" event-data='{"property": "batchNumber", "direction": "desc"}'
+                                event-name="sort-data">
+                        <psk-icon icon="sort-down"></psk-icon>
+                    </psk-button>
+                </psk-layout>
+            </psk-layout>
+
+            <psk-layout align-content-y="center" class="border-right" template-columns="98fr 2fr">
+                <psk-label label="Expiration date"></psk-label>
+                <psk-layout align-items="center" rows="2">
+                    <psk-button class="icon-button" event-data='{"property": "expiryForDisplay", "direction": "asc"}'
+                                event-name="sort-data">
+                        <psk-icon icon="sort-up"></psk-icon>
+                    </psk-button>
+                    <psk-button class="icon-button" event-data='{"property": "expiryForDisplay", "direction": "desc"}'
+                                event-name="sort-data">
+                        <psk-icon icon="sort-down"></psk-icon>
+                    </psk-button>
+                </psk-layout>
+            </psk-layout>
+
+            <psk-label class="border-right" label="2D Data Matrix"></psk-label>
+
+            <psk-layout align-content-y="center" class="border-right" template-columns="98fr 2fr">
+                <psk-label label="Leaflet version"></psk-label>
+                <psk-layout align-items="center" rows="2">
+                    <psk-button class="icon-button" event-data='{"property": "version", "direction": "asc"}'
+                                event-name="sort-data">
+                        <psk-icon icon="sort-up"></psk-icon>
+                    </psk-button>
+                    <psk-button class="icon-button" event-data='{"property": "version", "direction": "desc"}'
+                                event-name="sort-data">
+                        <psk-icon icon="sort-down"></psk-icon>
+                    </psk-button>
+                </psk-layout>
+            </psk-layout>
+            <psk-label label="Edit Batch"></psk-label>
+        </psk-layout>
+
+        <psk-for-each data-view-model="@batches">
+            <psk-layout align-content-y="center" align-items="left" class="table-row" column-gap="10px"
+                        template-columns="30fr 20fr 10fr 10fr 10fr 10fr 10fr">
+                <psk-layout align-content-y="center" class="border-right" template-columns="98fr">
+                    <psk-label label="@productName"></psk-label>
+                </psk-layout>
+                <psk-layout align-content-y="center" class="border-right" template-columns="98fr">
+                    <psk-label label="@gtin"></psk-label>
+                </psk-layout>
+                <psk-layout align-content-y="center" class="border-right" template-columns="98fr">
+                    <psk-label label="@batchNumber"></psk-label>
+                </psk-layout>
+                <psk-layout align-content-y="center" class="border-right" template-columns="98fr">
+                    <psk-label label="@formatedDate"></psk-label>
+                </psk-layout>
+                <psk-button class="psk-link border-right" event-name="view-2DMatrix"  event-data="@code"
+                            label="View"></psk-button>
+                <psk-layout align-content-y="center" class="border-right" template-columns="98fr">
+                    <psk-label label="@version"></psk-label>
+                </psk-layout>
+                <psk-button class="psk-link border-right" event-data="@batchNumber" event-name="edit-batch"
+                            label="Edit"></psk-button>
+            </psk-layout>
         </psk-for-each>
         <div style="min-height: 30px;"></div>
         <psk-button event-name="add-batch" label="Add batch"></psk-button>
         <psk-list-feedbacks></psk-list-feedbacks>
-
-
-        <psk-label label="WRONG SN for testing "></psk-label>
-        <psk-for-each data-view-model="@batches">
-            <psk-layout gap="20px" template-columns="200px auto">
-                <psk-layout-item>
-                    <psk-barcode-generator data="@wrongCode" size="16" type="gs1datamatrix"></psk-barcode-generator>
-                </psk-layout-item>
-                <div>
-                    <psk-layout style="margin-top: 30px" template-columns="10em 10em">
-                        <psk-label label="Batch number:"></psk-label>
-                        <b>
-                            <psk-label label="@batchNumber"></psk-label>
-                        </b>
-                    </psk-layout>
-                    <psk-layout template-columns="10em 10em">
-                        <psk-label label="Expiration date:"></psk-label>
-                        <psk-date-input read-only style="margin-top: 11px"
-                                        value="@expiryForDisplay"></psk-date-input>
-
-                    </psk-layout>
-                </div>
-
-            </psk-layout>
-            <div slot="no-data">No Batches.</div>
-        </psk-for-each>
-
     </psk-container>
-
+    </h6>
 </psk-page>
+<style>
+    .psk-link button {
+        background: none !important;
+        color: #4C71DE !important;
+        text-decoration: underline;
+        border: none !important;
+        margin: 0px !important;
+        padding: 0px !important;
+    }
+
+    .icon-button button {
+        background: none !important;
+        border: none !important;
+        padding: 0px !important;
+        margin-top: 0px !important;
+        margin-bottom: 0px !important;
+    }
+
+    .table-header {
+        border: 1px solid black;
+        padding-left: 10px;
+    }
+
+    .table-row {
+        border-bottom: 1px solid black;
+        border-left: 1px solid black;
+        border-right: 1px solid black;
+        padding-left: 10px;
+    }
+
+    .active psk-icon {
+        color: black;
+    }
+
+    psk-icon {
+        color: darkgray;
+    }
+</style>

@@ -5,11 +5,14 @@ function convertDateToISO(dateString){
     return isoDateString;
 }
 
-function convertDateFromISOToGS1Format(isoDateString){
+function convertDateFromISOToGS1Format(isoDateString, separator){
     const date = new Date(isoDateString);
     const ye = new Intl.DateTimeFormat('en', {year: '2-digit'}).format(date);
     const mo = new Intl.DateTimeFormat('en', {month: '2-digit'}).format(date);
     const da = new Intl.DateTimeFormat('en', {day: '2-digit'}).format(date);
+    if(separator){
+     return `${ye}${separator}${mo}${separator}${da}`
+    }
     return `${ye}${mo}${da}`;
 }
 
@@ -69,10 +72,25 @@ function executeFetch(url, options) {
     return fetch(fetchUrl, options);
 }
 
+
+function sortByProperty (property, direction){
+    return (a,b)=>{
+        if ( (""+ a[property]) < ("" + b[property]) ){
+            return   direction === "asc" ? -1 : 1;
+        }
+        if ( (""+ a[property]) > ("" + b[property])  ){
+            return   direction === "asc" ? 1 : -1;
+        }
+        return 0;
+    }
+}
+
+
 export default {
     convertDateFromISOToGS1Format,
     convertDateToISO,
     convertDateTOGMTFormat,
     getFetchUrl,
     fetch: executeFetch,
+    sortByProperty
 }
