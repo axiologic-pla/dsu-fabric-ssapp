@@ -7,15 +7,15 @@ export default class Batch {
   versionLabel = "";
   serialNumbers = "";
   recalledSerialNumbers = "";
-  decommissionedSerialNumners = "";
+  decommissionedSerialNumbers = "";
   defaultSerialNumber = "0";
   bloomFilterSerialisation;
   bloomFilterRecalledSerialisation;
-  bloomFilterdecommissionedSerialisation;
+  bloomFilterDecommissionedSerialisation;
   decommissionReason = "";
   recalled = false;
   serialCheck = false;
-  incorectDateCheck = true;
+  incorrectDateCheck = true;
   expiredDateCheck = true;
   recalledMessage = "";
   defaultMessage = "";
@@ -45,10 +45,9 @@ export default class Batch {
     return undefined;
   }
 
-  addSerialNumbers(arr, bloomfilterType) {
+  addSerialNumbers(arr, bloomFilterType) {
     let bf;
-    let bfSerialisation;
-    switch (bloomfilterType) {
+    switch (bloomFilterType) {
       case "validSerialNumbers":
         bf = this.getBloomFilterSerialisation(arr, this.bloomFilterSerialisation);
         this.bloomFilterSerialisation = bf.bloomFilterSerialisation();
@@ -58,8 +57,8 @@ export default class Batch {
         this.bloomFilterRecalledSerialisation = bf.bloomFilterSerialisation();
         break
       case "decommissionedSerialNumbers":
-        bf = this.getBloomFilterSerialisation(arr, this.bloomFilterdecommissionedSerialisation);
-        this.bloomFilterdecommissionedSerialisation = bf.bloomFilterSerialisation();
+        bf = this.getBloomFilterSerialisation(arr, this.bloomFilterDecommissionedSerialisation);
+        this.bloomFilterDecommissionedSerialisation = bf.bloomFilterSerialisation();
         break
     }
 

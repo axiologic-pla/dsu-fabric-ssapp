@@ -6,7 +6,7 @@ export default class UpdateBatchSerialNumbersController extends ModalController 
         super(element, history);
         this.acceptButtonOnClick();
         this.denyButtonOnClick();
-        this.model.decommissionedType = this.model.type === "updatedecommissioned"
+        this.model.decommissionedType = this.model.type === "updateDecommissioned"
         this.model.reason = {
             options: [{label: "Lost", value: "lost"}, {label: "Stolen", value: "stolen"}, {label: "Damaged", value: "dameged"}],
             placeholder: "Select a reason"

@@ -181,7 +181,7 @@ export default class addBatchController extends ContainerController {
     this.on('update-recalled-serial', (event) => {
       this.updateSerialsModal(event.data)
     })
-    this.on('update-decomssioned-serial', (event) => {
+    this.on('update-decommissioned-serial', (event) => {
       this.updateSerialsModal(event.data)
     })
   }
@@ -263,7 +263,7 @@ export default class addBatchController extends ContainerController {
         case "updateRecalled":
           this.model.recalledSerialNumbers = response.serialNumbers
           break
-        case "updatedecommissioned":
+        case "updateDecommissioned":
           this.model.decommissionedSerialNumbers = response.serialNumbers;
           this.model.batch.decommissionReason = response.reason;
           break
@@ -283,20 +283,20 @@ export default class addBatchController extends ContainerController {
       batch.addSerialNumbers(batch.serialNumbersArray, "validSerialNumbers");
     }
 
-    if (batch.serialRecalledNumbers) {
-      batch.serialRecalledNumbersArray = batch.serialRecalledNumbers.split(/[\r\n ,]+/);
+    if (batch.recalledSerialNumbers) {
+      batch.serialRecalledNumbersArray = batch.recalledSerialNumbers.split(/[\r\n ,]+/);
       if (batch.serialRecalledNumbersArray.length === 0 || batch.serialRecalledNumbersArray[0] === '') {
         throw serialError;
       }
       batch.addSerialNumbers(batch.serialRecalledNumbersArray, "recalledSerialNumbers");
     }
 
-    if (batch.serialDecommissionedNumbers) {
-      batch.serialDecommissionedNumbersArray = batch.serialDecommissionedNumbers.split(/[\r\n ,]+/);
+    if (batch.decommissionedSerialNumbers) {
+      batch.serialDecommissionedNumbersArray = batch.decommissionedSerialNumbers.split(/[\r\n ,]+/);
       if (batch.serialDecommissionedNumbersArray.length === 0 || batch.serialDecommissionedNumbersArray[0] === '') {
         throw serialError;
       }
-      batch.addSerialNumbers(batch.serialDecommissionedNumbersArray, "decomissionedSerialNumbers");
+      batch.addSerialNumbers(batch.serialDecommissionedNumbersArray, "decommissionedSerialNumbers");
     }
 
   }
