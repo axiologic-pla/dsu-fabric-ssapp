@@ -27,7 +27,6 @@ export default class addBatchController extends ContainerController {
       }
     })
 
-
     this.model.batch = batch;
     this.model.editMode = editMode;
     this.model.products = {
@@ -275,30 +274,30 @@ export default class addBatchController extends ContainerController {
     const serialError = new Error("Error on add serial numbers");
 
     if (batch.serialNumbers) {
-      batch.serialNumbersArray = batch.serialNumbers.split(/[\r\n ,]+/);
-      if (batch.serialNumbersArray.length === 0 || batch.serialNumbersArray[0] === '') {
+      let serialNumbersArray = batch.serialNumbers.split(/[\r\n ,]+/);
+      if (serialNumbersArray.length === 0 || serialNumbersArray[0] === '') {
         throw serialError;
       }
-      batch.defaultSerialNumber = batch.serialNumbersArray[0];
-      batch.addSerialNumbers(batch.serialNumbersArray, "validSerialNumbers");
+      batch.defaultSerialNumber = serialNumbersArray[0];
+      batch.addSerialNumbers(serialNumbersArray, "validSerialNumbers");
     }
 
     if (batch.recalledSerialNumbers) {
-      batch.serialRecalledNumbersArray = batch.recalledSerialNumbers.split(/[\r\n ,]+/);
-      if (batch.serialRecalledNumbersArray.length === 0 || batch.serialRecalledNumbersArray[0] === '') {
+      let recalledSerialNumbersArray = batch.recalledSerialNumbers.split(/[\r\n ,]+/);
+      if (recalledSerialNumbersArray.length === 0 || recalledSerialNumbersArray[0] === '') {
         throw serialError;
       }
-      batch.defaultRecalledSerialNumber = batch.serialRecalledNumbersArray[0];
-      batch.addSerialNumbers(batch.serialRecalledNumbersArray, "recalledSerialNumbers");
+      batch.defaultRecalledSerialNumber = recalledSerialNumbersArray[0];
+      batch.addSerialNumbers(recalledSerialNumbersArray, "recalledSerialNumbers");
     }
 
     if (batch.decommissionedSerialNumbers) {
-      batch.serialDecommissionedNumbersArray = batch.decommissionedSerialNumbers.split(/[\r\n ,]+/);
-      if (batch.serialDecommissionedNumbersArray.length === 0 || batch.serialDecommissionedNumbersArray[0] === '') {
+      let decommissionedSerialNumbersArray = batch.decommissionedSerialNumbers.split(/[\r\n ,]+/);
+      if (decommissionedSerialNumbersArray.length === 0 || decommissionedSerialNumbersArray[0] === '') {
         throw serialError;
       }
-      batch.defaultDecommissionedSerialNumber = batch.serialDecommissionedNumbersArray[0];
-      batch.addSerialNumbers(batch.serialDecommissionedNumbersArray, "decommissionedSerialNumbers");
+      batch.defaultDecommissionedSerialNumber = decommissionedSerialNumbersArray[0];
+      batch.addSerialNumbers(decommissionedSerialNumbersArray, "decommissionedSerialNumbers");
     }
 
   }
@@ -337,6 +336,8 @@ export default class addBatchController extends ContainerController {
     delete cleanBatch.recalledSerialNumbers;
     delete cleanBatch.decommissionedSerialNumbers;
     delete cleanBatch.defaultSerialNumber;
+    delete cleanBatch.defaultRecalledSerialNumber;
+    delete cleanBatch.defaultDecommissionedSerialNumber;
 
     dsuBuilder.addFileDataToDossier(transactionId, constants.BATCH_STORAGE_FILE, JSON.stringify(cleanBatch), (err) => {
       if (err) {

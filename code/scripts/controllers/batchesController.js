@@ -43,7 +43,7 @@ export default class batchesController extends ContainerController {
         title: "2DMatrix",
         batchData: event.data,
       }
-      console.log('-- - ----- ----- --- -event ',event.data);
+
       this.showModal('show2DMatrix', actionModalModel, (err, response) => {
         if (err || response === undefined) {
           return;
@@ -63,6 +63,10 @@ export default class batchesController extends ContainerController {
   }
 
   generateSerializationForBatch(batch, serialNumber) {
+    if (serialNumber === '' || typeof serialNumber === "undefined") {
+      return `(01)${batch.gtin}(10)${batch.batchNumber}(17)${batch.expiry}`
+    }
+
     return `(01)${batch.gtin}(21)${serialNumber}(10)${batch.batchNumber}(17)${batch.expiry}`;
   }
 }
