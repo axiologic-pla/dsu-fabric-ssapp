@@ -12,7 +12,7 @@ export default class SharedStorage{
                     if(!err && sharedSSI){
                         let opendsu = require("opendsu");
                         let db = opendsu.loadAPI("db");
-                        this.mydb = db.getSharedDB(sharedSSI, SHARED_DB);
+                        this.mydb = db.getWalletDB(sharedSSI, SHARED_DB);
                         window.sharedDbCache = this.mydb;
                     } else {
                         alert("Wrong configuration as user/holder:" + err);
