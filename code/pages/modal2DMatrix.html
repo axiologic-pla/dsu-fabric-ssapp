@@ -2,11 +2,25 @@
     <psk-modal opened>
         <psk-label slot="title" class="title" label="@title"></psk-label>
         <div class='content'>
-            <psk-layout columns="1">
-                <div class="align-center">
-                    <psk-barcode-generator  data="@code" size="16" type="gs1datamatrix"></psk-barcode-generator>
-                </div>
-
+            <psk-layout align-items="center" template-columns="20fr 20fr" column-gap="20px">
+                <psk-layout-item>
+                    <psk-label label="Valid"></psk-label>
+                    <psk-barcode-generator  data="@batchData.code" size="16" type="gs1datamatrix"></psk-barcode-generator>
+                </psk-layout-item>
+                <psk-layout-item>
+                    <psk-label label="Wrong"></psk-label>
+                    <psk-barcode-generator  data="@batchData.wrongCode" size="16" type="gs1datamatrix"></psk-barcode-generator>
+                </psk-layout-item>
+            </psk-layout>
+            <psk-layout align-items="center" class="mt-5" template-columns="20fr 20fr" column-gap="20px">
+                <psk-layout-item>
+                    <psk-label label="Recalled"></psk-label>
+                    <psk-barcode-generator  data="@batchData.recalledCode" size="16" type="gs1datamatrix"></psk-barcode-generator>
+                </psk-layout-item>
+                <psk-layout-item>
+                    <psk-label label="Decommissioned"></psk-label>
+                    <psk-barcode-generator  data="@batchData.decommissionedCode" size="16" type="gs1datamatrix"></psk-barcode-generator>
+                </psk-layout-item>
             </psk-layout>
         </div>
     </psk-modal>

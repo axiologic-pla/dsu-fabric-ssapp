@@ -288,6 +288,7 @@ export default class addBatchController extends ContainerController {
       if (batch.serialRecalledNumbersArray.length === 0 || batch.serialRecalledNumbersArray[0] === '') {
         throw serialError;
       }
+      batch.defaultRecalledSerialNumber = batch.serialRecalledNumbersArray[0];
       batch.addSerialNumbers(batch.serialRecalledNumbersArray, "recalledSerialNumbers");
     }
 
@@ -296,6 +297,7 @@ export default class addBatchController extends ContainerController {
       if (batch.serialDecommissionedNumbersArray.length === 0 || batch.serialDecommissionedNumbersArray[0] === '') {
         throw serialError;
       }
+      batch.defaultDecommissionedSerialNumber = batch.serialDecommissionedNumbersArray[0];
       batch.addSerialNumbers(batch.serialDecommissionedNumbersArray, "decommissionedSerialNumbers");
     }
 
