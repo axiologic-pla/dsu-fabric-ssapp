@@ -77,7 +77,7 @@
                                       value="@batch.expiredDateCheck"></psk-checkbox>
                         <psk-form-row layout="xs=[12] m=[11] l=[11] xl=[11]">
                             <psk-textarea label="Batch message"
-                                          placeholder="This text will be displayed to user after QR code is scanned"
+                                          placeholder="This text will be displayed to user after Barcode is scanned"
                                           value="@batch.defaultMessage"></psk-textarea>
                         </psk-form-row>
 
@@ -86,7 +86,7 @@
                         <psk-condition condition="@batch.recalled">
                             <psk-form-row layout="xs=[12] m=[11] l=[11] xl=[11]">
                             <psk-textarea label="Recall message"
-                                          placeholder="This text will be displayed to user after QR code is scanned if batch is recalled"
+                                          placeholder="This text will be displayed to user after Barcode is scanned if batch is recalled"
                                           required value="@batch.recalledMessage"></psk-textarea>
                             </psk-form-row>
                         </psk-condition>

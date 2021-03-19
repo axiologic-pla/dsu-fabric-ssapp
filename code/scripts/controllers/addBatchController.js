@@ -257,12 +257,21 @@ export default class addBatchController extends ContainerController {
       }
       switch (type) {
         case "updateValid":
-          this.model.serialNumbers = response.serialNumbers
+          this.model.serialNumbers = response.serialNumbers;
+          if(response.resetAll) {
+            this.model.batch.bloomFilterSerialisations = [];
+          }
           break
         case "updateRecalled":
-          this.model.recalledSerialNumbers = response.serialNumbers
+          this.model.recalledSerialNumbers = response.serialNumbers;
+          if(response.resetAll) {
+            this.model.batch.bloomFilterRecalledSerialisations = [];
+          }
           break
         case "updateDecommissioned":
+          if(response.resetAll) {
+            this.model.batch.bloomFilterDecommissionedSerialisations = [];
+          }
           this.model.decommissionedSerialNumbers = response.serialNumbers;
           this.model.batch.decommissionReason = response.reason;
           break

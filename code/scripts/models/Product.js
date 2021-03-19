@@ -12,13 +12,29 @@ export default class Product {
   files = [];
   transferred = false;
   reportURL = `${window.top.location.origin}/default-report.html`;
+  antiCounterfeitingURL = `${window.top.location.origin}/default-anti-counterfeiting.html`;
   isCodeEditable = true;
-  checkExpiryDate = {
-      options: [{name:"checkExpiryDate", label: "Yes", checked: true, value: "true"}, {name: "checkExpiryDate", label: "No", value: "false"}],
+  show_ePI_on_batch_recalled = {
+      options: [{name:"show_ePI_on_batch_recalled", label: "Yes", checked: true, value: "true"}, {name: "show_ePI_on_batch_recalled", label: "No", value: "false"}],
   };
-  checkIncorrectExpiryDate = {
-    options: [{name: "checkIncorrectExpiryDate", label: "Yes", checked: true, value: "true"}, {name: "checkIncorrectExpiryDate", label: "No", value: "false"}],
+  show_ePI_on_sn_recalled = {
+    options: [{name: "show_ePI_on_sn_recalled", label: "Yes", checked: true, value: "true"}, {name: "show_ePI_on_sn_recalled", label: "No", value: "false"}],
   };
+  show_ePI_on_sn_decommissioned = {
+    options: [{name: "show_ePI_on_sn_decommissioned", label: "Yes", checked: true, value: "true"}, {name: "show_ePI_on_sn_decommissioned", label: "No", value: "false"}],
+  };
+  show_ePI_on_sn_unknown = {
+    options: [{name: "show_ePI_on_sn_unknown", label: "Yes", checked: true, value: "true"}, {name: "show_ePI_on_sn_unknown", label: "No", value: "false"}],
+  };
+  show_ePI_on_incorect_expiry_date = {
+    options: [{name: "show_ePI_on_incorect_expiry_date", label: "Yes", checked: true, value: "true"}, {name: "show_ePI_on_incorect_expiry_date", label: "No", value: "false"}],
+  };
+  show_ePI_on_batch_expired = {
+    options: [{name: "show_ePI_on_batch_expired", label: "Yes", checked: true, value: "true"}, {name: "show_ePI_on_batch_expired", label: "No", value: "false"}],
+  };
+  adverseEventsReportingEnabled = false;
+  antiCounterfeitingEnabled = false;
+
 
   constructor(product) {
     if (typeof product !== undefined) {
