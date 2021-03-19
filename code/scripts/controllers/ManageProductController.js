@@ -121,7 +121,7 @@ export default class ManageProductController extends ContainerController {
                         if (err) {
                             this.closeModal();
                             printOpenDSUError(createOpenDSUErrorWrapper("Failed to create an Immutable Product DSU!", err))
-                            return this.showErrorModalAndRedirect("Failed to create an Immutable Product DSU!", "products");
+                            return this.showErrorModalAndRedirect("An Immutable DSU for the current GTIN already exists!", "products");
                         }
 
                         product.keySSI = keySSI;
