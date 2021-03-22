@@ -26,8 +26,8 @@ export default class Product {
   show_ePI_on_sn_unknown = {
     options: [{name: "show_ePI_on_sn_unknown", label: "Yes", checked: true, value: "true"}, {name: "show_ePI_on_sn_unknown", label: "No", value: "false"}],
   };
-  show_ePI_on_incorect_expiry_date = {
-    options: [{name: "show_ePI_on_incorect_expiry_date", label: "Yes", checked: true, value: "true"}, {name: "show_ePI_on_incorect_expiry_date", label: "No", value: "false"}],
+  show_ePI_on_incorrect_expiry_date = {
+    options: [{name: "show_ePI_on_incorrect_expiry_date", label: "Yes", checked: true, value: "true"}, {name: "show_ePI_on_incorrect_expiry_date", label: "No", value: "false"}],
   };
   show_ePI_on_batch_expired = {
     options: [{name: "show_ePI_on_batch_expired", label: "Yes", checked: true, value: "true"}, {name: "show_ePI_on_batch_expired", label: "No", value: "false"}],
