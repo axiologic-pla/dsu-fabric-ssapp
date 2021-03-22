@@ -8,7 +8,7 @@ export default class Batch {
   serialNumbers = "";
   recalledSerialNumbers = "";
   decommissionedSerialNumbers = "";
-  defaultSerialNumber = "0";
+  defaultSerialNumber = "";
   bloomFilterSerialisations = [];
   bloomFilterRecalledSerialisations = [];
   bloomFilterDecommissionedSerialisations= [];
