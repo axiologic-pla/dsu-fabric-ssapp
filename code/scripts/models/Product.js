@@ -15,22 +15,28 @@ export default class Product {
   antiCounterfeitingURL = `${window.top.location.origin}/default-anti-counterfeiting.html`;
   isCodeEditable = true;
   show_ePI_on_batch_recalled = {
-      options: [{name:"show_ePI_on_batch_recalled", label: "Yes", checked: true, value: "true"}, {name: "show_ePI_on_batch_recalled", label: "No", value: "false"}],
+      options: [{name:"show_ePI_on_batch_recalled", label: "Yes",  value: "true"}, {name: "show_ePI_on_batch_recalled", label: "No", checked:"true", value: "false"}],
+    value: "false"
   };
   show_ePI_on_sn_recalled = {
-    options: [{name: "show_ePI_on_sn_recalled", label: "Yes", checked: true, value: "true"}, {name: "show_ePI_on_sn_recalled", label: "No", value: "false"}],
+    options: [{name: "show_ePI_on_sn_recalled", label: "Yes",  value: "true"}, {name: "show_ePI_on_sn_recalled", label: "No", checked:"true", value: "false"}],
+    value: "false"
   };
   show_ePI_on_sn_decommissioned = {
-    options: [{name: "show_ePI_on_sn_decommissioned", label: "Yes", checked: true, value: "true"}, {name: "show_ePI_on_sn_decommissioned", label: "No", value: "false"}],
+    options: [{name: "show_ePI_on_sn_decommissioned", label: "Yes", value: "true"}, {name: "show_ePI_on_sn_decommissioned", label: "No", checked:"true", value: "false"}],
+    value: "false"
   };
   show_ePI_on_sn_unknown = {
-    options: [{name: "show_ePI_on_sn_unknown", label: "Yes", checked: true, value: "true"}, {name: "show_ePI_on_sn_unknown", label: "No", value: "false"}],
+    options: [{name: "show_ePI_on_sn_unknown", label: "Yes",  value: "true"}, {name: "show_ePI_on_sn_unknown", label: "No", checked:"true", value: "false"}],
+    value: "false"
   };
   show_ePI_on_incorrect_expiry_date = {
-    options: [{name: "show_ePI_on_incorrect_expiry_date", label: "Yes", checked: true, value: "true"}, {name: "show_ePI_on_incorrect_expiry_date", label: "No", value: "false"}],
+    options: [{name: "show_ePI_on_incorrect_expiry_date", label: "Yes", value: "true"}, {name: "show_ePI_on_incorrect_expiry_date", label: "No", checked:"true", value: "false"}],
+    value: "false"
   };
   show_ePI_on_batch_expired = {
-    options: [{name: "show_ePI_on_batch_expired", label: "Yes", checked: true, value: "true"}, {name: "show_ePI_on_batch_expired", label: "No", value: "false"}],
+    options: [{name: "show_ePI_on_batch_expired", label: "Yes", checked:"true", value: "true"}, {name: "show_ePI_on_batch_expired", label: "No", value: "false"}],
+    value: "true"
   };
   adverseEventsReportingEnabled = false;
   antiCounterfeitingEnabled = false;

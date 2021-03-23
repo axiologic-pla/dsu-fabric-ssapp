@@ -80,6 +80,13 @@ export default class ManageProductController extends ContainerController {
 
         this.on("add-product", (event) => {
             let product = this.model.product;
+            product.showEPIOnBatchRecalled = product.show_ePI_on_batch_recalled.value;
+            product.showEPIOnIncorrectExpiryDate = product.show_ePI_on_incorrect_expiry_date.value;
+            product.showEPIOnSNUnknown = product.show_ePI_on_sn_unknown.value;
+            product.showEPIOnSNRecalled = product.show_ePI_on_sn_recalled.value;
+            product.showEPIOnSNDecommissioned = product.show_ePI_on_sn_decommissioned.value;
+            product.showEPIOnBatchExpired = product.show_ePI_on_batch_expired.value;
+
             try {
                 this.DSUStorage.beginBatch();
             } catch (err) {
