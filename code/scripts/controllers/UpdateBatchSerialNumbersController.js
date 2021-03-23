@@ -21,7 +21,7 @@ export default class UpdateBatchSerialNumbersController extends ModalController 
                 break;
         }
         this.model.reason = {
-            options: [{label: "Lost", value: "lost"}, {label: "Stolen", value: "stolen"}, {label: "Damaged", value: "dameged"}],
+            options: [{label: "Lost", value: "lost"}, {label: "Stolen", value: "stolen"}, {label: "Damaged", value: "damaged"}],
             placeholder: "Select a reason"
         }
     }
