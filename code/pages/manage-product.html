@@ -58,31 +58,30 @@
                     <div class="border border-dark pb-3 pl-3 pr-3">
                         <psk-label class="font-weight-bold" label="Display ePI(Leaflet + SmPC) when:"></psk-label>
                         <div class="pl-3">
-                            <psk-layout columns="2">
-                                <psk-label label="Batch is recalled"></psk-label>
-                                <psk-radio-group view-model="@product.show_ePI_on_batch_recalled"></psk-radio-group>
-                            </psk-layout>
-                            <psk-layout columns="2">
-                                <psk-label label="SN is in Recall list"></psk-label>
-                                <psk-radio-group view-model="@product.show_ePI_on_sn_recalled"></psk-radio-group>
-                            </psk-layout>
-                            <psk-layout columns="2">
-                                <psk-label label="SN is in Decommissioned list"></psk-label>
-                                <psk-radio-group view-model="@product.show_ePI_on_sn_decommissioned"></psk-radio-group>
-                            </psk-layout>
-                            <psk-layout columns="2">
-                                <psk-label label="SN is unknown"></psk-label>
-                                <psk-radio-group view-model="@product.show_ePI_on_sn_unknown"></psk-radio-group>
-                            </psk-layout>
-                            <psk-layout columns="2">
-                                <psk-label label="Expiration Date is incorrect"></psk-label>
-                                <psk-radio-group
-                                        view-model="@product.show_ePI_on_incorrect_expiry_date"></psk-radio-group>
-                            </psk-layout>
-                            <psk-layout columns="2">
-                                <psk-label label="Batch is expired"></psk-label>
-                                <psk-radio-group view-model="@product.show_ePI_on_batch_expired"></psk-radio-group>
-                            </psk-layout>
+                                <psk-checkbox checkbox-label="Batch is recalled"
+                                              checked="@product.showEPIOnBatchRecalled"
+                                              name="showEPIOnBatchRecalled"
+                                              value="@product.showEPIOnBatchRecalled"></psk-checkbox>
+                            <psk-checkbox checkbox-label="SN is in Recall list"
+                                          checked="@product.showEPIOnSNRecalled"
+                                          name="showEPIOnSNRecalled"
+                                          value="@product.showEPIOnSNRecalled"></psk-checkbox>
+                            <psk-checkbox checkbox-label="SN is in Decommissioned list"
+                                          checked="@product.showEPIOnSNDecommissioned"
+                                          name="showEPIOnSNDecommissioned"
+                                          value="@product.showEPIOnSNDecommissioned"></psk-checkbox>
+                            <psk-checkbox checkbox-label="SN is unknown"
+                                          checked="@product.showEPIOnSNUnknown"
+                                          name="showEPIOnSNUnknown"
+                                          value="@product.showEPIOnSNUnknown"></psk-checkbox>
+                            <psk-checkbox checkbox-label="Expiration Date is incorrect"
+                                          checked="@product.showEPIOnIncorrectExpiryDate"
+                                          name="showEPIOnIncorrectExpiryDate"
+                                          value="@product.showEPIOnIncorrectExpiryDate"></psk-checkbox>
+                            <psk-checkbox checkbox-label="Batch is expired"
+                                          checked="@product.showEPIOnBatchExpired"
+                                          name="showEPIOnBatchExpired"
+                                          value="@product.showEPIOnBatchExpired"></psk-checkbox>
                         </div>
                     </div>
                 </psk-layout>
