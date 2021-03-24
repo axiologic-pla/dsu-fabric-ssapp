@@ -1,11 +1,15 @@
 <psk-page title="Product Details">
     <h6>
     <psk-container controller-name="ProductsController">
+        <psk-layout class="mt-4" align="right" template-columns="85fr 15fr">
+            <psk-button event-name="get-transferred-product" label="Get Transferred Product"></psk-button>
+            <psk-button event-name="add-product" label="Add Product"></psk-button>
+        </psk-layout>
         <psk-condition condition="@productsListLoaded">
             <div class="table-container" slot="condition-true">
                 <psk-layout align-content-y="center" align-items="left" class="table-header" column-gap="10px"
                             template-columns="30fr 30fr 10fr 10fr 10fr 10fr">
-                    <psk-layout align-content-y="center" class="border-right" template-columns="98fr 2fr">
+                    <psk-layout align-content-y="center" template-columns="98fr 2fr">
                         <psk-label label="Product name"></psk-label>
                         <psk-layout align-content-y="center" rows="2">
                             <psk-button class="icon-button" event-data='{"property": "name", "direction": "asc"}'
@@ -19,7 +23,7 @@
                         </psk-layout>
                     </psk-layout>
 
-                    <psk-layout align-content-y="center" class="border-right" template-columns="98fr 2fr">
+                    <psk-layout align-content-y="center"  template-columns="98fr 2fr">
                         <psk-label label="Product Code (GTIN/NTIN)"></psk-label>
                         <psk-layout align-items="center" rows="2">
                             <psk-button class="icon-button" event-data='{"property": "gtin", "direction": "asc"}'
@@ -33,24 +37,24 @@
                         </psk-layout>
 
                     </psk-layout>
-                    <psk-label class="border-right" label="AE Report Enabled"></psk-label>
-                    <psk-label class="border-right" label="AC Check Enabled"></psk-label>
-                    <psk-label class="border-right" label="View details"></psk-label>
+                    <psk-label  label="AE Report Enabled"></psk-label>
+                    <psk-label  label="AC Check Enabled"></psk-label>
+                    <psk-label  label="View details"></psk-label>
                     <psk-label label="Transfer"></psk-label>
                 </psk-layout>
 
                 <psk-for-each data-view-model="productsForDisplay">
                     <psk-layout align-content-y="center" align-items="left" class="table-row" column-gap="10px"
                                 template-columns="30fr 30fr 10fr 10fr 10fr 10fr">
-                        <psk-layout align-content-y="center" class="border-right" template-columns="98fr">
+                        <psk-layout align-content-y="center"  template-columns="98fr">
                             <psk-label label="@name"></psk-label>
                         </psk-layout>
-                        <psk-layout align-content-y="center" class="border-right" template-columns="98fr">
+                        <psk-layout align-content-y="center"  template-columns="98fr">
                             <psk-label label="@gtin"></psk-label>
                         </psk-layout>
-                        <psk-label class="border-right" label="true"></psk-label>
-                        <psk-label class="border-right" label="false"></psk-label>
-                        <psk-button class="psk-link border-right" event-name="edit-product" gtin="@gtin"
+                        <psk-label  label="true"></psk-label>
+                        <psk-label  label="false"></psk-label>
+                        <psk-button class="psk-link" event-name="edit-product" gtin="@gtin"
                                     label="View/Edit"></psk-button>
                         <psk-button class="psk-link" event-name="transfer" gtin="@gtin"
                                     label="Transfer"></psk-button>
@@ -63,10 +67,6 @@
             </div>
         </psk-condition>
 
-        <psk-layout class="mt-4" template-columns="2fr 10fr">
-            <psk-button event-name="add-product" label="Add Product"></psk-button>
-            <psk-button event-name="get-transferred-product" label="Get Transferred Product"></psk-button>
-        </psk-layout>
     </psk-container>
     </h6>
 </psk-page>
@@ -90,15 +90,35 @@
     }
 
     .table-header {
-        border: 1px solid black;
+        background: #F4F5F5;
+        border-radius: 4px 4px 0px 0px;
         padding-left: 10px;
+        box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.3);
+        font-size: 14px;
+        min-height: 3em;
+    }
+
+    .table-header psk-button {
+        height: 14px !important;
+        line-height: 1em;
+    }
+
+    .table-header .btn{
+        line-height: 1em !important;
+        padding-left: 10px !important;
     }
 
     .table-row {
-        border-bottom: 1px solid black;
-        border-left: 1px solid black;
-        border-right: 1px solid black;
+        font-size: 14px;
         padding-left: 10px;
+        background: #FFFFFF;
+        box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.3);
+        border-radius: 0px;
+        line-height: 3em;
+    }
+
+    .table-row button {
+        font-size: 14px !important;
     }
 
     .active psk-icon {
@@ -107,5 +127,8 @@
 
     psk-icon {
         color: darkgray;
+        line-height: 14px;
+        font-size: 14px;
     }
 </style>
+

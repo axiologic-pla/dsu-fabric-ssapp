@@ -1,36 +1,48 @@
 <psk-page title="Manage Product">
     <h6>
         <psk-form controller-name="ManageProductController">
-            <psk-form-row layout="xs=[12] m=[12] l=[12] xl=[12]">
-                <psk-layout column-gap="30px" template-columns="max-content max-content">
-                    <psk-label label="Manufacturing Authorization Holder:"></psk-label>
-                    <psk-label label="@product.manufName"></psk-label>
-                </psk-layout>
-            </psk-form-row>
-            <psk-form-row layout="xs=[12,12] m=[6,6] l=[6,6] xl=[6,6]">
-                <psk-layout column-gap="30px" template-columns="max-content max-content">
-                    <psk-label label="Product Code (GTIN/NTIN):"></psk-label>
-                    <psk-condition condition="@product.isCodeEditable">
-                        <psk-text-input required slot="condition-true" value="@product.gtin"></psk-text-input>
-                        <psk-label label="@product.gtin" slot="condition-false"></psk-label>
-                    </psk-condition>
-                </psk-layout>
-                <psk-layout column-gap="30px" template-columns="max-content max-content">
-                    <psk-label label="Product Name:"></psk-label>
-                    <psk-condition condition="@product.isCodeEditable">
-                        <psk-text-input required slot="condition-true" value="@product.name"></psk-text-input>
-                        <psk-label label="@product.name" slot="condition-false"></psk-label>
-                    </psk-condition>
-                </psk-layout>
-            </psk-form-row>
-            <psk-form-row layout="xs=[12,12] m=[6,6] l=[6,6] xl=[6,6]">
-                <psk-img-input class="product-image" event-name="product-photo-selected" label="Product Photo"
-                               src="@product.photo"></psk-img-input>
-                <psk-textarea label="Description" required value="@product.description"></psk-textarea>
-            </psk-form-row>
+            <div class="d-flex flex-row justify-content-center">
+                <h4>
+                    <psk-layout column-gap="5px" template-columns="max-content max-content max-content">
+                        <psk-label label="Manufacturing Authorization Holder"></psk-label>
+                        <psk-label label="-"></psk-label>
+                        <psk-label label="@product.manufName"></psk-label>
+                    </psk-layout>
+                </h4>
+            </div>
+            <div class="context-group pb-3 pl-3 pr-3">
+                <psk-form-row layout="xs=[12,12] m=[6,6] l=[6,6] xl=[6,6]">
+                    <psk-layout template-columns="30fr 60fr">
+                        <psk-label label="Product Code (GTIN/NTIN):"></psk-label>
+                        <psk-condition condition="@product.isCodeEditable">
+                            <psk-text-input required slot="condition-true" value="@product.gtin"></psk-text-input>
+                            <psk-label label="@product.gtin" slot="condition-false"></psk-label>
+                        </psk-condition>
+                    </psk-layout>
+                    <psk-layout template-columns="20fr 60fr" column-gap="10px">
+                        <psk-label label="Product Name:"></psk-label>
+                        <psk-condition condition="@product.isCodeEditable">
+                            <psk-text-input required slot="condition-true" value="@product.name"></psk-text-input>
+                            <psk-label label="@product.name" slot="condition-false"></psk-label>
+                        </psk-condition>
+                    </psk-layout>
+                </psk-form-row>
+                <psk-form-row layout="xs=[12,12] m=[6,6] l=[6,6] xl=[6,6]">
+                    <psk-layout template-columns="30fr 60fr">
+                        <psk-label label="Description:"></psk-label>
+                        <psk-textarea required value="@product.description"></psk-textarea>
+                    </psk-layout>
+                    <psk-layout template-columns="20fr 60fr" column-gap="10px">
+                        <psk-label label="Product Photo:"></psk-label>
+                        <psk-img-input class="product-image" event-name="product-photo-selected"
+                                       src="@product.photo"></psk-img-input>
+                    </psk-layout>
+
+                </psk-form-row>
+            </div>
             <psk-form-row layout="xs=[12,12] m=[6,6] l=[6,6] xl=[6,6]">
                 <psk-layout class="mt-3" column-gap="30px" columns="2">
-                    <div class="border border-dark pb-3 pl-3 pr-3">
+                    <div class="context-group pb-3 pl-3 pr-3">
                         <psk-checkbox checkbox-label="Enable Adverse Events Reporting"
                                       checked="@product.adverseReportingEnabled"
                                       name="adverseReportingEnabled"
@@ -38,7 +50,7 @@
                         <psk-text-input label="Adverse Events Reporting URL:"
                                         value="@product.reportURL"></psk-text-input>
                     </div>
-                    <div class="border border-dark pb-3 pl-3 pr-3">
+                    <div class="context-group pb-3 pl-3 pr-3">
                         <psk-checkbox checkbox-label="Enable Anti-Counterfeiting check for this product"
                                       checked="@product.antiCounterfeiting" name="antiCounterfietingEnabled"
                                       value="@product.Counterfeiting"></psk-checkbox>
@@ -49,19 +61,19 @@
             </psk-form-row>
             <psk-from-row layout="xs=[12,12] m=[6,6] l=[6,6] xl=[6,6]">
                 <psk-layout class="mt-3" column-gap="30px" columns="2">
-                    <div class="border border-dark pb-3 pl-3 pr-3">
+                    <div class="context-group pb-3 pl-3 pr-3">
                         <psk-text-input label="Patient Specific Information Leaflet"
                                         value="@product.pacientLeafletInfo"></psk-text-input>
                         <psk-text-input label="Healthcare practitioner information"
                                         value="@product.practitionerInfo"></psk-text-input>
                     </div>
-                    <div class="border border-dark pb-3 pl-3 pr-3">
+                    <div class="context-group pb-3 pl-3 pr-3">
                         <psk-label class="font-weight-bold" label="Display ePI(Leaflet + SmPC) when:"></psk-label>
                         <div class="pl-3">
-                                <psk-checkbox checkbox-label="Batch is recalled"
-                                              checked="@product.showEPIOnBatchRecalled"
-                                              name="showEPIOnBatchRecalled"
-                                              value="@product.showEPIOnBatchRecalled"></psk-checkbox>
+                            <psk-checkbox checkbox-label="Batch is recalled"
+                                          checked="@product.showEPIOnBatchRecalled"
+                                          name="showEPIOnBatchRecalled"
+                                          value="@product.showEPIOnBatchRecalled"></psk-checkbox>
                             <psk-checkbox checkbox-label="SN is in Recall list"
                                           checked="@product.showEPIOnSNRecalled"
                                           name="showEPIOnSNRecalled"
@@ -87,7 +99,7 @@
                 </psk-layout>
             </psk-from-row>
             <psk-from-row layout="xs=[12] m=[12] l=[12] xl=[12]">
-                <div class="border border-dark pb-3 pl-3 pr-3 mt-3">
+                <div class="context-group pb-3 pl-3 pr-3 mt-3">
                     <psk-layout gap="2em" template-columns="20fr 75fr">
                         <div>
                             <psk-text-input label="Version" read-only value="@product.version"></psk-text-input>
@@ -154,5 +166,20 @@
 
     psk-radio-group .form-group > psk-label {
         display: none;
+    }
+
+    psk-input div input,
+    psk-textarea div textarea,
+    .context-group {
+        box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.3);
+        border-radius: 4px;
+    }
+
+    psk-checkbox input {
+        box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.6);
+    }
+
+    psk-textarea div textarea {
+        min-height: 111px;
     }
 </style>

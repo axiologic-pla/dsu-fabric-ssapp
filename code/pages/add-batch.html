@@ -1,106 +1,129 @@
+
 <psk-page title="Edit batch">
     <h6>
         <psk-form class="add-batch-form" controller-name="addBatchController">
             <psk-form-row layout="xs=[12] m=[12] l=[12] xl=[12]">
 
-                <psk-layout align-items="left" column-gap="20px" template-columns="48fr 48fr">
+                <psk-layout align-items="left" column-gap="30px" template-columns="48fr 48fr">
 
-                    <psk-form-row layout="xs=[12] m=[3,8] l=[3,8] xl=[3,8]">
-                        <psk-label label="BatchID:"></psk-label>
+                    <div class="context-group p-3">
+                        <psk-form-row layout="xs=[12] m=[3,8] l=[3,8] xl=[3,8]">
+                            <psk-label label="BatchID:"></psk-label>
+                            <psk-layout-item>
+                                <psk-condition condition="@editMode">
+                                    <psk-label class="font-weight-bold" label="@batch.batchNumber"
+                                               slot="condition-true"></psk-label>
+                                    <psk-text-input required slot="condition-false"
+                                                    value="@batch.batchNumber"></psk-text-input>
+                                </psk-condition>
+                            </psk-layout-item>
+                        </psk-form-row>
                         <psk-layout-item>
-                            <psk-condition condition="@editMode">
-                                <psk-label class="font-weight-bold" label="@batch.batchNumber"
-                                           slot="condition-true"></psk-label>
-                                <psk-text-input required slot="condition-false"
-                                                value="@batch.batchNumber"></psk-text-input>
+                            <psk-form-row layout="xs=[12] m=[3,8] l=[3,8] xl=[3,8]">
+                                <psk-label label="Product Code:"></psk-label>
+                                <psk-condition condition="@editMode">
+                                    <psk-label class="font-weight-bold" label="@batch.gtin"
+                                               slot="condition-true"></psk-label>
+                                    <psk-select required slot="condition-false" view-model="@products"></psk-select>
+                                </psk-condition>
+                            </psk-form-row>
+                            <div class="mt-3">
+                                <psk-form-row layout="xs=[12] m=[3,8] l=[3,8] xl=[3,8]">
+                                    <psk-label label="Product Name:"></psk-label>
+                                    <psk-label class="font-weight-bold" label="@batch.productName"></psk-label>
+                                </psk-form-row>
+                            </div>
+                        </psk-layout-item>
+                        <psk-layout-item>
+                            <psk-form-row layout="xs=[12] m=[3,8] l=[3,8] xl=[3,8]">
+                                <psk-label label="Product version:"></psk-label>
+                                <psk-select required view-model="@versions"></psk-select>
+                            </psk-form-row>
+                            <div class="mt-4">
+                                <psk-form-row layout="xs=[12] m=[3,8] l=[3,8] xl=[3,8]">
+                                    <psk-label label="Expiry date:"></psk-label>
+                                    <psk-condition condition="@editMode">
+                                        <psk-date-input data-format="DD MM YYYY" read-only required
+                                                        slot="condition-true"
+                                                        value="@batch.expiryForDisplay"></psk-date-input>
+                                        <psk-date-input data-format="DD MM YYYY" required
+                                                        slot="condition-false"
+                                                        value="@batch.expiryForDisplay"></psk-date-input>
+                                    </psk-condition>
+
+                                </psk-form-row>
+                            </div>
+                            <psk-checkbox checkbox-label="Enable Incorrect Expiration Date Verification"
+                                          checked="@batch.incorrectDateCheck" name="incorrectDateCheck"
+                                          value="@batch.incorrectDateCheck"></psk-checkbox>
+                            <psk-checkbox checkbox-label="Enable Expired Expiration Date Verification"
+                                          checked="@batch.expiredDateCheck"
+                                          name="expiredDateCheck"
+                                          value="@batch.expiredDateCheck"></psk-checkbox>
+                        </psk-layout-item>
+
+                    </div>
+                    <div class="context-group p-3">
+                        <psk-layout-item>
+                            <psk-form-row layout="xs=[12] m=[11] l=[11] xl=[11]">
+                                <psk-textarea label="Product description" read-only="true"
+                                              value="@productDescription"></psk-textarea>
+                            </psk-form-row>
+                        </psk-layout-item>
+
+                        <psk-layout-item>
+                            <psk-form-row layout="xs=[12] m=[11] l=[11] xl=[11]">
+                                <psk-textarea label="Batch message"
+                                              placeholder="This text will be displayed to user after Barcode is scanned"
+                                              value="@batch.defaultMessage"></psk-textarea>
+                            </psk-form-row>
+                            <psk-checkbox checkbox-label="Check to recall this batch" checked="@batch.recalled"
+                                          name="recalled" value="@batch.recalled"></psk-checkbox>
+                            <psk-condition condition="@batch.recalled">
+                                <psk-form-row layout="xs=[12] m=[11] l=[11] xl=[11]">
+                                    <psk-textarea label="Recall message"
+                                                  placeholder="This text will be displayed to user after Barcode is scanned if batch is recalled"
+                                                  required value="@batch.recalledMessage"></psk-textarea>
+                                </psk-form-row>
                             </psk-condition>
                         </psk-layout-item>
-                    </psk-form-row>
-                    <psk-layout-item>
-                    <psk-form-row layout="xs=[12] m=[11] l=[11] xl=[11]">
 
-                            <psk-textarea placeholder="Product description" read-only="true"
-                                          value="@productDescription"></psk-textarea>
+                        <psk-layout-item>
+                            <psk-label label="Manage serial numbers"></psk-label>
+                            <psk-button event-data="updateValid" event-name="update-valid-serial"
+                                        label="Update Valid"></psk-button>
+                            <psk-button event-data="updateRecalled" event-name="update-recalled-serial"
+                                        label="Update Recalled"></psk-button>
+                            <psk-button event-data="updateDecommissioned" event-name="update-decommissioned-serial"
+                                        label="Update decommissioned"></psk-button>
+                            <psk-checkbox checkbox-label="Enable Serial Number Verification" checked="@batch.serialCheck"
+                                          name="serialCheck" value="@batch.serialCheck"></psk-checkbox>
 
-
-                    </psk-form-row>
-                    </psk-layout-item>
-                    <psk-layout-item>
-                        <psk-form-row layout="xs=[12] m=[3,8] l=[3,8] xl=[3,8]">
-                            <psk-label label="Product Code:"></psk-label>
-                            <psk-condition condition="@editMode">
-                                <psk-label class="font-weight-bold" label="@batch.gtin"
-                                           slot="condition-true"></psk-label>
-                                <psk-select required slot="condition-false" view-model="@products"></psk-select>
-                            </psk-condition>
-                        </psk-form-row>
-                        <div class="mt-3">
-                        <psk-form-row layout="xs=[12] m=[3,8] l=[3,8] xl=[3,8]">
-                            <psk-label label="Product Name:"></psk-label>
-                            <psk-label class="font-weight-bold" label="@batch.productName"></psk-label>
-                        </psk-form-row>
-                        </div>
-                    </psk-layout-item>
-                    <psk-layout-item>
-                        <psk-label label="Manage serial numbers"></psk-label>
-                        <psk-button label="Update Valid" event-name="update-valid-serial" event-data="updateValid"></psk-button>
-                        <psk-button label="Update Recalled" event-name="update-recalled-serial" event-data="updateRecalled"></psk-button>
-                        <psk-button label="Update decommissioned" event-name="update-decommissioned-serial" event-data="updateDecommissioned"></psk-button>
-                        <psk-checkbox  checkbox-label="Enable Serial Number Verification" name="serialCheck" checked="@batch.serialCheck" value="@batch.serialCheck"></psk-checkbox>
-
-                    </psk-layout-item>
-                    <psk-layout-item>
-                        <psk-form-row layout="xs=[12] m=[3,8] l=[3,8] xl=[3,8]">
-                            <psk-label label="Product version:"></psk-label>
-                            <psk-select required view-model="@versions"></psk-select>
-                        </psk-form-row>
-                        <div class="mt-4">
-                            <psk-form-row layout="xs=[12] m=[3,8] l=[3,8] xl=[3,8]">
-                                <psk-label label="Expiry date:"></psk-label>
-                                <psk-condition condition="@editMode">
-                                    <psk-date-input data-format="DD MM YYYY" read-only required
-                                                    slot="condition-true"
-                                                    value="@batch.expiryForDisplay"></psk-date-input>
-                                    <psk-date-input data-format="DD MM YYYY" required
-                                                    slot="condition-false"
-                                                    value="@batch.expiryForDisplay"></psk-date-input>
-                                </psk-condition>
-
-                            </psk-form-row>
-                        </div>
-                        <psk-checkbox checkbox-label="Enable Incorrect Expiration Date Verification"
-                                      checked="@batch.incorrectDateCheck" name="incorrectDateCheck"
-                                      value="@batch.incorrectDateCheck"></psk-checkbox>
-                        <psk-checkbox checkbox-label="Enable Expired Expiration Date Verification"
-                                      checked="@batch.expiredDateCheck"
-                                      name="expiredDateCheck"
-                                      value="@batch.expiredDateCheck"></psk-checkbox>
-                        <psk-form-row layout="xs=[12] m=[11] l=[11] xl=[11]">
-                            <psk-textarea label="Batch message"
-                                          placeholder="This text will be displayed to user after Barcode is scanned"
-                                          value="@batch.defaultMessage"></psk-textarea>
-                        </psk-form-row>
-
-                        <psk-checkbox checkbox-label="Check to recall this batch" checked="@batch.recalled"
-                                      name="recalled" value="@batch.recalled"></psk-checkbox>
-                        <psk-condition condition="@batch.recalled">
-                            <psk-form-row layout="xs=[12] m=[11] l=[11] xl=[11]">
-                            <psk-textarea label="Recall message"
-                                          placeholder="This text will be displayed to user after Barcode is scanned if batch is recalled"
-                                          required value="@batch.recalledMessage"></psk-textarea>
-                            </psk-form-row>
-                        </psk-condition>
-
-                    </psk-layout-item>
+                        </psk-layout-item>
+                    </div>
                 </psk-layout>
-                </psk-layout>
-                <psk-form-row>
+                <psk-form-row class="d-flex flex-row justify-content-center mt-3">
                     <psk-condition condition="@editMode">
-                        <psk-button slot="condition-true" label="Update batch" event-name="update-batch"></psk-button>
-                        <psk-button slot="condition-false" label="Add batch" event-name="add-batch"></psk-button>
+                        <psk-button event-name="update-batch" label="Update batch" slot="condition-true"></psk-button>
+                        <psk-button event-name="add-batch" label="Add batch" slot="condition-false"></psk-button>
                     </psk-condition>
                 </psk-form-row>
             </psk-form-row>
         </psk-form>
     </h6>
 </psk-page>
+<style>
+
+
+    psk-input div input,
+    psk-textarea div textarea,
+    psk-select select,
+    .context-group {
+        box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.3);
+        border-radius: 4px;
+    }
+
+    psk-checkbox input {
+        box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.6);
+    }
+</style>
