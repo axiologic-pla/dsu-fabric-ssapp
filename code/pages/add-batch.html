@@ -98,7 +98,12 @@
                                         label="Update decommissioned"></psk-button>
                             <psk-checkbox checkbox-label="Enable Serial Number Verification" checked="@batch.serialCheck"
                                           name="serialCheck" value="@batch.serialCheck"></psk-checkbox>
-
+                            <psk-for-each data-view-model="serialNumbersLogs">
+                                <psk-layout template-columns="1fr 2fr">
+                                    <psk-label label="@action"></psk-label>
+                                    <psk-label label="@creationTime"></psk-label>
+                                </psk-layout>
+                            </psk-for-each>
                         </psk-layout-item>
                     </div>
                 </psk-layout>

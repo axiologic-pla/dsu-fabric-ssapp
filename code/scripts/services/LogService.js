@@ -3,8 +3,13 @@ import SharedStorage from "./SharedDBStorageService.js";
 
 export default class LogService {
 
-	constructor(dsuStorage) {
+	constructor(dsuStorage, logsTable) {
 		this.storageService = new SharedStorage(dsuStorage);
+		if (typeof logsTable === "undefined") {
+			this.logsTable = constants.LOGS_TABLE;
+		} else {
+            this.logsTable = logsTable;
+        }
 	}
 
 	log (logDetails, callback) {
@@ -19,7 +24,7 @@ export default class LogService {
 				...logDetails,
 				timestamp: new Date().getTime()
 			});
-			this.storageService.setArray(constants.LOGS_TABLE, logs, (err) => {
+			this.storageService.setArray(this.logsTable, logs, (err) => {
 				if (err) {
 					return console.log("Error adding a log.")
 				}
@@ -29,6 +34,6 @@ export default class LogService {
 	}
 
 	getLogs (callback) {
-		this.storageService.getArray(constants.LOGS_TABLE, callback);
+		this.storageService.getArray(this.logsTable, callback);
 	}
 }

@@ -18,6 +18,7 @@ export default class addBatchController extends ContainerController {
     this.setModel({});
     this.storageService = new SharedStorage(this.DSUStorage);
     this.logService = new LogService(this.DSUStorage);
+    this.serialNumbersLogService = new LogService(this.DSUStorage, constants.SERIAL_NUMBERS_LOGS_TABLE);
     this.versionOffset = 1;
     dsuBuilder.ensureHolderInfo((err, holderInfo) => {
       if (!err) {
@@ -43,6 +44,13 @@ export default class addBatchController extends ContainerController {
       this.gtin = this.model.batch.gtin;
     }
 
+    this.serialNumbersLogService.getLogs((err, logs) => {
+      if (err || typeof logs === "undefined") {
+        logs = [];
+      }
+
+      this.model.serialNumbersLogs = logs;
+    });
     this.storageService.getObject(constants.PRODUCTS_TABLE, (err, products) => {
       if (err || !products) {
         printOpenDSUError(createOpenDSUErrorWrapper("Failed to retrieve products list!", err));
@@ -251,6 +259,8 @@ export default class addBatchController extends ContainerController {
       type: type,
       serialNumbers: ""
     }
+
+    const serialNumbersLog = {}
     this.showModal('updateSerials', actionModalModel, (err, response) => {
       if (err || response === undefined) {
         return;
@@ -258,24 +268,38 @@ export default class addBatchController extends ContainerController {
       switch (type) {
         case "updateValid":
           this.model.serialNumbers = response.serialNumbers;
+          serialNumbersLog.action = "Updated valid serial numbers list";
+          serialNumbersLog.creationTime = new Date().toUTCString();
           if(response.resetAll) {
+            serialNumbersLog.action = "Reset valid serial numbers list";
             this.model.batch.bloomFilterSerialisations = [];
           }
           break
         case "updateRecalled":
           this.model.recalledSerialNumbers = response.serialNumbers;
+          serialNumbersLog.creationTime = new Date().toUTCString();
+          serialNumbersLog.action = "Updated recalled serial numbers list";
           if(response.resetAll) {
+            serialNumbersLog.action = "Reset recalled serial numbers list";
             this.model.batch.bloomFilterRecalledSerialisations = [];
           }
           break
         case "updateDecommissioned":
+          serialNumbersLog.action = "Updated decommissioned serial numbers list";
+          serialNumbersLog.creationTime = new Date().toUTCString();
           if(response.resetAll) {
+            serialNumbersLog.action = "Reset decommissioned serial numbers list";
             this.model.batch.bloomFilterDecommissionedSerialisations = [];
           }
           this.model.decommissionedSerialNumbers = response.serialNumbers;
           this.model.batch.decommissionReason = response.reason;
           break
       }
+
+      this.model.serialNumbersLogs.push({
+        ...serialNumbersLog
+      })
+      this.serialNumbersLogService.log(serialNumbersLog, ()=>{})
     });
   }
 
