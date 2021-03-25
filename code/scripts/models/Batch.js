@@ -14,7 +14,7 @@ export default class Batch {
   bloomFilterDecommissionedSerialisations= [];
   decommissionReason = "";
   recalled = false;
-  serialCheck = false;
+  serialCheck = true;
   incorrectDateCheck = true;
   expiredDateCheck = true;
   recalledMessage = "";
