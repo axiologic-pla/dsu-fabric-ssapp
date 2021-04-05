@@ -19,16 +19,16 @@ export default class ProductsController extends ContainerController {
         }, 'productsForDisplay');
 
 
-        this.storageService.getObject(constants.PRODUCTS_TABLE, (err, products) => {
+        this.storageService.getArray(constants.PRODUCTS_TABLE, "__timestamp > 0", (err, products) => {
             this.products = products;
-            this.model.productsForDisplay = Object.values(products).map(productVersions => productVersions[productVersions.length - 1]);
+            this.model.productsForDisplay = products;
         });
 
-        this.on("sort-data",(event)=>{
-           let activeSortButtons = this.element.querySelectorAll('.icon-button.active')
+        this.on("sort-data", (event) => {
+            let activeSortButtons = this.element.querySelectorAll('.icon-button.active')
 
-            if(activeSortButtons.length>0){
-                activeSortButtons.forEach(elem=>{
+            if (activeSortButtons.length > 0) {
+                activeSortButtons.forEach(elem => {
                     elem.classList.remove("active");
                 })
             }
@@ -43,33 +43,34 @@ export default class ProductsController extends ContainerController {
 
         this.on("transfer", (event) => {
             const gtin = event.target.getAttribute("gtin");
-            this.products[gtin][this.products[gtin].length - 1].transferred = true;
-
-            const product = this.products[gtin][this.products[gtin].length - 1];
-            let actionModalModel = {
-                title: "Enter the company name to which the product is transferred",
-                transferCode: $$.Buffer.from(JSON.stringify(product)).toString("base64"),
-                acceptButtonText: 'Accept',
-                denyButtonText: 'Cancel'
-            }
-            this.showModal('transferProductModal', actionModalModel, (err, response) => {
-                if (err || response === undefined) {
-                    return;
+            this.storageService.getRecord(constants.PRODUCTS_TABLE, gtin, (err, product) => {
+                let actionModalModel = {
+                    title: "Enter the company name to which the product is transferred",
+                    transferCode: $$.Buffer.from(JSON.stringify(product)).toString("base64"),
+                    acceptButtonText: 'Accept',
+                    denyButtonText: 'Cancel'
                 }
-                product.transferred = true;
-                product.manufName = response;
-                this.logService.log({
-                    logInfo: product,
-                    username: this.model.username,
-                    action: `Transferred product to ${response}`,
-                    logType: 'PRODUCT_LOG'
-                }, (err) => {
-                    if (err) {
-                        return console.log(err);
+                this.showModal('transferProductModal', actionModalModel, (err, response) => {
+                    if (err || response === undefined) {
+                        return;
                     }
+                    product.transferred = true;
+                    product.manufName = response;
+                    this.logService.log({
+                        logInfo: product,
+                        username: this.model.username,
+                        action: `Transferred product to ${response}`,
+                        logType: 'PRODUCT_LOG'
+                    }, (err) => {
+                        if (err) {
+                            return console.log(err);
+                        }
 
-                    this.storageService.setObject(constants.PRODUCTS_TABLE, this.products, ()=>{
-                        this.model.productsForDisplay = Object.values(this.products).map(productVersions => productVersions[productVersions.length - 1]);
+                        this.storageService.insertRecord(constants.LAST_VERSION_PRODUCTS_TABLE, `${product.gtin}|${product.version}`, product, () => {
+                            this.storageService.insertRecord(constants.PRODUCTS_TABLE, product.gtin, product, () => {
+                                this.model.productsForDisplay = this.products;
+                            });
+                        });
                     });
                 });
             });
@@ -87,11 +88,11 @@ export default class ProductsController extends ContainerController {
                 }
 
                 const product = JSON.parse($$.Buffer.from(response, "base64").toString());
-                this.addProductToProductsList(new Product(product), (err)=>{
+                this.addProductToProductsList(new Product(product), (err) => {
                     if (err) {
                         return console.log(err);
                     }
-                    this.model.productsForDisplay = Object.values(this.products).map(productVersions => productVersions[productVersions.length - 1]);
+                    this.model.productsForDisplay = this.products;
                 });
             });
         });
@@ -112,22 +113,27 @@ export default class ProductsController extends ContainerController {
     }
 
     addProductToProductsList(product, callback) {
-        if (typeof this.products[product.gtin] !== "undefined" && this.products[product.gtin].length) {
-            return callback(undefined, undefined);
-        }
-        this.logService.log({
-            logInfo: product,
-            username: this.model.username,
-            action: `Transferred product from ${product.manufName}`,
-            logType: 'PRODUCT_LOG'
-        }, (err) => {
-            if (err) {
-                return callback(err);
+        this.storageService.getRecord(constants.PRODUCTS_TABLE, product.gtin, (err, prod) => {
+            if (prod) {
+                return callback(undefined, undefined);
             }
 
-            product.transferred = false;
-            this.products[product.gtin] = [product];
-            this.storageService.setObject(constants.PRODUCTS_TABLE, this.products, callback);
+            this.logService.log({
+                logInfo: product,
+                username: this.model.username,
+                action: `Transferred product from ${product.manufName}`,
+                logType: 'PRODUCT_LOG'
+            }, (err) => {
+                if (err) {
+                    return callback(err);
+                }
+
+                product.initialVersion = product.version;
+                product.transferred = false;
+                this.storageService.insertRecord(constants.PRODUCTS_TABLE, `${product.gtin}|${product.version}`, product, () => {
+                    this.storageService.insertRecord(constants.LAST_VERSION_PRODUCTS_TABLE, product.gtin, product, callback);
+                });
+            });
         });
     }
 }

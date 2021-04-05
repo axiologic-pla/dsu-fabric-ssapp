@@ -51,15 +51,15 @@ export default class addBatchController extends ContainerController {
 
       this.model.serialNumbersLogs = logs;
     });
-    this.storageService.getObject(constants.PRODUCTS_TABLE, (err, products) => {
+    this.storageService.getArray(constants.PRODUCTS_TABLE, "__timestamp > 0", (err, products) => {
       if (err || !products) {
         printOpenDSUError(createOpenDSUErrorWrapper("Failed to retrieve products list!", err));
         return this.showErrorModalAndRedirect("Failed to retrieve products list! Create a product first!", "products", 5000);
       }
       const options = [];
       Object.values(products).forEach(prod => options.push({
-        label: prod[0].gtin + ' - ' + prod[0].name,
-        value: prod[0].gtin
+        label: prod.gtin + ' - ' + prod.name,
+        value: prod.gtin
       }));
       this.model.products.options = options;
     });
@@ -71,7 +71,7 @@ export default class addBatchController extends ContainerController {
       }
       batch.expiry = utils.convertDateToISO(batch.expiryForDisplay);
       batch.expiry = utils.convertDateFromISOToGS1Format(batch.expiry);
-      this.storageService.getArray(constants.BATCHES_STORAGE_TABLE, (err, batches) => {
+      this.storageService.getArray(constants.BATCHES_STORAGE_TABLE, "__timestamp > 0",(err, batches) => {
         /*if(err){
             return this.showErrorModalAndRedirect("Failed to retrieve products list", "batches");
         } */
@@ -126,14 +126,15 @@ export default class addBatchController extends ContainerController {
       });
     })
 
-    this.model.onChange("batch.batchNumber", (event) => {
-      this.storageService.getArray(constants.BATCHES_STORAGE_TABLE, (err, batches) => {
-        if (typeof batches !== "undefined" && batches !== null) {
-          this.batches = batches;
-          this.batchIndex = batches.findIndex(batch => this.model.batch.batchNumber === Object.keys(batch)[0]);
-        }
-      })
-    })
+    // this.model.onChange("batch.batchNumber", (event) => {
+    //
+    //   this.storageService.getRecord(constants.BATCHES_STORAGE_TABLE, this.model.batch.batchNumber, (err, batches) => {
+    //     if (typeof batches !== "undefined" && batches !== null) {
+    //       this.batches = batches;
+    //       this.batchIndex = batches.findIndex(batch => this.model.batch.batchNumber === Object.keys(batch)[0]);
+    //     }
+    //   })
+    // })
 
     this.model.onChange("products.value", async (event) => {
       this.model.versions.options = await this.getVersionOptions(this.model.products.value);
@@ -147,35 +148,39 @@ export default class addBatchController extends ContainerController {
         return this.showError("A product should be selected before selecting a version");
       }
 
-      let versionIndex;
-      if (this.model.versions.value !== "latest") {
-        versionIndex = parseInt(this.model.versions.value - this.versionOffset);
-      } else {
-        //latest version is calculated form selected product array
-        //exclude batch specific versions to calculate latest version
-        versionIndex = this.model.versions.options.length - this.versionOffset - 1;
-        while (versionIndex >= 0 && this.selectedProduct[versionIndex].batchSpecificVersion) {
-          versionIndex--
+      this.storageService.getArray(constants.PRODUCTS_TABLE, ["__timestamp > 0", `__key like `], (err, records) => {
+        const versionedRecords = records.filter(record => record.__key.startsWith(this.gtin));
+        let versionIndex;
+        if (this.model.versions.value !== "latest") {
+          versionIndex = parseInt(this.model.versions.value - this.versionOffset);
+        } else {
+          //latest version is calculated form selected product array
+          //exclude batch specific versions to calculate latest version
+          versionIndex = this.model.versions.options.length - this.versionOffset - 1;
+          while (versionIndex >= 0 && versionedRecords[versionIndex].batchSpecificVersion) {
+            versionIndex--
+          }
         }
-      }
 
-      if (versionIndex < 0) {
-        return this.showError("All versions for this product are batch specific." +
-          " Latest can not be applied, please select a batch specific version o add a new version for this product");
-      }
-      const product = this.selectedProduct[versionIndex];
-      this.model.productDescription = product.description;
-      this.model.batch.language = product.language;
-      if (this.model.versions.value === "latest") {
-        this.model.batch.version = this.model.versions.value;
-        this.model.batch.versionLabel = this.model.versions.value;
-      } else {
-        this.model.batch.version = product.version;
-        this.model.batch.versionLabel = product.batchSpecificVersion ? product.version + " - (batch specific)" : product.version;
-      }
-      this.model.batch.gtin = product.gtin;
-      this.model.batch.productName = product.name;
-      this.model.batch.product = product.keySSI;
+        if (versionIndex < 0) {
+          return this.showError("All versions for this product are batch specific." +
+              " Latest can not be applied, please select a batch specific version o add a new version for this product");
+        }
+        const product = versionedRecords[versionIndex];
+        this.model.productDescription = product.description;
+        this.model.batch.language = product.language;
+        if (this.model.versions.value === "latest") {
+          this.model.batch.version = this.model.versions.value;
+          this.model.batch.versionLabel = this.model.versions.value;
+        } else {
+          this.model.batch.version = product.version;
+          this.model.batch.versionLabel = product.batchSpecificVersion ? product.version + " - (batch specific)" : product.version;
+        }
+        this.model.batch.gtin = product.gtin;
+        this.model.batch.productName = product.name;
+        this.model.batch.product = product.keySSI;
+      });
+      
     })
 
     this.on('openFeedback', (e) => {
@@ -211,16 +216,16 @@ export default class addBatchController extends ContainerController {
 
   getVersionOptions = (gtin) => {
     return new Promise((resolve, reject) => {
-      this.storageService.getObject(constants.PRODUCTS_TABLE, (err, products) => {
+      this.storageService.getRecord(constants.PRODUCTS_TABLE, gtin, (err, product) => {
         if (err) {
           return reject(err)
         } else {
-          this.selectedProduct = products[gtin];
-          this.versionOffset = this.selectedProduct[0].version;
-          const options = this.selectedProduct.map(prod => {
-            let labelValue = prod.batchSpecificVersion ? " - (batch specific)" : ""
-            return {label: prod.version + labelValue, value: prod.version + ""};
-          });
+          this.versionOffset = product.initialVersion;
+          const options = [];
+          let labelValue = product.batchSpecificVersion ? " - (batch specific)" : ""
+          for (let i = this.versionOffset; i <= product.version; i++) {
+            options.push({label: i + labelValue, value: i + ""});
+          }
           options.unshift({label: "latest version", value: "latest"});
           resolve(options);
         }
@@ -414,24 +419,7 @@ export default class addBatchController extends ContainerController {
   }
 
   persistBatchInWallet(batch, callback) {
-    this.storageService.getArray(constants.BATCHES_STORAGE_TABLE, (err, batches) => {
-      if (err) {
-        // if no products file found an error will be captured here
-        //todo: improve error handling here
-        this.showError("Unknown error:" + err.message);
-        return callback(err);
-      }
-      if (typeof batches === "undefined" || batches === null) {
-        batches = [];
-      }
-      const batchIndex = batches.findIndex(elem => elem.batchNumber === batch.batchNumber)
-      if (batchIndex >= 0) {
-        batches[batchIndex] = batch;
-      } else {
-        batches.push(batch);
-      }
-      this.storageService.setArray(constants.BATCHES_STORAGE_TABLE, batches, callback);
-    });
+      this.storageService.insertRecord(constants.BATCHES_STORAGE_TABLE, batch.batchNumber, batch, callback);
   }
 
 };

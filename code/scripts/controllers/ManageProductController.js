@@ -39,10 +39,9 @@ export default class ManageProductController extends ContainerController {
             this.addLanguageTypeFilesListener(event)
         });
 
-        this.storageService.getObject(constants.PRODUCTS_TABLE, (err, products) => {
-            this.products = products;
+        this.storageService.getArray(constants.LAST_VERSION_PRODUCTS_TABLE, "__timestamp > 0", (err, products) => {
             if (typeof this.gtin !== "undefined") {
-                this.model.product = new Product(this.getLastVersionProduct());
+                this.model.product = new Product(products[products.length - 1]);
                 this.model.product.photo = utils.getFetchUrl("/download/code/assets/images/default.png")
                 this.model.product.version++;
                 this.model.product.batchSpecificVersion = false;
@@ -377,15 +376,9 @@ export default class ManageProductController extends ContainerController {
     }
 
     persistProduct(product, callback) {
-        if (typeof this.products === "undefined" || this.products === null) {
-            this.products = [];
-        }
-
         product.gs1Data = `(01)${product.gtin}(21)${Utils.generateNumericID(12)}(10)${Utils.generateID(6)}(17)111111`;
-        if (typeof this.gtin !== "undefined" && typeof this.products[this.gtin] !== "undefined") {
-            this.products[this.gtin].push(product);
-        } else {
-            this.products[product.gtin] = [product];
+        if (typeof this.gtin === "undefined") {
+            this.gtin = product.gtin;
         }
 
         product.creationTime = utils.convertDateTOGMTFormat(new Date());
@@ -395,7 +388,16 @@ export default class ManageProductController extends ContainerController {
             action: "Created product",
             logType: 'PRODUCT_LOG'
         }, () => {
-            this.storageService.setObject(constants.PRODUCTS_TABLE, this.products, callback);
+            this.storageService.insertRecord(constants.LAST_VERSION_PRODUCTS_TABLE, `${this.gtin}|${product.version}`, product, () => {
+                this.storageService.getRecord(constants.PRODUCTS_TABLE, this.gtin, (err, prod) => {
+                    if (err || !prod) {
+                        product.initialVersion = product.version;
+                        this.storageService.insertRecord(constants.PRODUCTS_TABLE, this.gtin, product, callback);
+                    }else{
+                        this.storageService.updateRecord(constants.PRODUCTS_TABLE, this.gtin, product, callback);
+                    }
+                });
+            });
         });
     }
 

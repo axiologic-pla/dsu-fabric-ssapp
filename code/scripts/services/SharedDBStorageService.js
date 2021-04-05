@@ -72,47 +72,19 @@ export default class SharedStorage{
         }
     }
 
-    getObject(key, callback) {
+    getObject(tableName, key, callback){
+        this.getRecord(tableName, key, callback);
+    }
+
+    setObject(tableName, key, record, callback){
+        this.insertRecord(tableName, key, record, callback);
+    }
+
+    getArray(tableName, query, sort, limit, callback) {
         if(this.mydb !== undefined){
-            this.DSUStorage.getObject(SHARED_DB_FOLDER+key, function(err,res){
-                if(err || !res){
-                    res = {};
-                }
-                callback(undefined, res);
-            });
+            this.mydb.filter(tableName, query, sort, limit, callback);
         } else {
-            this.waitForDb(this.getObject, [key,callback]);
-        }
-    }
-
-    setObject(key, value,  callback) {
-        if(this.mydb){
-            console.log("Set Object:", SHARED_DB_FOLDER+key);
-            this.DSUStorage.setObject(SHARED_DB_FOLDER+key, value, callback);
-        } else {
-            this.waitForDb(this.setObject, [key,value,callback]);
-        }
-    }
-
-    getArray(key, callback) {
-        if(this.mydb !== undefined){
-            this.DSUStorage.getObject(SHARED_DB_FOLDER+key, function(err,res){
-                if(err || !res){
-                    res = [];
-                }
-                callback(undefined, res);
-            });
-        } else {
-            this.waitForDb(this.getArray, [key,callback]);
-        }
-    }
-
-    setArray(key, value,  callback) {
-        if(this.mydb){
-            console.log("Set Array:", SHARED_DB_FOLDER+key);
-            this.DSUStorage.setObject(SHARED_DB_FOLDER+key, value, callback);
-        } else {
-            this.waitForDb(this.setArray, [key,value,callback]);
+            this.waitForDb(this.getArray, [tableName, query, sort, limit, callback]);
         }
     }
 
@@ -120,12 +92,29 @@ export default class SharedStorage{
         throw Error("Not implemented")
     }
 
-    getRecord(recordType, key, callback){
-        throw Error("Not implemented")
+    getRecord(tableName, key, callback){
+        if(this.mydb){
+            this.mydb.getRecord(tableName, key, callback);
+        } else {
+            this.waitForDb(this.getRecord, [tableName, key, callback]);
+        }
     }
 
-    setRecord(recordType, key, value, callback){
-        throw Error("Not implemented")
+    insertRecord(tableName, key, record, callback){
+        if(this.mydb){
+            console.log("Insert Record:", tableName, key);
+            this.mydb.insertRecord(tableName, key, record, callback);
+        } else {
+            this.waitForDb(this.insertRecord, [tableName, key, record, callback]);
+        }
+    }
+
+    updateRecord(tableName, key, record, callback){
+        if(this.mydb){
+            this.mydb.updateRecord(tableName, key, record, callback);
+        } else {
+            this.waitForDb(this.updateRecord, [tableName, key, record, callback]);
+        }
     }
 
     getSharedSSI(callback){
