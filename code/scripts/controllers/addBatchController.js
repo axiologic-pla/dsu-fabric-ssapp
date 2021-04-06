@@ -51,7 +51,7 @@ export default class addBatchController extends ContainerController {
 
       this.model.serialNumbersLogs = logs;
     });
-    this.storageService.getArray(constants.PRODUCTS_TABLE, "__timestamp > 0", (err, products) => {
+    this.storageService.getArray(constants.LAST_VERSION_PRODUCTS_TABLE, "__timestamp > 0", (err, products) => {
       if (err || !products) {
         printOpenDSUError(createOpenDSUErrorWrapper("Failed to retrieve products list!", err));
         return this.showErrorModalAndRedirect("Failed to retrieve products list! Create a product first!", "products", 5000);
@@ -148,7 +148,7 @@ export default class addBatchController extends ContainerController {
         return this.showError("A product should be selected before selecting a version");
       }
 
-      this.storageService.getArray(constants.PRODUCTS_TABLE, ["__timestamp > 0", `__key like `], (err, records) => {
+      this.storageService.getArray(constants.PRODUCTS_TABLE, "__timestamp > 0", (err, records) => {
         const versionedRecords = records.filter(record => record.__key.startsWith(this.gtin));
         let versionIndex;
         if (this.model.versions.value !== "latest") {
@@ -180,7 +180,7 @@ export default class addBatchController extends ContainerController {
         this.model.batch.productName = product.name;
         this.model.batch.product = product.keySSI;
       });
-      
+
     })
 
     this.on('openFeedback', (e) => {
@@ -216,7 +216,7 @@ export default class addBatchController extends ContainerController {
 
   getVersionOptions = (gtin) => {
     return new Promise((resolve, reject) => {
-      this.storageService.getRecord(constants.PRODUCTS_TABLE, gtin, (err, product) => {
+      this.storageService.getRecord(constants.LAST_VERSION_PRODUCTS_TABLE, gtin, (err, product) => {
         if (err) {
           return reject(err)
         } else {
@@ -419,7 +419,13 @@ export default class addBatchController extends ContainerController {
   }
 
   persistBatchInWallet(batch, callback) {
-      this.storageService.insertRecord(constants.BATCHES_STORAGE_TABLE, batch.batchNumber, batch, callback);
+    this.storageService.getRecord(constants.BATCHES_STORAGE_TABLE, batch.batchNumber, (err, record) => {
+      if (err || !record) {
+        this.storageService.insertRecord(constants.BATCHES_STORAGE_TABLE, batch.batchNumber, batch, callback);
+      }else{
+        this.storageService.updateRecord(constants.BATCHES_STORAGE_TABLE, batch.batchNumber, batch, callback);
+      }
+    });
   }
 
 };

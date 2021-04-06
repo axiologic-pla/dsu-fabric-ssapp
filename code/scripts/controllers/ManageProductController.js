@@ -258,8 +258,7 @@ export default class ManageProductController extends ContainerController {
             if (err) {
                 return callback(err);
             }
-            callback(err, keySSI);
-            //this.persistKeySSI(keySSI, product.gtin, err => );
+            callback(undefined, keySSI);
         });
     }
 
@@ -271,14 +270,6 @@ export default class ManageProductController extends ContainerController {
 
             this.addProductFilesToDSU(transactionId, product, callback);
         });
-
-        /*this.storageService.getObject(constants.PRODUCT_KEYSSI_STORAGE_TABLE, (err, keySSIs) => {
-            if (err) {
-                return callback(err);
-            }
-
-
-        });*/
     }
 
 
@@ -388,30 +379,16 @@ export default class ManageProductController extends ContainerController {
             action: "Created product",
             logType: 'PRODUCT_LOG'
         }, () => {
-            this.storageService.insertRecord(constants.LAST_VERSION_PRODUCTS_TABLE, `${this.gtin}|${product.version}`, product, () => {
-                this.storageService.getRecord(constants.PRODUCTS_TABLE, this.gtin, (err, prod) => {
+            this.storageService.insertRecord(constants.PRODUCTS_TABLE, `${this.gtin}|${product.version}`, product, () => {
+                this.storageService.getRecord(constants.LAST_VERSION_PRODUCTS_TABLE, this.gtin, (err, prod) => {
                     if (err || !prod) {
                         product.initialVersion = product.version;
-                        this.storageService.insertRecord(constants.PRODUCTS_TABLE, this.gtin, product, callback);
+                        this.storageService.insertRecord(constants.LAST_VERSION_PRODUCTS_TABLE, this.gtin, product, callback);
                     }else{
-                        this.storageService.updateRecord(constants.PRODUCTS_TABLE, this.gtin, product, callback);
+                        this.storageService.updateRecord(constants.LAST_VERSION_PRODUCTS_TABLE, this.gtin, product, callback);
                     }
                 });
             });
         });
     }
-
-    persistKeySSI(keySSI, gtin, callback) {
-
-        /*
-        this.storageService.getObject(constants.PRODUCT_KEYSSI_STORAGE_TABLE, (err, keySSIs) => {
-            if (typeof keySSIs === "undefined" || keySSIs === null) {
-                keySSIs = {};
-            }
-
-            keySSIs[gtin] = keySSI;
-            this.storageService.setObject(constants.PRODUCT_KEYSSI_STORAGE_TABLE, keySSIs, callback);
-        });*/
-    }
-
 }

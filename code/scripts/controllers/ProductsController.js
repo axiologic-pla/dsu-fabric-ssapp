@@ -19,7 +19,7 @@ export default class ProductsController extends ContainerController {
         }, 'productsForDisplay');
 
 
-        this.storageService.getArray(constants.PRODUCTS_TABLE, "__timestamp > 0", (err, products) => {
+        this.storageService.getArray(constants.LAST_VERSION_PRODUCTS_TABLE, "__timestamp > 0", (err, products) => {
             this.products = products;
             this.model.productsForDisplay = products;
         });
@@ -43,7 +43,7 @@ export default class ProductsController extends ContainerController {
 
         this.on("transfer", (event) => {
             const gtin = event.target.getAttribute("gtin");
-            this.storageService.getRecord(constants.PRODUCTS_TABLE, gtin, (err, product) => {
+            this.storageService.getRecord(constants.LAST_VERSION_PRODUCTS_TABLE, gtin, (err, product) => {
                 let actionModalModel = {
                     title: "Enter the company name to which the product is transferred",
                     transferCode: $$.Buffer.from(JSON.stringify(product)).toString("base64"),
@@ -61,17 +61,7 @@ export default class ProductsController extends ContainerController {
                         username: this.model.username,
                         action: `Transferred product to ${response}`,
                         logType: 'PRODUCT_LOG'
-                    }, (err) => {
-                        if (err) {
-                            return console.log(err);
-                        }
-
-                        this.storageService.insertRecord(constants.LAST_VERSION_PRODUCTS_TABLE, `${product.gtin}|${product.version}`, product, () => {
-                            this.storageService.insertRecord(constants.PRODUCTS_TABLE, product.gtin, product, () => {
-                                this.model.productsForDisplay = this.products;
-                            });
-                        });
-                    });
+                    }, ()=>{});
                 });
             });
         });
@@ -92,7 +82,10 @@ export default class ProductsController extends ContainerController {
                     if (err) {
                         return console.log(err);
                     }
-                    this.model.productsForDisplay = this.products;
+                    this.storageService.getArray(constants.LAST_VERSION_PRODUCTS_TABLE, "__timestamp > 0", (err, products) => {
+                        this.products = products;
+                        this.model.productsForDisplay = products;
+                    });
                 });
             });
         });
