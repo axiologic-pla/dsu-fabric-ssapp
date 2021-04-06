@@ -1,6 +1,5 @@
 const CREDENTIAL_FILE_PATH = "/myKeys/credential.json";
 const SHARED_DB = "sharedDB";
-const SHARED_DB_FOLDER = "/sharedDB/data/";
 
 export default class SharedStorage{
     constructor(dsuStorage) {
@@ -29,56 +28,6 @@ export default class SharedStorage{
         }, 10);
     }
 
-    getItemInDB(key, callback) {
-        if(this.mydb !== undefined){
-            this.mydb.getRecord(SHARED_DB,key,function(err, res){
-                if(err) return callback(err);
-                if(typeof res.__stringValue != "undefined"){
-                    callback(undefined, res.__stringValue)
-                } else {
-                    callback(undefined, res)
-                }
-            });
-        } else {
-            this.waitForDb(this.getItem, [key,callback]);
-        }
-    }
-
-    setItemInDB(key, value,  callback) {
-        if(typeof value == "string"){
-            value = {__stringValue:value};
-        }
-        if(this.mydb){
-            this.mydb.updateRecord(SHARED_DB,key,value, callback);
-        } else {
-            this.waitForDb(this.setItem, [key,value,callback]);
-        }
-    }
-
-    getItem(key, callback) {
-        if(this.mydb !== undefined){
-            this.DSUStorage.getItem(SHARED_DB_FOLDER+key, callback);
-        } else {
-            this.waitForDb(this.getItem, [key,callback]);
-        }
-    }
-
-    setItem(key, value,  callback) {
-        if(this.mydb){
-            console.log("Set Item:", SHARED_DB_FOLDER+key);
-            this.DSUStorage.setItem(SHARED_DB_FOLDER+key, value, callback);
-        } else {
-            this.waitForDb(this.setItem, [key,value,callback]);
-        }
-    }
-
-    getObject(tableName, key, callback){
-        this.getRecord(tableName, key, callback);
-    }
-
-    setObject(tableName, key, record, callback){
-        this.insertRecord(tableName, key, record, callback);
-    }
 
     getArray(tableName, query, sort, limit, callback) {
         if(this.mydb !== undefined){
