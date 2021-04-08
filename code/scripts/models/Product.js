@@ -15,7 +15,7 @@ export default class Product {
   antiCounterfeitingURL = `${window.top.location.origin}/default-anti-counterfeiting.html`;
   isCodeEditable = true;
   adverseReportingEnabled = true;
-  antiCounterfeiting = true;
+  antiCounterfeitingEnabled = true;
   showEPIOnBatchRecalled = false;
   showEPIOnSNRecalled = false;
   showEPIOnSNDecommissioned = false;
