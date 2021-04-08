@@ -1,0 +1,42 @@
+{
+  "theme": "citrus-theme",
+  "version": "1.0.0-alpha",
+  "identity": {
+    "avatar": "assets/images/factory.png",
+    "name": "DSU Fabric",
+    "email": "MyOrganisation@example.com"
+  },
+  "pagesFallback": {
+    "name": "404",
+    "src": "./404.html"
+  },
+  "pages": [
+    {
+      "name": "Products",
+      "tag": "products"
+    },
+    {
+      "name": "Batches",
+      "tag": "batches"
+    },
+    {
+      "name": "Audit",
+      "tag": "audit"
+    },
+    {
+      "name": "Add batch",
+      "tag": "add-batch",
+      "indexed": false
+    },
+    {
+      "name": "Manage product",
+      "tag": "manage-product",
+      "indexed": false
+    },
+    {
+      "name": "Add product",
+      "tag": "add-product",
+      "indexed": false
+    }
+  ]
+}

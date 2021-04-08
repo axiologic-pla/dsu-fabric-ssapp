@@ -1,7 +1,7 @@
-import ContainerController from "../../cardinal/controllers/base-controllers/ContainerController.js";
+const { WebcController } = WebCardinal.controllers;
 import LogService from "../services/LogService.js";
 
-export default class AuditController extends ContainerController {
+export default class AuditController extends WebcController {
     constructor(element, history) {
         super(element, history);
 

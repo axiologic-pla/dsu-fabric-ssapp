@@ -1,4 +1,4 @@
-import ContainerController from "../../cardinal/controllers/base-controllers/ContainerController.js";
+const {WebcController} = WebCardinal.controllers;
 import constants from "../constants.js";
 import Batch from "../models/Batch.js";
 import SharedStorage from '../services/SharedDBStorageService.js';
@@ -8,10 +8,10 @@ import LogService from "../services/LogService.js";
 
 const dsuBuilder = new DSU_Builder();
 
-export default class addBatchController extends ContainerController {
+export default class addBatchController extends WebcController {
   constructor(element, history) {
     super(element, history);
-    let state = this.History.getState();
+    let state = this.history.location.state;
     const editMode = state != null && state.batchData != null;
     const editData = editMode ? JSON.parse(state.batchData) : undefined;
     let batch = new Batch(editData);
@@ -24,18 +24,30 @@ export default class addBatchController extends ContainerController {
       if (!err) {
         this.model.username = holderInfo.userDetails.username;
       } else {
-        this.showErrorModalAndRedirect("Invalid configuration detected! Configure your wallet properly in the Holder section!", "batches");
+        this.showErrorModalModalAndRedirect("Invalid configuration detected! Configure your wallet properly in the Holder section!", "batches");
       }
     })
 
     this.model.batch = batch;
+    this.model.batch.productName = "";
+    this.model.productDescription = "";
     this.model.editMode = editMode;
     this.model.products = {
       placeholder: "Select a product"
     }
 
-    this.model.versions = {}
+    this.model.versions = {
+      placeholder: "-"
+    }
 
+    this.model.serial_update_options = {
+      options: [
+        {label: "Update Valid", value: "update-valid-serial"},
+        {label: "Update Recalled", value: "update-recalled-serial"},
+        {label: "Update decommissioned", value: "update-decommissioned-serial"}
+      ],
+      placeholder: "Select an option"
+    }
     if (editMode) {
       this.getVersionOptions(this.model.batch.gtin).then(result => {
         this.model.versions.options = result;
@@ -54,7 +66,7 @@ export default class addBatchController extends ContainerController {
     this.storageService.getArray(constants.LAST_VERSION_PRODUCTS_TABLE, "__timestamp > 0", (err, products) => {
       if (err || !products) {
         printOpenDSUError(createOpenDSUErrorWrapper("Failed to retrieve products list!", err));
-        return this.showErrorModalAndRedirect("Failed to retrieve products list! Create a product first!", "products", 5000);
+        return this.showErrorModalModalAndRedirect("Failed to retrieve products list! Create a product first!", "products", 5000);
       }
       const options = [];
       Object.values(products).forEach(prod => options.push({
@@ -64,34 +76,37 @@ export default class addBatchController extends ContainerController {
       this.model.products.options = options;
     });
 
-    this.on("add-batch", () => {
-      let batch =  this.initBatch();
+    this.onTagClick("cancel", () => {
+      this.navigateToPageTag("batches");
+    })
+    this.onTagClick("add-batch", () => {
+      if(!this.model.batch.gtin){
+        return this.showErrorModal("Invalid product code. Please select a valid code");
+      }
+      let batch = this.initBatch();
       if (!batch.expiryForDisplay) {
-        return this.showError("Invalid date");
+        return this.showErrorModal("Invalid date");
       }
       batch.expiry = utils.convertDateToISO(batch.expiryForDisplay);
       batch.expiry = utils.convertDateFromISOToGS1Format(batch.expiry);
-      this.storageService.getArray(constants.BATCHES_STORAGE_TABLE, "__timestamp > 0",(err, batches) => {
-        /*if(err){
-            return this.showErrorModalAndRedirect("Failed to retrieve products list", "batches");
-        } */
+      this.storageService.getArray(constants.BATCHES_STORAGE_TABLE, "__timestamp > 0", (err, batches) => {
         try {
           this.addSerialNumbers(batch);
         } catch (err) {
-          return this.showError(err, "Invalid list of serial numbers");
+          return this.showErrorModal(err, "Invalid list of serial numbers");
         }
 
         let error = batch.validate();
-        if (err) {
+        if (error) {
           printOpenDSUError(createOpenDSUErrorWrapper("Invalid batch info", err));
-          return this.showErrorModalAndRedirect("Invalid batch info" + err.message, "batches");
+          return this.showErrorModalModalAndRedirect("Invalid batch info" + err.message, "batches");
         }
         if (!this.model.editMode) {
-          this.displayModal("Creating new batch...");
+          this.showModal("Creating new batch...");
           this.buildBatchDSU(batch, (err, keySSI) => {
             if (err) {
               printOpenDSUError(createOpenDSUErrorWrapper("Batch DSU build failed.", err));
-              return this.showErrorModalAndRedirect("Batch DSU build failed.", "batches");
+              return this.showErrorModalModalAndRedirect("Batch DSU build failed.", "batches");
             }
             batch.keySSI = keySSI;
             batch.creationTime = utils.convertDateTOGMTFormat(new Date());
@@ -99,7 +114,7 @@ export default class addBatchController extends ContainerController {
             this.buildImmutableDSU(batch, (err, gtinSSI) => {
               if (err) {
                 printOpenDSUError(createOpenDSUErrorWrapper("Failed to build immutable DSU", err));
-                return this.showErrorModalAndRedirect("Failed to build immutable DSU", "batches");
+                return this.showErrorModalModalAndRedirect("Failed to build immutable DSU", "batches");
               }
               this.persistBatch(batch);
             });
@@ -109,33 +124,26 @@ export default class addBatchController extends ContainerController {
       });
     });
 
-    this.on("update-batch", () => {
-      let batch =  this.initBatch();
+    this.onTagClick("update-batch", () => {
+      let batch = this.initBatch();
       try {
         this.addSerialNumbers(batch);
       } catch (err) {
-        return this.showError(err, "Invalid list of serial numbers");
+        return this.showErrorModalModal( "Invalid list of serial numbers");
       }
-      this.displayModal("Updating batch... ");
+      this.showModal("Updating batch... ");
       this.updateBatchDSU(batch, (err, gtinSSI) => {
         if (err) {
           printOpenDSUError(createOpenDSUErrorWrapper("Failed to update batch DSU", err));
-          return this.showErrorModalAndRedirect("Failed to update batch DSU", "batches");
+          return this.showErrorModalModalAndRedirect("Failed to update batch DSU", "batches");
         }
         this.persistBatch(batch);
       });
     })
 
-    // this.model.onChange("batch.batchNumber", (event) => {
-    //
-    //   this.storageService.getRecord(constants.BATCHES_STORAGE_TABLE, this.model.batch.batchNumber, (err, batches) => {
-    //     if (typeof batches !== "undefined" && batches !== null) {
-    //       this.batches = batches;
-    //       this.batchIndex = batches.findIndex(batch => this.model.batch.batchNumber === Object.keys(batch)[0]);
-    //     }
-    //   })
-    // })
-
+    this.model.onChange("serial_update_options.value", (event) => {
+      this.updateSerialsModal(this.model.serial_update_options.value);
+    });
     this.model.onChange("products.value", async (event) => {
       this.model.versions.options = await this.getVersionOptions(this.model.products.value);
       this.model.versions.value = "latest";
@@ -145,7 +153,7 @@ export default class addBatchController extends ContainerController {
 
     this.model.onChange("versions.value", (event) => {
       if (typeof this.gtin === "undefined") {
-        return this.showError("A product should be selected before selecting a version");
+        return this.showErrorModalModal("A product should be selected before selecting a version");
       }
 
       this.storageService.getArray(constants.PRODUCTS_TABLE, "__timestamp > 0", (err, records) => {
@@ -163,11 +171,11 @@ export default class addBatchController extends ContainerController {
         }
 
         if (versionIndex < 0) {
-          return this.showError("All versions for this product are batch specific." +
-              " Latest can not be applied, please select a batch specific version o add a new version for this product");
+          return this.showErrorModal("All versions for this product are batch specific." +
+            " Latest can not be applied, please select a batch specific version o add a new version for this product");
         }
         const product = versionedRecords[versionIndex];
-        this.model.productDescription = product.description;
+        this.model.productDescription = product.description || "";
         this.model.batch.language = product.language;
         if (this.model.versions.value === "latest") {
           this.model.batch.version = this.model.versions.value;
@@ -186,22 +194,12 @@ export default class addBatchController extends ContainerController {
     this.on('openFeedback', (e) => {
       this.feedbackEmitter = e.detail;
     });
-
-    this.on('update-valid-serial', (event) => {
-      this.updateSerialsModal(event.data)
-    })
-    this.on('update-recalled-serial', (event) => {
-      this.updateSerialsModal(event.data)
-    })
-    this.on('update-decommissioned-serial', (event) => {
-      this.updateSerialsModal(event.data)
-    })
   }
 
   initBatch() {
     try {
       this.DSUStorage.beginBatch();
-      let result  = this.model.batch;
+      let result = this.model.batch;
       result.serialNumbers = this.model.serialNumbers;
       result.recalledSerialNumbers = this.model.recalledSerialNumbers;
       result.decommissionedSerialNumbers = this.model.decommissionedSerialNumbers;
@@ -236,7 +234,7 @@ export default class addBatchController extends ContainerController {
     this.persistBatchInWallet(batch, (err) => {
       if (err) {
         printOpenDSUError(createOpenDSUErrorWrapper("Failing to store Batch keySSI!", err));
-        return this.showErrorModalAndRedirect("Failing to store Batch keySSI!", "batches");
+        return this.showErrorModalModalAndRedirect("Failing to store Batch keySSI!", "batches");
       }
       this.logService.log({
         logInfo: batch,
@@ -248,8 +246,8 @@ export default class addBatchController extends ContainerController {
           if (err) {
             printOpenDSUError(createOpenDSUErrorWrapper("Failed to commit batch. Concurrency issues or other issue", err))
           }
-          this.closeModal();
-          this.History.navigateToPageByTag("batches");
+          this.hideModal();
+          this.navigateToPageTag("batches");
         });
       });
 
@@ -257,55 +255,79 @@ export default class addBatchController extends ContainerController {
   }
 
   updateSerialsModal(type) {
-    let actionModalModel = {
+    this.model.actionModalModel = {
       title: "Enter serial numbers separated by comma",
       acceptButtonText: 'Accept',
       denyButtonText: 'Cancel',
       type: type,
-      serialNumbers: ""
+      serialNumbers: "",
+      resetAll: false,
+      decommissionedType: false,
+      reason: {
+        options: [{label: "Lost", value: "lost"}, {label: "Stolen", value: "stolen"}, {
+          label: "Damaged",
+          value: "damaged"
+        }],
+        placeholder: "Select a reason"
+      }
+    }
+    switch (type) {
+      case "update-decommissioned-serial":
+        this.model.actionModalModel.decommissionedType = true;
+        this.model.actionModalModel.resetButtonLabel = "Reset all decommissioned serial numbers";
+        break;
+      case "update-recalled-serial":
+        this.model.actionModalModel.resetButtonLabel = "Reset all recalled serial numbers";
+        break;
+      case "update-valid-serial":
+        this.model.actionModalModel.resetButtonLabel = "Reset all valid serial numbers";
+        break;
+      default:
+        return;
     }
 
     const serialNumbersLog = {}
-    this.showModal('updateSerials', actionModalModel, (err, response) => {
-      if (err || response === undefined) {
-        return;
-      }
+    this.showModalFromTemplate('update-batch-serial-numbers', () => {
       switch (type) {
-        case "updateValid":
-          this.model.serialNumbers = response.serialNumbers;
+        case "update-valid-serial":
+          this.model.serialNumbers = this.model.actionModalModel.serialNumbers;
           serialNumbersLog.action = "Updated valid serial numbers list";
           serialNumbersLog.creationTime = new Date().toUTCString();
-          if(response.resetAll) {
+          if (this.model.actionModalModel.resetAll) {
             serialNumbersLog.action = "Reset valid serial numbers list";
             this.model.batch.bloomFilterSerialisations = [];
           }
           break
-        case "updateRecalled":
-          this.model.recalledSerialNumbers = response.serialNumbers;
+        case "update-recalled-serial":
+          this.model.recalledSerialNumbers = this.model.actionModalModel.serialNumbers;
           serialNumbersLog.creationTime = new Date().toUTCString();
           serialNumbersLog.action = "Updated recalled serial numbers list";
-          if(response.resetAll) {
+          if (this.model.actionModalModel.resetAll) {
             serialNumbersLog.action = "Reset recalled serial numbers list";
             this.model.batch.bloomFilterRecalledSerialisations = [];
           }
           break
-        case "updateDecommissioned":
+        case "update-decommissioned-serial":
           serialNumbersLog.action = "Updated decommissioned serial numbers list";
           serialNumbersLog.creationTime = new Date().toUTCString();
-          if(response.resetAll) {
+          if (this.model.actionModalModel.resetAll) {
             serialNumbersLog.action = "Reset decommissioned serial numbers list";
             this.model.batch.bloomFilterDecommissionedSerialisations = [];
           }
-          this.model.decommissionedSerialNumbers = response.serialNumbers;
-          this.model.batch.decommissionReason = response.reason;
+          this.model.decommissionedSerialNumbers = this.model.actionModalModel.serialNumbers;
+          this.model.batch.decommissionReason = this.model.actionModalModel.reason;
           break
-      }
 
+      }
+      this.model.serial_update_options.value = "Select an option";
       this.model.serialNumbersLogs.push({
         ...serialNumbersLog
       })
-      this.serialNumbersLogService.log(serialNumbersLog, ()=>{})
-    });
+      this.serialNumbersLogService.log(serialNumbersLog, () => {
+      })
+    }, () => {
+      return
+    }, {model: this.model});
   }
 
   addSerialNumbers(batch) {
@@ -401,7 +423,7 @@ export default class addBatchController extends ContainerController {
       }
 
       if (!batch.gtin || !batch.batchNumber || !batch.expiry) {
-        return this.showError("GTIN, batchNumber and expiry date are mandatory");
+        return this.showErrorModal("GTIN, batchNumber and expiry date are mandatory");
       }
       dsuBuilder.setGtinSSI(transactionId, dsuBuilder.holderInfo.domain, dsuBuilder.holderInfo.subdomain, batch.gtin, batch.batchNumber, batch.expiry, (err) => {
         if (err) {
@@ -422,7 +444,7 @@ export default class addBatchController extends ContainerController {
     this.storageService.getRecord(constants.BATCHES_STORAGE_TABLE, batch.batchNumber, (err, record) => {
       if (err || !record) {
         this.storageService.insertRecord(constants.BATCHES_STORAGE_TABLE, batch.batchNumber, batch, callback);
-      }else{
+      } else {
         this.storageService.updateRecord(constants.BATCHES_STORAGE_TABLE, batch.batchNumber, batch, callback);
       }
     });

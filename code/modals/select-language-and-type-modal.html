@@ -1,0 +1,27 @@
+<div class="custom-modal-header header-color" slot="header">
+    <h5>{{@modalData.title}}</h5>
+</div>
+<main>
+    <psk-select required value="@modalData.product.language" view-model="@modalData.languages"></psk-select>
+    <psk-select required value="@modalData.product.type" view-model="@modalData.types"></psk-select>
+
+    <psk-card class="language-leaflet-card">
+        <div class="language-leaflet-card-header">
+        </div>
+        <div class="language-leaflet-card-body">
+            <psk-files-chooser class="paperclip leaflet-files-chooser" data-view-model="@modalData.fileChooser"
+                               required>
+            </psk-files-chooser>
+        </div>
+    </psk-card>
+</main>
+<footer class="modal-action-menu" slot="footer">
+    <psk-button class="marketplace-manager-button" data-close>{{@modalData.denyButtonText}}</psk-button>
+    <psk-button class="marketplace-manager-button" data-confirm>{{@modalData.acceptButtonText}}</psk-button>
+</footer>
+
+<style>
+    psk-card .card.psk-card {
+        width: 100%;
+    }
+</style>

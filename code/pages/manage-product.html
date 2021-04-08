@@ -1,167 +1,182 @@
 <psk-page title="Manage Product">
     <h6>
-        <psk-form controller-name="ManageProductController">
-            <div class="d-flex flex-row justify-content-center">
-                <h4>
-                    <psk-layout column-gap="5px" template-columns="max-content max-content max-content">
-                        <psk-label label="Manufacturing Authorization Holder"></psk-label>
-                        <psk-label label="-"></psk-label>
-                        <psk-label label="@product.manufName"></psk-label>
-                    </psk-layout>
-                </h4>
+        <webc-container controller="ManageProductController">
+            <div class="d-flex flex-column align-items-center">
+                <h4> Manufacturing Authorization Holder - {{@product.manufName}}</h4>
             </div>
-            <div class="context-group pb-3 pl-3 pr-3">
-                <psk-form-row layout="xs=[12,12] m=[6,6] l=[6,6] xl=[6,6]">
-                    <psk-layout template-columns="30fr 60fr">
-                        <psk-label label="Product Code (GTIN/NTIN):"></psk-label>
-                        <psk-condition condition="@product.isCodeEditable">
-                            <psk-text-input required slot="condition-true" value="@product.gtin"></psk-text-input>
-                            <psk-label label="@product.gtin" slot="condition-false"></psk-label>
-                        </psk-condition>
-                    </psk-layout>
-                    <psk-layout template-columns="20fr 60fr" column-gap="10px">
-                        <psk-label label="Product Name:"></psk-label>
-                        <psk-condition condition="@product.isCodeEditable">
-                            <psk-text-input required slot="condition-true" value="@product.name"></psk-text-input>
-                            <psk-label label="@product.name" slot="condition-false"></psk-label>
-                        </psk-condition>
-                    </psk-layout>
-                </psk-form-row>
-                <psk-form-row layout="xs=[12,12] m=[6,6] l=[6,6] xl=[6,6]">
-                    <psk-layout template-columns="30fr 60fr">
-                        <psk-label label="Description:"></psk-label>
-                        <psk-textarea required value="@product.description"></psk-textarea>
-                    </psk-layout>
-                    <psk-layout template-columns="20fr 60fr" column-gap="10px">
-                        <psk-label label="Product Photo:"></psk-label>
-                        <psk-img-input class="product-image" event-name="product-photo-selected"
-                                       src="@product.photo"></psk-img-input>
-                    </psk-layout>
-
-                </psk-form-row>
-            </div>
-            <psk-form-row layout="xs=[12,12] m=[6,6] l=[6,6] xl=[6,6]">
-                <psk-layout class="mt-3" column-gap="30px" columns="2">
-                    <div class="context-group pb-3 pl-3 pr-3">
-                        <psk-checkbox checkbox-label="Enable Adverse Events Reporting"
-                                      checked="@product.adverseReportingEnabled"
-                                      name="adverseReportingEnabled"
-                                      value="@product.adverseReportingEnabled"></psk-checkbox>
-                        <psk-text-input label="Adverse Events Reporting URL:"
-                                        value="@product.reportURL"></psk-text-input>
-                    </div>
-                    <div class="context-group pb-3 pl-3 pr-3">
-                        <psk-checkbox checkbox-label="Enable Anti-Counterfeiting check for this product"
-                                      checked="@product.antiCounterfeiting" name="antiCounterfeitingEnabled"
-                                      value="@product.antiCounterfeiting"></psk-checkbox>
-                        <psk-text-input label="Anti-Counterfeiting End Point URL:"
-                                        value="@product.antiCounterfeitingURL"></psk-text-input>
-                    </div>
-                </psk-layout>
-            </psk-form-row>
-            <psk-from-row layout="xs=[12,12] m=[6,6] l=[6,6] xl=[6,6]">
-                <psk-layout class="mt-3" column-gap="30px" columns="2">
-                    <div class="context-group pb-3 pl-3 pr-3">
-                        <psk-text-input label="Patient Specific Information Leaflet"
-                                        value="@product.pacientLeafletInfo"></psk-text-input>
-                        <psk-text-input label="Healthcare practitioner information"
-                                        value="@product.practitionerInfo"></psk-text-input>
-                    </div>
-                    <div class="context-group pb-3 pl-3 pr-3">
-                        <psk-label class="font-weight-bold" label="Display ePI(Leaflet + SmPC) when:"></psk-label>
-                        <div class="pl-3">
-                            <psk-checkbox checkbox-label="Batch is recalled"
-                                          checked="@product.showEPIOnBatchRecalled"
-                                          name="showEPIOnBatchRecalled"
-                                          value="@product.showEPIOnBatchRecalled"></psk-checkbox>
-                            <psk-checkbox checkbox-label="SN is in Recall list"
-                                          checked="@product.showEPIOnSNRecalled"
-                                          name="showEPIOnSNRecalled"
-                                          value="@product.showEPIOnSNRecalled"></psk-checkbox>
-                            <psk-checkbox checkbox-label="SN is in Decommissioned list"
-                                          checked="@product.showEPIOnSNDecommissioned"
-                                          name="showEPIOnSNDecommissioned"
-                                          value="@product.showEPIOnSNDecommissioned"></psk-checkbox>
-                            <psk-checkbox checkbox-label="SN is unknown"
-                                          checked="@product.showEPIOnSNUnknown"
-                                          name="showEPIOnSNUnknown"
-                                          value="@product.showEPIOnSNUnknown"></psk-checkbox>
-                            <psk-checkbox checkbox-label="Expiration Date is incorrect"
-                                          checked="@product.showEPIOnIncorrectExpiryDate"
-                                          name="showEPIOnIncorrectExpiryDate"
-                                          value="@product.showEPIOnIncorrectExpiryDate"></psk-checkbox>
-                            <psk-checkbox checkbox-label="Batch is expired"
-                                          checked="@product.showEPIOnBatchExpired"
-                                          name="showEPIOnBatchExpired"
-                                          value="@product.showEPIOnBatchExpired"></psk-checkbox>
+            <div class="d-flex flex-row justify-content-around mt-5">
+                <div class="col-5 align-self-start p-0">
+                    <div data-if="@product.isCodeEditable">
+                        <div class="read-only-container col-12 mb-3 mt-2 pl-3" slot="false">
+                            <div class="form-label">Product Code (GTIN/NTIN)</div>
+                            <div class="pt-2 pb-2">{{@product.gtin}}</div>
+                        </div>
+                        <i class="fa fa-pencil-square-o editable-icon" slot="true"></i>
+                        <div class="background-container col-12 pl-3 mb-3 pl-3" slot="true">
+                            <div class="form-label">Product Code (GTIN/NTIN)</div>
+                            <input class="form-control" placeholder="Add product code" type="text"
+                                   value="@product.gtin"/>
                         </div>
                     </div>
-                </psk-layout>
-            </psk-from-row>
-            <psk-from-row layout="xs=[12] m=[12] l=[12] xl=[12]">
-                <div class="context-group pb-3 pl-3 pr-3 mt-3">
-                    <psk-layout gap="2em" template-columns="20fr 75fr">
+
+                    <div data-if="@product.isCodeEditable">
+                        <div class="read-only-container col-12 mb-3 mt-2 pl-3" slot="false">
+                            <div class="form-label">Product Name</div>
+                            <div class="pt-2 pb-2">{{@product.name}}</div>
+                        </div>
+                        <i class="fa fa-pencil-square-o editable-icon" slot="true"></i>
+                        <div class="background-container col-12 pl-3 mb-3" slot="true">
+                            <div class="form-label">Product Name</div>
+                            <input class="form-control" placeholder="Add product name" slot="true"
+                                   type="text"
+                                   value="@product.name"/>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-row justify-content-between">
+                        <div class="background-container col-lg-7 mb-3">
+                            <div class="form-label">Description</div>
+                            <i class="fa fa-pencil-square-o editable-icon"></i>
+                            <textarea class="w-100 mt-2" placeholder="Add product description" required rows="8"
+                                      value="@product.description"></textarea>
+                        </div>
+                        <div class="background-container col-lg-4 mb-3">
+                            <div class="form-label">Product Photo</div>
+                            <i class="fa fa-pencil-square-o editable-icon"></i>
+                            <div class="d-flex justify-content-start mt-1">
+                                <psk-img-input class="product-image" event-name="product-photo-selected"
+                                               src="@product.photo"></psk-img-input>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="background-container col-12 pl-3 mb-3">
+                        <div class="form-label">Patient Specific Information Leaflet</div>
                         <div>
-                            <psk-text-input label="Version" read-only value="@product.version"></psk-text-input>
-                            <psk-checkbox checkbox-label="Enable Batch Specific"
+                            <i class="fa fa-pencil-square-o editable-icon"></i>
+                            <input class="form-control" placeholder="Add Patient Specific Information Leaflet"
+                                   type="text" value="@product.pacientLeafletInfo"/>
+                        </div>
+                    </div>
+                    <div class="background-container col-12 pl-3 mb-3">
+                        <div class="form-label">Healthcare practitioner information</div>
+                        <div>
+                            <i class="fa fa-pencil-square-o editable-icon"></i>
+                            <input class="form-control" placeholder="Add Healthcare practitioner information"
+                                   type="text" value="@product.practitionerInfo"/>
+                        </div>
+
+                    </div>
+                    <div class="d-flex flex-row">
+                        <div class="read-only-container pl-3">
+                            <div class="form-label">Version</div>
+                            <input class="form-control" readonly type="text" value="@product.version"/>
+
+                        </div>
+                        <div class="align-self-center mr-auto pl-5">
+                            <psk-checkbox checkbox-label="Enable Batch Specific Version"
                                           name="batchSpecific" value="@product.batchSpecificVersion"></psk-checkbox>
                         </div>
-                        <div>
-                            <psk-form class="language-leaflets-grid">
-                                <psk-from-row>
-                                    <psk-layout column-gap="30px" template-columns="15fr 80fr">
-                                        <div>
-                                            <psk-label label="Add new ePI"></psk-label>
-                                            <psk-button event-name="add-language-leaflet" label="Add ePI">
-                                                <span style="font-weight: bold">+</span>
-                                            </psk-button>
-                                        </div>
-                                        <div class="mt-3">
-                                            <psk-for-each data-view-model="@languageTypeCards">
-                                                <psk-card class="language-leaflet-card">
-                                                    <div class="language-leaflet-card-header">
-                                                        <psk-label label="@language.label"></psk-label>
-                                                        <psk-button event-data="@" event-name="delete-language-leaflet">
-                                                            <span style="font-weight: bold">-</span>
-                                                        </psk-button>
-                                                    </div>
-                                                    <div class="language-leaflet-card-body">
-                                                        <psk-files-chooser accept="directory"
-                                                                           class="paperclip leaflet-files-chooser"
-                                                                           event-name="@fileSelectEvent"
-                                                                           label="@attachLabel" list-files="true"
-                                                                           required>
-                                                        </psk-files-chooser>
-                                                    </div>
-                                                </psk-card>
-                                            </psk-for-each>
-                                        </div>
-                                    </psk-layout>
-                                </psk-from-row>
-                            </psk-form>
-                        </div>
-                    </psk-layout>
+                    </div>
                 </div>
-                <psk-label class="inline" label="@attachment.name"></psk-label>
-                <psk-layout align-content-x="center">
-                    <psk-condition condition="@product.isCodeEditable">
-                        <psk-button event-name="add-product" label="Save Product" slot="condition-true"></psk-button>
-                        <psk-button event-name="add-product" label="Update Product" slot="condition-false"></psk-button>
-                    </psk-condition>
-                </psk-layout>
-                <psk-list-feedbacks></psk-list-feedbacks>
-            </psk-from-row>
-        </psk-form>
+                <div class="col-5 align-self-start">
+                    <div>
+                        <psk-checkbox checkbox-label="Enable Adverse Events Reporting"
+                                      checked="@product.adverseEventsReportingEnabled"
+                                      name="adverseEventsReportingEnabled"
+                                      value="@product.adverseEventsReportingEnabled"></psk-checkbox>
+                        <div data-if="@product.adverseEventsReportingEnabled">
+                            <div class="background-container col-12">
+                                <div class="form-label">Adverse Events Reporting URL</div>
+                                <i class="fa fa-pencil-square-o editable-icon"></i>
+                                <input class="form-control" placeholder="Add Adverse Events Reporting URL"
+                                       type="text" value="@product.reportURL"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <psk-checkbox checkbox-label="Enable Anti-Counterfeiting check for this product"
+                                      checked="@product.antiCounterfeitingEnabled" name="antiCounterfeitingEnabled"
+                                      value="@product.antiCounterfeitingEnabled"></psk-checkbox>
+                        <div data-if="@product.antiCounterfeitingEnabled">
+                            <div class="background-container col-12">
+                                <div class="form-label">Anti-Counterfieting End Point URL</div>
+                                <i class="fa fa-pencil-square-o editable-icon"></i>
+                                <input class="form-control" placeholder="Add Anti-Counterfieting End Point URL"
+                                       type="text" value="@product.antiCounterfeitingURL"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <psk-checkbox checkbox-label="Batch is recalled"
+                                      checked="@product.showEPIOnBatchRecalled"
+                                      name="showEPIOnBatchRecalled"
+                                      value="@product.showEPIOnBatchRecalled"></psk-checkbox>
+                        <psk-checkbox checkbox-label="Expiration Date is incorrect"
+                                      checked="@product.showEPIOnIncorrectExpiryDate"
+                                      name="showEPIOnIncorrectExpiryDate"
+                                      value="@product.showEPIOnIncorrectExpiryDate"></psk-checkbox>
+                        <psk-checkbox checkbox-label="Batch is expired"
+                                      checked="@product.showEPIOnBatchExpired"
+                                      name="showEPIOnBatchExpired"
+                                      value="@product.showEPIOnBatchExpired"></psk-checkbox>
+                        <psk-checkbox checkbox-label="SN is in Recall list"
+                                      checked="@product.showEPIOnSNRecalled"
+                                      name="showEPIOnSNRecalled"
+                                      value="@product.showEPIOnSNRecalled"></psk-checkbox>
+                        <psk-checkbox checkbox-label="SN is in Decommissioned list"
+                                      checked="@product.showEPIOnSNDecommissioned"
+                                      name="showEPIOnSNDecommissioned"
+                                      value="@product.showEPIOnSNDecommissioned"></psk-checkbox>
+                        <psk-checkbox checkbox-label="SN is unknown"
+                                      checked="@product.showEPIOnSNUnknown"
+                                      name="showEPIOnSNUnknown"
+                                      value="@product.showEPIOnSNUnknown"></psk-checkbox>
+                    </div>
+                    <div class="d-flex flex-column">
+                        <ul>
+                            <li class="d-flex flex-row overflow-auto" data-for="@languageTypeCards">
+                                <div class="epi-card d-flex flex-row p-3 mr-3 mb-2">
+                                    <div class="form-label pr-3">{{@language.label}} {{@type.label}}</div>
+                                    <div class="pr-3">
+                                        {{@files.length}} files
+                                    </div>
+                                    <button class="delete-language" data-tag="delete-language-leaflet">x
+                                        <div hidden="hidden">{{@language.value}}/{{@type.value}}</div>
+                                    </button>
+                                </div>
+                            </li>
+                        </ul>
+
+                        <div class="mt-3">
+                            <button class="form-button" data-tag="add-language-leaflet">+ Add ePI</button>
+                        </div>
+
+                    </div>
+
+
+                </div>
+            </div>
+
+            <div class="submit-button d-flex flex-row mt-5">
+                <psk-button data-tag="cancel">Cancel</psk-button>
+                <psk-button data-tag="add-product">{{@submitLabel}}</psk-button>
+            </div>
+        </webc-container>
     </h6>
 </psk-page>
+
 <style>
     psk-form-row {
         padding-left: 10px;
     }
 
+    .product-image {
+        max-height: 175px;
+    }
+
     .product-image img {
-        max-height: 100px;
-        max-width: 100px;
+        max-height: 100%;
+        max-width: 100%;
     }
 
     psk-radio-group .form-group > psk-label {
@@ -179,7 +194,72 @@
         box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.6);
     }
 
-    psk-textarea div textarea {
-        min-height: 111px;
+
+    .read-only-container {
+        background: #f3f3f3;
     }
+
+    .read-only-container,
+    .background-container {
+        border-bottom: 1.5px solid #E75222;
+    }
+
+    .background-container input,
+    .background-container input:focus,
+    .background-container textarea,
+    .background-container textarea:focus,
+    .read-only-container .form-control[readonly] {
+        border: none;
+        background: none;
+        box-shadow: none;
+        padding: 0px;
+        outline: none;
+        resize: none;
+        overflow: auto;
+    }
+
+    .background-container input::placeholder,
+    .background-container textarea::placeholder {
+        font-style: italic;
+        font-size: smaller;
+    }
+
+    .form-label,
+    .form-button {
+        color: #E75222;
+    }
+
+    .editable-icon {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+    }
+
+    .form-button {
+        border: 1px solid #E75222;
+        border-radius: 3px;
+        padding: 7px;
+        background: none;
+    }
+
+    .epi-card {
+        border: 1.5px solid #E75222;
+        width: fit-content;
+        box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.6);
+        border-radius: 4px;
+    }
+
+    .epi-card .delete-language {
+        top: -20px;
+        position: relative;
+        right: -13px;
+        background: none;
+        border: none;
+        padding: 0px;
+    }
+
+    .submit-button {
+        margin-left: 65px;
+    }
+
 </style>

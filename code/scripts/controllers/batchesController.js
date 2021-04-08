@@ -1,12 +1,13 @@
-import ContainerController from "../../cardinal/controllers/base-controllers/ContainerController.js";
+const { WebcController } = WebCardinal.controllers;
 import SharedStorage from '../services/SharedDBStorageService.js';
 import constants from "../constants.js";
 import utils from "../utils.js";
 
-export default class batchesController extends ContainerController {
+export default class batchesController extends WebcController {
   constructor(element, history) {
     super(element, history);
     this.setModel({});
+    this.model.batches = [];
     this.storageService = new SharedStorage(this.DSUStorage);
 
     this.storageService.getArray(constants.BATCHES_STORAGE_TABLE, "__timestamp > 0", (err, batches) => {
@@ -22,43 +23,43 @@ export default class batchesController extends ContainerController {
         wrongBatch.defaultSerialNumber = "WRONG";
         batch.wrongCode = this.generateSerializationForBatch(wrongBatch, wrongBatch.defaultSerialNumber);
         batch.formatedDate = utils.convertDateFromISOToGS1Format(batch.expiryForDisplay, "/");
+        this.model.batches.push(batch);
       });
-      this.model.batches = batches;
     });
 
-    this.on("sort-data", (event) => {
-      let activeSortButtons = this.element.querySelectorAll('.icon-button.active')
+    this.onTagClick("sort-data", (model, target, event) => {
+      let activeSortButtons = this.element.querySelectorAll('.sort-button.active')
 
       if (activeSortButtons.length > 0) {
         activeSortButtons.forEach(elem => {
-          elem.classList.remove("active");
+          if (elem !== target)
+            elem.classList.remove("active");
         })
       }
-      let sortCriteria = JSON.parse(event.data)
-      this.model.batches.sort(utils.sortByProperty(sortCriteria.property, sortCriteria.direction));
-    });
+      target.classList.add("active");
+      let sortCriteria = JSON.parse(target.getAttribute('event-data'));
+      this.model.productsForDisplay.sort(utils.sortByProperty(sortCriteria.property, sortCriteria.direction));
+    })
 
-    this.on("view-2DMatrix", (event) => {
-      let actionModalModel = {
+    this.onTagClick("view-2DMatrix", (model, target, event) => {
+      let eventData = JSON.parse( target.firstElementChild.innerText);
+      this.model.actionModalModel = {
         title: "2DMatrix",
-        batchData: event.data,
+        batchData: eventData,
+        acceptButtonText: 'Close'
       }
 
-      this.showModal('show2DMatrix', actionModalModel, (err, response) => {
-        if (err || response === undefined) {
-          return;
-        }
-
-      });
+      this.showModalFromTemplate('modal2DMatrix', ()=>{ return} , () => { return},{model: this.model});
     });
 
-    this.on("add-batch", () => {
-      this.History.navigateToPageByTag("add-batch");
+    this.onTagClick("add-batch", () => {
+      this.navigateToPageTag("add-batch");
     });
 
-    this.on('edit-batch', (event) => {
-      const batchData = this.model.batches.find(element => element.batchNumber === event.data);
-      this.History.navigateToPageByTag("add-batch", {'batchData': JSON.stringify(batchData)});
+    this.onTagClick('edit-batch', (model, target, event) => {
+      let eventData = target.getAttribute('event-data');
+      const batchData = this.model.batches.find(element => element.batchNumber === eventData);
+      this.navigateToPageTag("add-batch", {'batchData': JSON.stringify(batchData)});
     }, {capture: true});
   }
 

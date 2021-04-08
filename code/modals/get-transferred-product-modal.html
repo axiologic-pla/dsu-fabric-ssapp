@@ -1,0 +1,15 @@
+<div class="custom-modal-header header-color" slot="header">
+    <h5>{{@actionModalModel.title}}</h5>
+</div>
+<main>
+    <h5 class="header-color">Enter transfer code</h5>
+    <div>
+        <input class="form-control w-100" type="text" value="@actionModalModel.transferCode"/>
+    </div>
+
+</main>
+<footer class="modal-action-menu" slot="footer">
+    <psk-button class="marketplace-manager-button" data-close label="@actionModalModel.denyButtonText"></psk-button>
+    <psk-button class="marketplace-manager-button" data-confirm label="@actionModalModel.acceptButtonText"></psk-button>
+</footer>
+

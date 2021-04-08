@@ -22,6 +22,9 @@ export default class Product {
   showEPIOnSNUnknown = false;
   showEPIOnIncorrectExpiryDate = false;
   showEPIOnBatchExpired = true;
+  practitionerInfo = "SmPC";
+  pacientLeafletInfo = "Patient Information";
+  imagePath;
 
   constructor(product) {
     if (typeof product !== undefined) {
@@ -33,8 +36,6 @@ export default class Product {
     if (this.gtin === "") {
       this.gtin = '05290931025615';
     }
-    //if it's not first version product name and code should not be changed
-    this.isCodeEditable = this.version === 1;
   }
 
   validate() {

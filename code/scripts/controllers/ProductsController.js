@@ -1,132 +1,141 @@
-import ContainerController from "../../cardinal/controllers/base-controllers/ContainerController.js";
+const {WebcController} = WebCardinal.controllers;
 import constants from "../constants.js";
 import SharedStorage from '../services/SharedDBStorageService.js';
-import Utils from "../models/Utils.js";
 import utils from "../utils.js";
 import LogService from "../services/LogService.js";
 import Product from "../models/Product.js";
 
-export default class ProductsController extends ContainerController {
-    constructor(element, history) {
-        super(element, history);
+export default class ProductsController extends WebcController {
+  constructor(element, history) {
+    super(element, history);
 
-        this.setModel({});
-        this.storageService = new SharedStorage(this.DSUStorage);
-        this.logService = new LogService(this.DSUStorage);
+    this.setModel({});
+    this.storageService = new SharedStorage(this.DSUStorage);
+    this.logService = new LogService(this.DSUStorage);
 
-        this.model.addExpression('productsListLoaded', () => {
-            return typeof this.model.productsForDisplay !== "undefined";
-        }, 'productsForDisplay');
+    this.model.addExpression('productsListLoaded', () => {
+      return typeof this.model.productsForDisplay !== "undefined";
+    }, 'productsForDisplay');
 
 
         this.storageService.getArray(constants.LAST_VERSION_PRODUCTS_TABLE, "__timestamp > 0", (err, products) => {
-            this.products = products;
+      this.products = products;
             this.model.productsForDisplay = products;
-        });
+    });
 
-        this.on("sort-data", (event) => {
-            let activeSortButtons = this.element.querySelectorAll('.icon-button.active')
+    this.onTagClick("sort-data", (model, target, event) => {
+      let activeSortButtons = this.element.querySelectorAll('.sort-button.active')
 
-            if (activeSortButtons.length > 0) {
-                activeSortButtons.forEach(elem => {
-                    elem.classList.remove("active");
-                })
-            }
-            let sortCriteria = JSON.parse(event.data)
-            this.model.productsForDisplay.sort(utils.sortByProperty(sortCriteria.property, sortCriteria.direction));
+      if (activeSortButtons.length > 0) {
+        activeSortButtons.forEach(elem => {
+          if (elem !== target)
+            elem.classList.remove("active");
         })
+      }
+      target.classList.add("active");
+      let sortCriteria = JSON.parse(target.getAttribute('event-data'));
+      this.model.productsForDisplay.sort(utils.sortByProperty(sortCriteria.property, sortCriteria.direction));
+    })
 
-        this.on("add-product", (event) => {
-            event.stopImmediatePropagation();
-            this.History.navigateToPageByTag("manage-product");
-        });
+    this.onTagClick("add-product", (model, target, event) => {
+      event.stopImmediatePropagation();
+      this.navigateToPageTag("manage-product");
+    });
 
-        this.on("transfer", (event) => {
-            const gtin = event.target.getAttribute("gtin");
-            this.storageService.getRecord(constants.LAST_VERSION_PRODUCTS_TABLE, gtin, (err, product) => {
-                let actionModalModel = {
-                    title: "Enter the company name to which the product is transferred",
-                    transferCode: $$.Buffer.from(JSON.stringify(product)).toString("base64"),
-                    acceptButtonText: 'Accept',
-                    denyButtonText: 'Cancel'
-                }
-                this.showModal('transferProductModal', actionModalModel, (err, response) => {
-                    if (err || response === undefined) {
-                        return;
-                    }
-                    product.transferred = true;
-                    product.manufName = response;
-                    this.logService.log({
-                        logInfo: product,
-                        username: this.model.username,
-                        action: `Transferred product to ${response}`,
-                        logType: 'PRODUCT_LOG'
+    this.onTagClick("transfer", (model, target, event) => {
+      const gtin = target.getAttribute("gtin");
+      this.storageService.getRecord(constants.LAST_VERSION_PRODUCTS_TABLE, gtin, (err, product) => {
+      this.model.actionModalModel = {
+        title: "Enter the company name to which the product is transferred",
+        transferCode: $$.Buffer.from(JSON.stringify(product)).toString("base64"),
+        acceptButtonText: 'Accept',
+        mah: "",
+        denyButtonText: 'Cancel'
+      }
+
+      this.showModalFromTemplate("transfer-product-modal",
+        (event) => {
+          product.transferred = true;
+          product.manufName = this.model.actionModalModel.mah;
+          this.logService.log({
+            logInfo: product,
+            username: this.model.username,
+            action: `Transferred product to ${this.model.actionModalModel.mah}`,
+            logType: 'PRODUCT_LOG'
                     }, ()=>{});
-                });
-            });
-        });
+          });
 
-        this.on("get-transferred-product", (event) => {
-            let actionModalModel = {
-                title: "Add transferred product",
-                acceptButtonText: 'Accept',
-                denyButtonText: 'Cancel'
+        },
+        (event) => {
+          return
+        },
+        {model: this.model})
+    });
+
+    this.onTagClick("get-transferred-product", (event) => {
+      this.model.actionModalModel = {
+        title: "Add transferred product",
+        acceptButtonText: 'Accept',
+        denyButtonText: 'Cancel',
+        transferCode: ""
+      }
+      this.showModalFromTemplate('get-transferred-product-modal',
+        (response)=>{
+          if ( this.model.actionModalModel.transferCode === undefined) {
+            return;
+          }
+          const product = JSON.parse($$.Buffer.from(this.model.actionModalModel.transferCode, "base64").toString());
+          this.addProductToProductsList(new Product(product), (err) => {
+            if (err) {
+              return console.log(err);
             }
-            this.showModal('getTransferredProductModal', actionModalModel, (err, response) => {
-                if (err || response === undefined) {
-                    return;
-                }
-
-                const product = JSON.parse($$.Buffer.from(response, "base64").toString());
-                this.addProductToProductsList(new Product(product), (err) => {
-                    if (err) {
-                        return console.log(err);
-                    }
                     this.storageService.getArray(constants.LAST_VERSION_PRODUCTS_TABLE, "__timestamp > 0", (err, products) => {
                         this.products = products;
                         this.model.productsForDisplay = products;
                     });
-                });
-            });
-        });
+          });
 
-        this.on('edit-product', (event) => {
-            const gtin = event.target.getAttribute("gtin");
-            this.History.navigateToPageByTag("manage-product", {gtin: gtin});
-        }, {capture: true});
+        }, (err) => {return},
+        {model: this.model});
+    });
+
+    this.onTagClick('edit-product', (model, target, event) => {
+      const gtin = event.target.getAttribute("gtin");
+      this.navigateToPageTag("manage-product", {gtin: gtin});
+    }, {capture: true});
 
 
-        this.on("view-drug", (event) => {
-            this.History.navigateToPageByTag("drug-details");
-        });
+    this.on("view-drug", (event) => {
+      this.navigateToPageTag("drug-details");
+    });
 
-        this.on('openFeedback', (e) => {
-            this.feedbackEmitter = e.detail;
-        });
-    }
+    this.on('openFeedback', (e) => {
+      this.feedbackEmitter = e.detail;
+    });
+  }
 
-    addProductToProductsList(product, callback) {
+  addProductToProductsList(product, callback) {
         this.storageService.getRecord(constants.PRODUCTS_TABLE, product.gtin, (err, prod) => {
             if (prod) {
-                return callback(undefined, undefined);
-            }
+      return callback(undefined, undefined);
+    }
 
-            this.logService.log({
-                logInfo: product,
-                username: this.model.username,
-                action: `Transferred product from ${product.manufName}`,
-                logType: 'PRODUCT_LOG'
-            }, (err) => {
-                if (err) {
-                    return callback(err);
-                }
+    this.logService.log({
+      logInfo: product,
+      username: this.model.username,
+      action: `Transferred product from ${product.manufName}`,
+      logType: 'PRODUCT_LOG'
+    }, (err) => {
+      if (err) {
+        return callback(err);
+      }
 
                 product.initialVersion = product.version;
-                product.transferred = false;
+      product.transferred = false;
                 this.storageService.insertRecord(constants.PRODUCTS_TABLE, `${product.gtin}|${product.version}`, product, () => {
                     this.storageService.insertRecord(constants.LAST_VERSION_PRODUCTS_TABLE, product.gtin, product, callback);
                 });
             });
-        });
-    }
+    });
+  }
 }
