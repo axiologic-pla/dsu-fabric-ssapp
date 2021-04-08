@@ -119,15 +119,8 @@ export default class ManageProductController extends WebcController {
             if (err) {
               printOpenDSUError(createOpenDSUErrorWrapper("Failed to commit batch. Concurrency issues or other issue", err))
             }
-
-            this.cloneProductPartial(product, '/product/' + product.version + product.photo, '/product/' + product.version + 1 + product.photo, (err) => {
-              if (err) {
-                printOpenDSUError(createOpenDSUErrorWrapper("Failed to clone product photo", err))
-                return this.showErrorModalAndRedirect("Failed to clone product photo", "products");
-              }
               this.hideModal();
               this.navigateToPageTag("products");
-            });
           });
         }
         if (typeof product.keySSI === "undefined") {
