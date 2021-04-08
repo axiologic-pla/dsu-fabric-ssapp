@@ -45,17 +45,7 @@ export default class ManageProductController extends WebcController {
       this.addLanguageTypeFilesListener(event)
     });
 
-    this.storageService.getArray(constants.LAST_VERSION_PRODUCTS_TABLE, "__timestamp > 0", (err, products) => {
-      if (typeof this.gtin !== "undefined") {
-        this.model.product = new Product(products[products.length - 1]);
-        this.model.product.photo = utils.getFetchUrl("/download/code/assets/images/default.png")
-        this.model.product.version++;
-        this.model.product.isCodeEditable = false;
-        this.model.product.batchSpecificVersion = false;
-
-      } else {
-        this.model.product = new Product();
-      }
+    const ensureHolderCredential = () => {
       this.model.submitLabel = this.model.product.isCodeEditable ? "Save Product" : "Update Product";
       dsuBuilder.ensureHolderInfo((err, holderInfo) => {
         if (!err && holderInfo) {
@@ -66,7 +56,21 @@ export default class ManageProductController extends WebcController {
           this.showErrorModalAndRedirect("Invalid configuration detected! Configure your wallet properly in the Holder section!", "products");
         }
       })
-    });
+    };
+
+    if (typeof this.gtin !== "undefined") {
+      this.storageService.getRecord(constants.LAST_VERSION_PRODUCTS_TABLE, this.gtin, (err, product) => {
+        this.model.product = new Product(product);
+        this.model.product.photo = utils.getFetchUrl("/download/code/assets/images/default.png")
+        this.model.product.version++;
+        this.model.product.isCodeEditable = false;
+        this.model.product.batchSpecificVersion = false;
+        ensureHolderCredential();
+      });
+    } else {
+      this.model.product = new Product();
+      ensureHolderCredential();
+    }
 
     this.on("product-photo-selected", (event) => {
       this.productPhoto = event.data;
