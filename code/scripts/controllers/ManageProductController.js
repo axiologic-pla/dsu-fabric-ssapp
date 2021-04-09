@@ -61,7 +61,7 @@ export default class ManageProductController extends WebcController {
     if (typeof this.gtin !== "undefined") {
       this.storageService.getRecord(constants.LAST_VERSION_PRODUCTS_TABLE, this.gtin, (err, product) => {
         this.model.product = new Product(product);
-        this.model.product.photo = utils.getFetchUrl("/download/code/assets/images/default.png")
+        this.model.product.photo = `/download/${product.gtin}/product/${product.version}/image.png`;
         this.model.product.version++;
         this.model.product.isCodeEditable = false;
         this.model.product.batchSpecificVersion = false;
@@ -108,6 +108,7 @@ export default class ManageProductController extends WebcController {
         }
 
         console.log("Product DSU KeySSI:", keySSI);
+
         let finish = (err) => {
           if (err) {
             this.hideModal();
@@ -223,7 +224,8 @@ export default class ManageProductController extends WebcController {
       }
     } else {
       try {
-        await this.addDefaultEPI(product)
+        await this.copyEPIFromPreviousVersion(product)
+        await this.copyImageFromPreviousVersion(product);
       } catch (err) {
         printOpenDSUError(createOpenDSUErrorWrapper("Failed to load productdsu", err))
         return this.showErrorModalAndRedirect("Failed to load productdsu", "products");
@@ -241,9 +243,20 @@ export default class ManageProductController extends WebcController {
     return true;
   }
 
-  addDefaultEPI(product) {
+  copyEPIFromPreviousVersion(product) {
     return new Promise((resolve, reject) => {
       this.cloneProductPartial(product, `/product/${product.version - 1}`, `/product/${product.version}`, (err) => {
+        if (err) {
+          return reject(err)
+        }
+        return resolve()
+      })
+    })
+  }
+
+  copyImageFromPreviousVersion(product) {
+    return new Promise((resolve, reject) => {
+      this.cloneProductPartial(product, `/product/${product.version - 1}${PRODUCT_IMAGE_FILE}`, `/product/${product.version}${PRODUCT_IMAGE_FILE}`, (err) => {
         if (err) {
           return reject(err)
         }
@@ -423,14 +436,17 @@ export default class ManageProductController extends WebcController {
       action: "Created product",
       logType: 'PRODUCT_LOG'
     }, () => {
-      this.storageService.insertRecord(constants.PRODUCTS_TABLE, `${this.gtin}|${product.version}`, product, () => {
-        this.storageService.getRecord(constants.LAST_VERSION_PRODUCTS_TABLE, this.gtin, (err, prod) => {
-          if (err || !prod) {
-            product.initialVersion = product.version;
-            this.storageService.insertRecord(constants.LAST_VERSION_PRODUCTS_TABLE, this.gtin, product, callback);
-          } else {
-            this.storageService.updateRecord(constants.LAST_VERSION_PRODUCTS_TABLE, this.gtin, product, callback);
-          }
+
+      this.DSUStorage.call("mountDSU", `/${product.gtin}`, product.keySSI, (err) => {
+        this.storageService.insertRecord(constants.PRODUCTS_TABLE, `${this.gtin}|${product.version}`, product, () => {
+          this.storageService.getRecord(constants.LAST_VERSION_PRODUCTS_TABLE, this.gtin, (err, prod) => {
+            if (err || !prod) {
+              product.initialVersion = product.version;
+              this.storageService.insertRecord(constants.LAST_VERSION_PRODUCTS_TABLE, this.gtin, product, callback);
+            } else {
+              this.storageService.updateRecord(constants.LAST_VERSION_PRODUCTS_TABLE, this.gtin, product, callback);
+            }
+          });
         });
       });
     });
