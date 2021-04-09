@@ -18,7 +18,8 @@ export default class addBatchController extends WebcController {
     this.setModel({});
     this.storageService = new SharedStorage(this.DSUStorage);
     this.logService = new LogService(this.DSUStorage);
-    this.serialNumbersLogService = new LogService(this.DSUStorage, constants.SERIAL_NUMBERS_LOGS_TABLE);
+    // this.serialNumbersLogService = new LogService(this.DSUStorage, constants.SERIAL_NUMBERS_LOGS_TABLE);
+    this.serialNumbersLogService = new SharedStorage(this.DSUStorage);
     this.versionOffset = 1;
     dsuBuilder.ensureHolderInfo((err, holderInfo) => {
       if (!err) {
@@ -56,7 +57,7 @@ export default class addBatchController extends WebcController {
       this.gtin = this.model.batch.gtin;
     }
 
-    this.serialNumbersLogService.getLogs((err, logs) => {
+    this.serialNumbersLogService.getArray(this.model.batch.batchNumber, "__timestamp > 0", (err, logs) => {
       if (err || typeof logs === "undefined") {
         logs = [];
       }
@@ -75,6 +76,16 @@ export default class addBatchController extends WebcController {
       }));
       this.model.products.options = options;
     });
+
+    this.model.onChange("batch.batchNumber",  (event) => {
+      this.serialNumbersLogService.getArray(this.model.batch.batchNumber, "__timestamp > 0", (err, logs) => {
+        if (err || typeof logs === "undefined") {
+          logs = [];
+        }
+
+        this.model.serialNumbersLogs = logs;
+      });
+    })
 
     this.onTagClick("cancel", () => {
       this.navigateToPageTag("batches");
@@ -320,10 +331,7 @@ export default class addBatchController extends WebcController {
 
       }
       this.model.serial_update_options.value = "Select an option";
-      this.model.serialNumbersLogs.push({
-        ...serialNumbersLog
-      })
-      this.serialNumbersLogService.log(serialNumbersLog, () => {
+      this.serialNumbersLogService.insertRecord(this.model.batch.batchNumber, serialNumbersLog.creationTime, serialNumbersLog, () => {
       })
     }, () => {
       return
