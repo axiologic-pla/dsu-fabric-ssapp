@@ -33,6 +33,7 @@ export default class addBatchController extends WebcController {
     this.model.batch.productName = "";
     this.model.productDescription = "";
     this.model.editMode = editMode;
+    this.model.serialNumbersLogs = [];
     this.model.products = {
       placeholder: "Select a product"
     }
@@ -45,7 +46,8 @@ export default class addBatchController extends WebcController {
       options: [
         {label: "Update Valid", value: "update-valid-serial"},
         {label: "Update Recalled", value: "update-recalled-serial"},
-        {label: "Update decommissioned", value: "update-decommissioned-serial"}
+        {label: "Update decommissioned", value: "update-decommissioned-serial"},
+        {label: "See update history", value: "update-history"}
       ],
       placeholder: "Select an option"
     }
@@ -61,9 +63,9 @@ export default class addBatchController extends WebcController {
       if (err || typeof logs === "undefined") {
         logs = [];
       }
-
       this.model.serialNumbersLogs = logs;
     });
+
     this.storageService.getArray(constants.LAST_VERSION_PRODUCTS_TABLE, "__timestamp > 0", (err, products) => {
       if (err || !products) {
         printOpenDSUError(createOpenDSUErrorWrapper("Failed to retrieve products list!", err));
@@ -82,7 +84,6 @@ export default class addBatchController extends WebcController {
         if (err || typeof logs === "undefined") {
           logs = [];
         }
-
         this.model.serialNumbersLogs = logs;
       });
     })
@@ -153,8 +154,13 @@ export default class addBatchController extends WebcController {
     })
 
     this.model.onChange("serial_update_options.value", (event) => {
-      this.updateSerialsModal(this.model.serial_update_options.value);
+      if(this.model.serial_update_options.value === "update-history"){
+        this.showSerialHistoryModal()
+      }else{
+        this.updateSerialsModal(this.model.serial_update_options.value);
+      }
     });
+
     this.model.onChange("products.value", async (event) => {
       this.model.versions.options = await this.getVersionOptions(this.model.products.value);
       this.model.versions.value = "latest";
@@ -264,7 +270,11 @@ export default class addBatchController extends WebcController {
 
     });
   }
-
+  showSerialHistoryModal(){
+    this.showModalFromTemplate('serial-numbers-update-history', () => {}, () => {
+      this.model.serial_update_options.value = "Select an option";
+    }, {model: this.model});
+  }
   updateSerialsModal(type) {
     this.model.actionModalModel = {
       title: "Enter serial numbers separated by comma",
@@ -334,7 +344,7 @@ export default class addBatchController extends WebcController {
       this.serialNumbersLogService.insertRecord(this.model.batch.batchNumber, serialNumbersLog.creationTime, serialNumbersLog, () => {
       })
     }, () => {
-      return
+      this.model.serial_update_options.value = "Select an option";
     }, {model: this.model});
   }
 

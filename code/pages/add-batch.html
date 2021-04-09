@@ -62,6 +62,14 @@
                                       rows="3" slot="true" value="@batch.recalledMessage"></textarea>
                         </div>
                     </div>
+                    <div class="d-flex flex-row mt-5">
+                        <psk-button data-tag="cancel" label="Cancel"></psk-button>
+                        <div data-if="@editMode">
+                            <psk-button data-tag="update-batch" label="Update batch" slot="true"></psk-button>
+                            <psk-button data-tag="add-batch" label="Add batch" slot="false"></psk-button>
+                        </div>
+
+                    </div>
                 </div>
                 <div class="col-5 align-self-start p-0">
                     <div data-if="@editMode">
@@ -103,22 +111,10 @@
                             <psk-select required value="" view-model="@serial_update_options"></psk-select>
                         </div>
                     </div>
-                    <div data-for="@serialNumbersLogs">
-                        <div class="col align-self-center">{{@action}}</div>
-                        <div class="col align-self-center">{{@creationTime}}</div>
-                    </div>
-
                 </div>
             </div>
 
-            <div class="submit-button d-flex flex-row">
-                <psk-button data-tag="cancel" label="Cancel"></psk-button>
-                <div data-if="@editMode">
-                    <psk-button data-tag="update-batch" label="Update batch" slot="true"></psk-button>
-                    <psk-button data-tag="add-batch" label="Add batch" slot="false"></psk-button>
-                </div>
 
-            </div>
         </webc-container>
     </h6>
 </psk-page>
@@ -295,10 +291,6 @@
     input[type="date"]::-webkit-calendar-picker-indicator {
         background: none;
         z-index: 1;
-    }
-
-    .submit-button {
-        margin-left: 65px;
     }
 
 </style>

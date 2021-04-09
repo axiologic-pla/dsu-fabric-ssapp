@@ -1,0 +1,18 @@
+<div class="custom-modal-header header-color" slot="header">
+    <h5>Serial numbers update history</h5>
+</div>
+<main>
+    <div class="col">
+        <div data-if="@serialNumbersLogs.length">
+            <ul data-for="@serialNumbersLogs" slot="true">
+                <li>{{@creationTime}} - {{@action}}</li>
+            </ul>
+            <div slot="false"> There are no registered changes on serial numbers </div>
+        </div>
+
+    </div>
+
+</main>
+<footer class="modal-action-menu" slot="footer">
+    <psk-button class="marketplace-manager-button" data-close label="Close"></psk-button>
+</footer>

@@ -54,7 +54,7 @@
                         <div>
                             <i class="fa fa-pencil-square-o editable-icon"></i>
                             <input class="form-control" placeholder="Add Patient Specific Information Leaflet"
-                                   type="text" value="@product.pacientLeafletInfo"/>
+                                   type="text" value="@product.patientLeafletInfo"/>
                         </div>
                     </div>
                     <div class="background-container col-12 pl-3 mb-3">
@@ -77,7 +77,12 @@
                                           name="batchSpecific" value="@product.batchSpecificVersion"></psk-checkbox>
                         </div>
                     </div>
+                    <div class="d-flex flex-row mt-5">
+                        <psk-button data-tag="cancel">Cancel</psk-button>
+                        <psk-button data-tag="add-product">{{@submitLabel}}</psk-button>
+                    </div>
                 </div>
+
                 <div class="col-5 align-self-start">
                     <div>
                         <psk-checkbox checkbox-label="Enable Adverse Events Reporting"
@@ -155,11 +160,6 @@
 
 
                 </div>
-            </div>
-
-            <div class="submit-button d-flex flex-row mt-5">
-                <psk-button data-tag="cancel">Cancel</psk-button>
-                <psk-button data-tag="add-product">{{@submitLabel}}</psk-button>
             </div>
         </webc-container>
     </h6>
@@ -256,10 +256,6 @@
         background: none;
         border: none;
         padding: 0px;
-    }
-
-    .submit-button {
-        margin-left: 65px;
     }
 
 </style>

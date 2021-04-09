@@ -23,7 +23,7 @@ export default class Product {
   showEPIOnIncorrectExpiryDate = false;
   showEPIOnBatchExpired = true;
   practitionerInfo = "SmPC";
-  pacientLeafletInfo = "Patient Information";
+  patientLeafletInfo = "Patient Information";
   imagePath;
 
   constructor(product) {
