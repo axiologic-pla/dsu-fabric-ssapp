@@ -1,10 +1,10 @@
 import constants from '../constants.js';
-import SharedStorage from "./SharedDBStorageService.js";
+import getSharedStorage from "./SharedDBStorageService.js";
 
 export default class LogService {
 
     constructor(dsuStorage, logsTable) {
-        this.storageService = new SharedStorage(dsuStorage);
+        this.storageService = getSharedStorage(dsuStorage);
         if (typeof logsTable === "undefined") {
             this.logsTable = constants.LOGS_TABLE;
         } else {

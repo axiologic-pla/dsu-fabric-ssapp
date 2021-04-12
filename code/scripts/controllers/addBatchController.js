@@ -1,7 +1,7 @@
 const {WebcController} = WebCardinal.controllers;
 import constants from "../constants.js";
 import Batch from "../models/Batch.js";
-import SharedStorage from '../services/SharedDBStorageService.js';
+import getSharedStorage from '../services/SharedDBStorageService.js';
 import DSU_Builder from "../services/DSU_Builder.js";
 import utils from "../utils.js";
 import LogService from "../services/LogService.js";
@@ -16,10 +16,10 @@ export default class addBatchController extends WebcController {
     const editData = editMode ? JSON.parse(state.batchData) : undefined;
     let batch = new Batch(editData);
     this.setModel({});
-    this.storageService = new SharedStorage(this.DSUStorage);
+    this.storageService = getSharedStorage(this.DSUStorage);
     this.logService = new LogService(this.DSUStorage);
     // this.serialNumbersLogService = new LogService(this.DSUStorage, constants.SERIAL_NUMBERS_LOGS_TABLE);
-    this.serialNumbersLogService = new SharedStorage(this.DSUStorage);
+    this.serialNumbersLogService = getSharedStorage(this.DSUStorage);
     this.versionOffset = 1;
     dsuBuilder.ensureHolderInfo((err, holderInfo) => {
       if (!err) {
@@ -215,7 +215,7 @@ export default class addBatchController extends WebcController {
 
   initBatch() {
     try {
-      this.DSUStorage.beginBatch();
+      this.storageService.beginBatch();
       let result = this.model.batch;
       result.serialNumbers = this.model.serialNumbers;
       result.recalledSerialNumbers = this.model.recalledSerialNumbers;
@@ -223,8 +223,8 @@ export default class addBatchController extends WebcController {
       return result;
     } catch (err) {
       reportUserRelevantError("Dropping previous user input");
-      this.DSUStorage.cancelBatch((err, res) => {
-        this.DSUStorage.beginBatch();
+      this.storageService.cancelBatch((err, res) => {
+        this.storageService.beginBatch();
       })
     }
   }
@@ -259,7 +259,7 @@ export default class addBatchController extends WebcController {
         action: this.model.editMode ? "Update Batch" : "Created Batch",
         logType: 'BATCH_LOG'
       }, () => {
-        this.DSUStorage.commitBatch((err, res) => {
+        this.storageService.commitBatch((err, res) => {
           if (err) {
             printOpenDSUError(createOpenDSUErrorWrapper("Failed to commit batch. Concurrency issues or other issue", err))
           }

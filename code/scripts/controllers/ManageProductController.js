@@ -2,7 +2,7 @@ const {WebcController} = WebCardinal.controllers;
 import Product from '../models/Product.js';
 import Languages from "../models/Languages.js";
 import constants from '../constants.js';
-import SharedStorage from '../services/SharedDBStorageService.js';
+import getSharedStorage from '../services/SharedDBStorageService.js';
 import DSU_Builder from '../services/DSU_Builder.js';
 import UploadTypes from "../models/UploadTypes.js";
 import utils from "../utils.js";
@@ -19,7 +19,7 @@ export default class ManageProductController extends WebcController {
   constructor(element, history) {
     super(element, history);
     this.setModel({});
-    this.storageService = new SharedStorage(this.DSUStorage);
+    this.storageService = getSharedStorage(this.DSUStorage);
     this.logService = new LogService(this.DSUStorage);
 
     let state = this.history.location.state;
@@ -88,11 +88,11 @@ export default class ManageProductController extends WebcController {
     this.onTagClick("add-product", async (event) => {
       let product = this.model.product;
       try {
-        this.DSUStorage.beginBatch();
+        this.storageService.beginBatch();
       } catch (err) {
         reportUserRelevantError("Dropping previous user input");
-        this.DSUStorage.cancelBatch((err, res) => {
-          this.DSUStorage.beginBatch();
+        this.storageService.cancelBatch((err, res) => {
+          this.storageService.beginBatch();
         })
       }
       if (await !this.isValid(product)) {
@@ -116,7 +116,7 @@ export default class ManageProductController extends WebcController {
             return this.showErrorModalAndRedirect("Product keySSI failed to be stored in your wallet.", "products");
           }
 
-          this.DSUStorage.commitBatch((err, res) => {
+          this.storageService.commitBatch((err, res) => {
             if (err) {
               printOpenDSUError(createOpenDSUErrorWrapper("Failed to commit batch. Concurrency issues or other issue", err))
             }
@@ -225,7 +225,6 @@ export default class ManageProductController extends WebcController {
     } else {
       try {
         await this.copyEPIFromPreviousVersion(product)
-        await this.copyImageFromPreviousVersion(product);
       } catch (err) {
         printOpenDSUError(createOpenDSUErrorWrapper("Failed to load productdsu", err))
         return this.showErrorModalAndRedirect("Failed to load productdsu", "products");

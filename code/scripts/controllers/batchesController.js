@@ -1,5 +1,5 @@
 const { WebcController } = WebCardinal.controllers;
-import SharedStorage from '../services/SharedDBStorageService.js';
+import getSharedStorage from '../services/SharedDBStorageService.js';
 import constants from "../constants.js";
 import utils from "../utils.js";
 
@@ -8,7 +8,7 @@ export default class batchesController extends WebcController {
     super(element, history);
     this.setModel({});
     this.model.batches = [];
-    this.storageService = new SharedStorage(this.DSUStorage);
+    this.storageService = getSharedStorage(this.DSUStorage);
 
     this.storageService.getArray(constants.BATCHES_STORAGE_TABLE, "__timestamp > 0", (err, batches) => {
       batches.forEach((batch) => {

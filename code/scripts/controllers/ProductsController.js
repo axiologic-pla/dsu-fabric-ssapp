@@ -1,6 +1,6 @@
 const {WebcController} = WebCardinal.controllers;
 import constants from "../constants.js";
-import SharedStorage from '../services/SharedDBStorageService.js';
+import getSharedStorage from '../services/SharedDBStorageService.js';
 import utils from "../utils.js";
 import LogService from "../services/LogService.js";
 import Product from "../models/Product.js";
@@ -10,17 +10,19 @@ export default class ProductsController extends WebcController {
     super(element, history);
 
     this.setModel({});
-    this.storageService = new SharedStorage(this.DSUStorage);
+    this.storageService = getSharedStorage(this.DSUStorage);
     this.logService = new LogService(this.DSUStorage);
 
     this.model.addExpression('productsListLoaded', () => {
       return typeof this.model.productsForDisplay !== "undefined";
     }, 'productsForDisplay');
 
-
-        this.storageService.getArray(constants.LAST_VERSION_PRODUCTS_TABLE, "__timestamp > 0", (err, products) => {
-      this.products = products;
-            this.model.productsForDisplay = products;
+    this.storageService.getArray(constants.LAST_VERSION_PRODUCTS_TABLE, "__timestamp > 0", (err, products) => {
+        if (err) {
+            return console.log(err);
+        }
+        this.products = products;
+        this.model.productsForDisplay = products;
     });
 
     this.onTagClick("sort-data", (model, target, event) => {
