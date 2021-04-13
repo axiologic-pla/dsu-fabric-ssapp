@@ -24,9 +24,9 @@ export default class LogService {
 
         this.storageService.insertRecord(this.logsTable, log.timestamp, log, (err) => {
             if (err) {
-                return console.log("Error adding a log.")
+                return callback(err);
             }
-            callback(err, true);
+            callback(undefined, true);
         });
     }
 

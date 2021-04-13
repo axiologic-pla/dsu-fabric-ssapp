@@ -174,7 +174,7 @@ export default class addBatchController extends WebcController {
       }
 
       this.storageService.getArray(constants.PRODUCTS_TABLE, "__timestamp > 0", (err, records) => {
-        const versionedRecords = records.filter(record => record.__key.startsWith(this.gtin));
+        const versionedRecords = records.filter(record => record.gtin === this.gtin);
         let versionIndex;
         if (this.model.versions.value !== "latest") {
           versionIndex = parseInt(this.model.versions.value - this.versionOffset);

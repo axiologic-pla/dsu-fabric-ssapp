@@ -14,7 +14,7 @@ export default class Product {
   reportURL = `${window.top.location.origin}/default-report.html`;
   antiCounterfeitingURL = `${window.top.location.origin}/default-anti-counterfeiting.html`;
   isCodeEditable = true;
-  adverseReportingEnabled = true;
+  adverseEventsReportingEnabled = true;
   antiCounterfeitingEnabled = true;
   showEPIOnBatchRecalled = false;
   showEPIOnSNRecalled = false;
@@ -53,5 +53,9 @@ export default class Product {
 
   generateViewModel() {
     return {label: this.name, value: this.gtin}
+  }
+
+  clone(){
+    return new Product(JSON.parse(JSON.stringify(this)));
   }
 }

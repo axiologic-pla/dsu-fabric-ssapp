@@ -61,7 +61,7 @@ export default class ManageProductController extends WebcController {
     if (typeof this.gtin !== "undefined") {
       this.storageService.getRecord(constants.LAST_VERSION_PRODUCTS_TABLE, this.gtin, (err, product) => {
         this.model.product = new Product(product);
-        this.model.product.photo = `/download/${product.gtin}/product/${product.version}/image.png`;
+        // this.model.product.photo = `/download/${product.gtin}/product/${product.version}/image.png`;
         this.model.product.version++;
         this.model.product.isCodeEditable = false;
         this.model.product.batchSpecificVersion = false;
@@ -93,7 +93,7 @@ export default class ManageProductController extends WebcController {
 
 
     this.onTagClick("add-product", async (event) => {
-      let product = this.model.product;
+        let product = this.model.product.clone();
       try {
         this.storageService.beginBatch();
       } catch (err) {
@@ -150,22 +150,17 @@ export default class ManageProductController extends WebcController {
     });
   }
 
-  cloneProductPartial(product, src, dest, callback) {
-    const resolver = require("opendsu").loadAPI("resolver");
-    resolver.loadDSU(product.keySSI, (err, productDsu) => {
-      if (err) {
-        printOpenDSUError(createOpenDSUErrorWrapper("Failed to load product dsu", err))
-        return this.showErrorModalAndRedirect("Failed to load product dsu", "products");
+  saveImage(product, imageData){
+      if (typeof imageData === "undefined") {
+          return;
       }
-      productDsu.cloneFolder(src, dest, callback);
-    })
+      if(!(imageData instanceof Uint8Array)){
+          imageData = new Uint8Array(imageData);
+      }
+      let base64Image = btoa(String.fromCharCode(...imageData));
+      base64Image = `data:image/png;base64, ${base64Image}`;
+      product.photo = base64Image;
   }
-
-  getLastVersionProduct() {
-    const productVersions = this.products[this.gtin];
-    return productVersions[productVersions.length - 1];
-  }
-
 
   addLanguageTypeFilesListener(event) {
     const languages = {
@@ -378,57 +373,64 @@ export default class ManageProductController extends WebcController {
 
   addProductFilesToDSU(transactionId, product, callback) {
     const basePath = '/product/' + product.version;
-    product.photo = PRODUCT_IMAGE_FILE;
+    // product.photo = PRODUCT_IMAGE_FILE;
     product.leaflet = LEAFLET_ATTACHMENT_FILE;
     const productStorageFile = basePath + PRODUCT_STORAGE_FILE;
     dsuBuilder.addFileDataToDossier(transactionId, productStorageFile, JSON.stringify(product), (err) => {
       if (err) {
         return callback(err);
       }
-      dsuBuilder.addFileDataToDossier(transactionId, basePath + product.photo, this.productPhoto, (err) => {
-        if (err) {
-          return callback(err);
-        }
 
-        let languageTypeCards = this.model.languageTypeCards;
-
-        let processCards = (cardIndex) => {
-          let languageAndTypeCard = languageTypeCards[cardIndex];
-          if (!languageAndTypeCard) {
-            return dsuBuilder.buildDossier(transactionId, callback);
-          }
-
-
-          if (!languageAndTypeCard.inherited && languageAndTypeCard.files.length === 0) {
-            processCards(cardIndex + 1);
-          }
-
-          let uploadPath = this.getAttachmentPath(product.version, languageAndTypeCard.type.value, languageAndTypeCard.language.value);
-              // `${basePath}/${languageAndTypeCard.type.value}/${languageAndTypeCard.language.value}`;
-
-          if(!languageAndTypeCard.inherited){
-            this.uploadAttachmentFiles(transactionId, uploadPath, languageAndTypeCard.type.value, languageAndTypeCard.files, done);
-          }else{
-            const src = this.getAttachmentPath(product.version - 1, languageAndTypeCard.type.value, languageAndTypeCard.language.value);
-            const dest = this.getAttachmentPath(product.version, languageAndTypeCard.type.value, languageAndTypeCard.language.value);
-            dsuBuilder.copy(transactionId, src, dest, done);
-          }
-
-          function done(err) {
+        let imageCallback = (err) => {
             if (err) {
-              return callback(err);
+                return callback(err);
             }
-            if (cardIndex < languageTypeCards.length) {
-              processCards(cardIndex + 1)
-            } else {
-              return dsuBuilder.buildDossier(transactionId, callback);
-            }
-          }
-        }
-        return processCards(0)
-      });
-    });
 
+            let languageTypeCards = this.model.languageTypeCards;
+
+            let processCards = (cardIndex) => {
+                let languageAndTypeCard = languageTypeCards[cardIndex];
+                if (!languageAndTypeCard) {
+                    return dsuBuilder.buildDossier(transactionId, callback);
+                }
+
+
+                if (!languageAndTypeCard.inherited && languageAndTypeCard.files.length === 0) {
+                    processCards(cardIndex + 1);
+                }
+
+                let uploadPath = this.getAttachmentPath(product.version, languageAndTypeCard.type.value, languageAndTypeCard.language.value);
+                // `${basePath}/${languageAndTypeCard.type.value}/${languageAndTypeCard.language.value}`;
+
+                if (!languageAndTypeCard.inherited) {
+                    this.uploadAttachmentFiles(transactionId, uploadPath, languageAndTypeCard.type.value, languageAndTypeCard.files, done);
+                } else {
+                    const src = this.getAttachmentPath(product.version - 1, languageAndTypeCard.type.value, languageAndTypeCard.language.value);
+                    const dest = this.getAttachmentPath(product.version, languageAndTypeCard.type.value, languageAndTypeCard.language.value);
+                    dsuBuilder.copy(transactionId, src, dest, done);
+                }
+
+                function done(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    if (cardIndex < languageTypeCards.length) {
+                        processCards(cardIndex + 1)
+                    } else {
+                        return dsuBuilder.buildDossier(transactionId, callback);
+                    }
+                }
+            }
+            return processCards(0)
+        }
+        if (typeof this.productPhoto === "undefined" && typeof product.photo !== "undefined") {
+            const src = this.getPathToVersion(product.version - 1) + PRODUCT_IMAGE_FILE;
+            const dest = this.getPathToVersion(product.version) + PRODUCT_IMAGE_FILE;
+            dsuBuilder.copy(transactionId, src, dest, imageCallback);
+        }else{
+            dsuBuilder.addFileDataToDossier(transactionId, basePath + PRODUCT_IMAGE_FILE, this.productPhoto, imageCallback);
+        }
+    });
   }
 
   uploadAttachmentFiles(transactionId, basePath, attachmentType, files, callback) {
@@ -487,7 +489,8 @@ export default class ManageProductController extends WebcController {
       logType: 'PRODUCT_LOG'
     }, () => {
 
-      this.DSUStorage.call("mountDSU", `/${product.gtin}`, product.keySSI, (err) => {
+      // this.DSUStorage.call("mountDSU", `/${product.gtin}`, product.keySSI, (err) => {
+        this.saveImage(product, this.productPhoto);
         this.storageService.insertRecord(constants.PRODUCTS_TABLE, `${this.gtin}|${product.version}`, product, () => {
           this.storageService.getRecord(constants.LAST_VERSION_PRODUCTS_TABLE, this.gtin, (err, prod) => {
             if (err || !prod) {
@@ -499,6 +502,6 @@ export default class ManageProductController extends WebcController {
           });
         });
       });
-    });
+    // });
   }
 }
