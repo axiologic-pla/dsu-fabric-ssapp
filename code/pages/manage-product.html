@@ -142,9 +142,15 @@
                             <li class="d-flex flex-row overflow-auto" data-for="@languageTypeCards">
                                 <div class="epi-card d-flex flex-row p-3 mr-3 mb-2">
                                     <div class="form-label pr-3">{{@language.label}} {{@type.label}}</div>
-                                    <div class="pr-3">
-                                        {{@files.length}} files
+                                    <div data-if="@inherited">
+                                        <div slot="false" class="pr-3">
+                                            {{@files.length}} files
+                                        </div>
+                                        <div slot="true">
+                                            inherited
+                                        </div>
                                     </div>
+
                                     <button class="delete-language" data-tag="delete-language-leaflet">x
                                         <div hidden="hidden">{{@language.value}}/{{@type.value}}</div>
                                     </button>

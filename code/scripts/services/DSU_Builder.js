@@ -126,6 +126,16 @@ export default class DSU_Builder {
         }, callback);
     }
 
+    copy(transactionId, src, dest, callback) {
+        const url = `/${this.holderInfo.domain}/copy/${transactionId}`;
+        doPost(url, "", {
+            headers: {
+                'x-src-path': src,
+                'x-dest-path': dest
+            }
+        }, callback);
+    }
+
     buildDossier(transactionId, callback) {
         const url = `/${this.holderInfo.domain}/build/${transactionId}`;
         doPost(url, "", callback);

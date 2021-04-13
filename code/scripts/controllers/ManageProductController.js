@@ -65,6 +65,13 @@ export default class ManageProductController extends WebcController {
         this.model.product.version++;
         this.model.product.isCodeEditable = false;
         this.model.product.batchSpecificVersion = false;
+        this.getInheritedCards(product, product.version, (err, inheritedCards) => {
+          if (err) {
+            this.showErrorModalAndRedirect("Failed to get inherited cards", "products");
+          }
+
+          this.model.languageTypeCards = inheritedCards;
+        });
         ensureHolderCredential();
       });
     } else {
@@ -95,7 +102,7 @@ export default class ManageProductController extends WebcController {
           this.storageService.beginBatch();
         })
       }
-      if (await !this.isValid(product)) {
+      if (!this.isValid(product)) {
         return;
       }
 
@@ -197,11 +204,9 @@ export default class ManageProductController extends WebcController {
       }
       let selectedLanguage = Languages.getListAsVM().find(lang => lang.value === this.model.modalData.product.language);
       let selectedType = UploadTypes.getListAsVM().find(type => type.value === this.model.modalData.product.type);
-      this.model.languageTypeCards.push({
-        type: selectedType,
-        language: selectedLanguage,
-        files: this.model.modalData.files,
-      });
+        let card = this.generateCard(false, selectedType.value, selectedLanguage.value);
+        card.files = this.model.modalData.files;
+        this.model.languageTypeCards.push(card);
     }, () => {
       return
     }, {model: this.model});
@@ -215,19 +220,12 @@ export default class ManageProductController extends WebcController {
     return this.model.languageTypeCards.filter(lf => lf.files.length > 0).length > 0;
   }
 
-  async isValid(product) {
+   isValid(product) {
 
     if (product.version === 1) {
       if (!this.filesWereProvided()) {
         this.showErrorModal("Cannot save the product because a leaflet was not provided.");
         return false;
-      }
-    } else {
-      try {
-        await this.copyEPIFromPreviousVersion(product)
-      } catch (err) {
-        printOpenDSUError(createOpenDSUErrorWrapper("Failed to load productdsu", err))
-        return this.showErrorModalAndRedirect("Failed to load productdsu", "products");
       }
     }
 
@@ -241,29 +239,6 @@ export default class ManageProductController extends WebcController {
     }
     return true;
   }
-
-  copyEPIFromPreviousVersion(product) {
-    return new Promise((resolve, reject) => {
-      this.cloneProductPartial(product, `/product/${product.version - 1}`, `/product/${product.version}`, (err) => {
-        if (err) {
-          return reject(err)
-        }
-        return resolve()
-      })
-    })
-  }
-
-  copyImageFromPreviousVersion(product) {
-    return new Promise((resolve, reject) => {
-      this.cloneProductPartial(product, `/product/${product.version - 1}${PRODUCT_IMAGE_FILE}`, `/product/${product.version}${PRODUCT_IMAGE_FILE}`, (err) => {
-        if (err) {
-          return reject(err)
-        }
-        return resolve()
-      })
-    })
-  }
-
 
   buildConstProductDSU(gtin, productDSUKeySSI, callback) {
     dsuBuilder.getTransactionId((err, transactionId) => {
@@ -337,6 +312,70 @@ export default class ManageProductController extends WebcController {
     });
   }
 
+  getInheritedCards(product, version, callback){
+    const resolver = require("opendsu").loadAPI("resolver");
+    resolver.loadDSU(product.keySSI, (err, productDSU) => {
+      if (err) {
+        return callback(err);
+      }
+
+      let languageTypeCards = [];
+      //used temporarily to avoid the usage of dsu cached instances which are not up to date
+      productDSU.load(err => {
+          if (err) {
+              return callback(err);
+          }
+
+        productDSU.listFolders(this.getPathToLeaflet(version), (err, leaflets) => {
+          if (err) {
+            return callback(err);
+          }
+
+          productDSU.listFolders(this.getPathToSmPC(version), (err, smpcs) => {
+            if (err) {
+              return callback(err);
+            }
+            leaflets.forEach(leafletLanguageCode => {
+                languageTypeCards.push(this.generateCard(true, "leaflet", leafletLanguageCode));
+            })
+            smpcs.forEach(smpcLanguageCode => {
+                languageTypeCards.push(this.generateCard(true, "smpc", smpcLanguageCode));
+            });
+
+            callback(undefined, languageTypeCards);
+          });
+        });
+      });
+    });
+  }
+
+  generateCard(inherited, type, code){
+        let card = {
+            inherited: inherited,
+            type: {value: type},
+            language: {value: code}
+        };
+        card.type.label = UploadTypes.getLanguage(type);
+        card.language.label = Languages.getLanguage(code);
+        return card;
+  }
+
+  getPathToLeaflet(version){
+    return `${this.getPathToVersion(version)}/leaflet`;
+  }
+
+  getPathToSmPC(version){
+    return `${this.getPathToVersion(version)}/smpc`;
+  }
+
+  getPathToVersion(version){
+    return `/product/${version}`;
+  }
+
+  getAttachmentPath(version, attachmentType, language){
+    return `${this.getPathToVersion(version)}/${attachmentType}/${language}`;
+  }
+
   addProductFilesToDSU(transactionId, product, callback) {
     const basePath = '/product/' + product.version;
     product.photo = PRODUCT_IMAGE_FILE;
@@ -353,28 +392,40 @@ export default class ManageProductController extends WebcController {
 
         let languageTypeCards = this.model.languageTypeCards;
 
-        let uploadFilesForLanguageAndType = (cardIndex) => {
+        let processCards = (cardIndex) => {
           let languageAndTypeCard = languageTypeCards[cardIndex];
           if (!languageAndTypeCard) {
             return dsuBuilder.buildDossier(transactionId, callback);
           }
-          if (languageAndTypeCard.files.length === 0) {
-            uploadFilesForLanguageAndType(cardIndex + 1)
+
+
+          if (!languageAndTypeCard.inherited && languageAndTypeCard.files.length === 0) {
+            processCards(cardIndex + 1);
           }
 
-          let uploadPath = `${basePath}/${languageAndTypeCard.type.value}/${languageAndTypeCard.language.value}`;
-          this.uploadAttachmentFiles(transactionId, uploadPath, languageAndTypeCard.type.value, languageAndTypeCard.files, (err, data) => {
+          let uploadPath = this.getAttachmentPath(product.version, languageAndTypeCard.type.value, languageAndTypeCard.language.value);
+              // `${basePath}/${languageAndTypeCard.type.value}/${languageAndTypeCard.language.value}`;
+
+          if(!languageAndTypeCard.inherited){
+            this.uploadAttachmentFiles(transactionId, uploadPath, languageAndTypeCard.type.value, languageAndTypeCard.files, done);
+          }else{
+            const src = this.getAttachmentPath(product.version - 1, languageAndTypeCard.type.value, languageAndTypeCard.language.value);
+            const dest = this.getAttachmentPath(product.version, languageAndTypeCard.type.value, languageAndTypeCard.language.value);
+            dsuBuilder.copy(transactionId, src, dest, done);
+          }
+
+          function done(err) {
             if (err) {
               return callback(err);
             }
             if (cardIndex < languageTypeCards.length) {
-              uploadFilesForLanguageAndType(cardIndex + 1)
+              processCards(cardIndex + 1)
             } else {
               return dsuBuilder.buildDossier(transactionId, callback);
             }
-          });
+          }
         }
-        return uploadFilesForLanguageAndType(0)
+        return processCards(0)
       });
     });
 
