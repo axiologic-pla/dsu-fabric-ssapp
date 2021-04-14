@@ -77,10 +77,6 @@
                                           name="batchSpecific" value="@product.batchSpecificVersion"></psk-checkbox>
                         </div>
                     </div>
-                    <div class="d-flex flex-row mt-5">
-                        <psk-button data-tag="cancel">Cancel</psk-button>
-                        <psk-button data-tag="add-product">{{@submitLabel}}</psk-button>
-                    </div>
                 </div>
 
                 <div class="col-5 align-self-start">
@@ -112,30 +108,33 @@
                         </div>
                     </div>
                     <div>
-                        <psk-checkbox checkbox-label="Batch is recalled"
-                                      checked="@product.showEPIOnBatchRecalled"
-                                      name="showEPIOnBatchRecalled"
-                                      value="@product.showEPIOnBatchRecalled"></psk-checkbox>
-                        <psk-checkbox checkbox-label="Expiration Date is incorrect"
-                                      checked="@product.showEPIOnIncorrectExpiryDate"
-                                      name="showEPIOnIncorrectExpiryDate"
-                                      value="@product.showEPIOnIncorrectExpiryDate"></psk-checkbox>
-                        <psk-checkbox checkbox-label="Batch is expired"
-                                      checked="@product.showEPIOnBatchExpired"
-                                      name="showEPIOnBatchExpired"
-                                      value="@product.showEPIOnBatchExpired"></psk-checkbox>
-                        <psk-checkbox checkbox-label="SN is in Recall list"
-                                      checked="@product.showEPIOnSNRecalled"
-                                      name="showEPIOnSNRecalled"
-                                      value="@product.showEPIOnSNRecalled"></psk-checkbox>
-                        <psk-checkbox checkbox-label="SN is in Decommissioned list"
-                                      checked="@product.showEPIOnSNDecommissioned"
-                                      name="showEPIOnSNDecommissioned"
-                                      value="@product.showEPIOnSNDecommissioned"></psk-checkbox>
-                        <psk-checkbox checkbox-label="SN is unknown"
-                                      checked="@product.showEPIOnSNUnknown"
-                                      name="showEPIOnSNUnknown"
-                                      value="@product.showEPIOnSNUnknown"></psk-checkbox>
+                        <div class="form-label mt-5 mb-3 ml-3">Display ePI when:</div>
+                        <div>
+                            <psk-checkbox checkbox-label="Batch is recalled"
+                                          checked="@product.showEPIOnBatchRecalled"
+                                          name="showEPIOnBatchRecalled"
+                                          value="@product.showEPIOnBatchRecalled"></psk-checkbox>
+                            <psk-checkbox checkbox-label="Expiration Date is incorrect"
+                                          checked="@product.showEPIOnIncorrectExpiryDate"
+                                          name="showEPIOnIncorrectExpiryDate"
+                                          value="@product.showEPIOnIncorrectExpiryDate"></psk-checkbox>
+                            <psk-checkbox checkbox-label="Batch is expired"
+                                          checked="@product.showEPIOnBatchExpired"
+                                          name="showEPIOnBatchExpired"
+                                          value="@product.showEPIOnBatchExpired"></psk-checkbox>
+                            <psk-checkbox checkbox-label="SN is in Recall list"
+                                          checked="@product.showEPIOnSNRecalled"
+                                          name="showEPIOnSNRecalled"
+                                          value="@product.showEPIOnSNRecalled"></psk-checkbox>
+                            <psk-checkbox checkbox-label="SN is in Decommissioned list"
+                                          checked="@product.showEPIOnSNDecommissioned"
+                                          name="showEPIOnSNDecommissioned"
+                                          value="@product.showEPIOnSNDecommissioned"></psk-checkbox>
+                            <psk-checkbox checkbox-label="SN is unknown"
+                                          checked="@product.showEPIOnSNUnknown"
+                                          name="showEPIOnSNUnknown"
+                                          value="@product.showEPIOnSNUnknown"></psk-checkbox>
+                        </div>
                     </div>
                     <div class="d-flex flex-column">
                         <ul>
@@ -143,7 +142,7 @@
                                 <div class="epi-card d-flex flex-row p-3 mr-3 mb-2">
                                     <div class="form-label pr-3">{{@language.label}} {{@type.label}}</div>
                                     <div data-if="@inherited">
-                                        <div slot="false" class="pr-3">
+                                        <div class="pr-3" slot="false">
                                             {{@files.length}} files
                                         </div>
                                         <div slot="true">
@@ -165,6 +164,16 @@
                     </div>
 
 
+                </div>
+            </div>
+            <div class="d-flex flex-row justify-content-around mt-5">
+                <div class="col-5 align-self-start p-0">
+                    <div class="d-flex flex-row">
+                        <psk-button data-tag="cancel">Cancel</psk-button>
+                        <psk-button data-tag="add-product">{{@submitLabel}}</psk-button>
+                    </div>
+                </div>
+                <div class="col-5 align-self-start p-0">
                 </div>
             </div>
         </webc-container>
