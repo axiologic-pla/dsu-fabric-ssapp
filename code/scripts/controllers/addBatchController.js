@@ -25,7 +25,7 @@ export default class addBatchController extends WebcController {
       if (!err) {
         this.model.username = holderInfo.userDetails.username;
       } else {
-        this.showErrorModalModalAndRedirect("Invalid configuration detected! Configure your wallet properly in the Holder section!", "batches");
+        this.showErrorModalAndRedirect("Invalid configuration detected! Configure your wallet properly in the Holder section!", "batches");
       }
     })
 
@@ -59,17 +59,17 @@ export default class addBatchController extends WebcController {
       this.gtin = this.model.batch.gtin;
     }
 
-    this.serialNumbersLogService.getArray(this.model.batch.batchNumber, "__timestamp > 0", (err, logs) => {
+    this.serialNumbersLogService.filter(this.model.batch.batchNumber, "__timestamp > 0", (err, logs) => {
       if (err || typeof logs === "undefined") {
         logs = [];
       }
       this.model.serialNumbersLogs = logs;
     });
 
-    this.storageService.getArray(constants.LAST_VERSION_PRODUCTS_TABLE, "__timestamp > 0", (err, products) => {
+    this.storageService.filter(constants.LAST_VERSION_PRODUCTS_TABLE, "__timestamp > 0", (err, products) => {
       if (err || !products) {
         printOpenDSUError(createOpenDSUErrorWrapper("Failed to retrieve products list!", err));
-        return this.showErrorModalModalAndRedirect("Failed to retrieve products list! Create a product first!", "products", 5000);
+        return this.showErrorModalAndRedirect("Failed to retrieve products list! Create a product first!", "products", 5000);
       }
       const options = [];
       Object.values(products).forEach(prod => options.push({
@@ -80,7 +80,7 @@ export default class addBatchController extends WebcController {
     });
 
     this.model.onChange("batch.batchNumber",  (event) => {
-      this.serialNumbersLogService.getArray(this.model.batch.batchNumber, "__timestamp > 0", (err, logs) => {
+      this.serialNumbersLogService.filter(this.model.batch.batchNumber, "__timestamp > 0", (err, logs) => {
         if (err || typeof logs === "undefined") {
           logs = [];
         }
@@ -101,7 +101,7 @@ export default class addBatchController extends WebcController {
       }
       batch.expiry = utils.convertDateToISO(batch.expiryForDisplay);
       batch.expiry = utils.convertDateFromISOToGS1Format(batch.expiry);
-      this.storageService.getArray(constants.BATCHES_STORAGE_TABLE, "__timestamp > 0", (err, batches) => {
+      this.storageService.filter(constants.BATCHES_STORAGE_TABLE, "__timestamp > 0", (err, batches) => {
         try {
           this.addSerialNumbers(batch);
         } catch (err) {
@@ -111,14 +111,14 @@ export default class addBatchController extends WebcController {
         let error = batch.validate();
         if (error) {
           printOpenDSUError(createOpenDSUErrorWrapper("Invalid batch info", err));
-          return this.showErrorModalModalAndRedirect("Invalid batch info" + err.message, "batches");
+          return this.showErrorModalAndRedirect("Invalid batch info" + err.message, "batches");
         }
         if (!this.model.editMode) {
           this.showModal("Creating new batch...");
           this.buildBatchDSU(batch, (err, keySSI) => {
             if (err) {
               printOpenDSUError(createOpenDSUErrorWrapper("Batch DSU build failed.", err));
-              return this.showErrorModalModalAndRedirect("Batch DSU build failed.", "batches");
+              return this.showErrorModalAndRedirect("Batch DSU build failed.", "batches");
             }
             batch.keySSI = keySSI;
             batch.creationTime = utils.convertDateTOGMTFormat(new Date());
@@ -126,7 +126,7 @@ export default class addBatchController extends WebcController {
             this.buildImmutableDSU(batch, (err, gtinSSI) => {
               if (err) {
                 printOpenDSUError(createOpenDSUErrorWrapper("Failed to build immutable DSU", err));
-                return this.showErrorModalModalAndRedirect("Failed to build immutable DSU", "batches");
+                return this.showErrorModalAndRedirect("Failed to build immutable DSU", "batches");
               }
               this.persistBatch(batch);
             });
@@ -141,13 +141,13 @@ export default class addBatchController extends WebcController {
       try {
         this.addSerialNumbers(batch);
       } catch (err) {
-        return this.showErrorModalModal( "Invalid list of serial numbers");
+        return this.showErrorModal( "Invalid list of serial numbers");
       }
       this.showModal("Updating batch... ");
       this.updateBatchDSU(batch, (err, gtinSSI) => {
         if (err) {
           printOpenDSUError(createOpenDSUErrorWrapper("Failed to update batch DSU", err));
-          return this.showErrorModalModalAndRedirect("Failed to update batch DSU", "batches");
+          return this.showErrorModalAndRedirect("Failed to update batch DSU", "batches");
         }
         this.persistBatch(batch);
       });
@@ -170,10 +170,10 @@ export default class addBatchController extends WebcController {
 
     this.model.onChange("versions.value", (event) => {
       if (typeof this.gtin === "undefined") {
-        return this.showErrorModalModal("A product should be selected before selecting a version");
+        return this.showErrorModal("A product should be selected before selecting a version");
       }
 
-      this.storageService.getArray(constants.PRODUCTS_TABLE, "__timestamp > 0", (err, records) => {
+      this.storageService.filter(constants.PRODUCTS_TABLE, "__timestamp > 0", (err, records) => {
         const versionedRecords = records.filter(record => record.gtin === this.gtin);
         let versionIndex;
         if (this.model.versions.value !== "latest") {
@@ -251,7 +251,7 @@ export default class addBatchController extends WebcController {
     this.persistBatchInWallet(batch, (err) => {
       if (err) {
         printOpenDSUError(createOpenDSUErrorWrapper("Failing to store Batch keySSI!", err));
-        return this.showErrorModalModalAndRedirect("Failing to store Batch keySSI!", "batches");
+        return this.showErrorModalAndRedirect("Failing to store Batch keySSI!", "batches");
       }
       this.logService.log({
         logInfo: batch,

@@ -17,7 +17,7 @@ export default class ProductsController extends WebcController {
       return typeof this.model.productsForDisplay !== "undefined";
     }, 'productsForDisplay');
 
-    this.storageService.getArray(constants.LAST_VERSION_PRODUCTS_TABLE, "__timestamp > 0", (err, products) => {
+    this.storageService.filter(constants.LAST_VERSION_PRODUCTS_TABLE, "__timestamp > 0", (err, products) => {
         if (err) {
             return console.log(err);
         }
@@ -91,7 +91,7 @@ export default class ProductsController extends WebcController {
             if (err) {
               return console.log(err);
             }
-                    this.storageService.getArray(constants.LAST_VERSION_PRODUCTS_TABLE, "__timestamp > 0", (err, products) => {
+                    this.storageService.filter(constants.LAST_VERSION_PRODUCTS_TABLE, "__timestamp > 0", (err, products) => {
                         this.products = products;
                         this.model.productsForDisplay = products;
                     });

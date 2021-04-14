@@ -31,6 +31,6 @@ export default class LogService {
     }
 
     getLogs(callback) {
-        this.storageService.getArray(this.logsTable, "__timestamp > 0", callback);
+        this.storageService.filter(this.logsTable, "__timestamp > 0", callback);
     }
 }

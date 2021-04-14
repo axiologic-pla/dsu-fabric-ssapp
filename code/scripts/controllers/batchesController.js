@@ -10,7 +10,7 @@ export default class batchesController extends WebcController {
     this.model.batches = [];
     this.storageService = getSharedStorage(this.DSUStorage);
 
-    this.storageService.getArray(constants.BATCHES_STORAGE_TABLE, "__timestamp > 0", (err, batches) => {
+    this.storageService.filter(constants.BATCHES_STORAGE_TABLE, "__timestamp > 0", (err, batches) => {
       batches.forEach((batch) => {
         batch.code = this.generateSerializationForBatch(batch, batch.defaultSerialNumber);
         if (batch.defaultRecalledSerialNumber) {

@@ -29,11 +29,11 @@ class SharedStorage {
         return (this.mydb !== undefined && this.mydb !== "initialising");
     }
 
-    getArray(tableName, query, sort, limit, callback) {
+    filter(tableName, query, sort, limit, callback) {
         if (this.dbReady()) {
             this.mydb.filter(tableName, query, sort, limit, callback);
         } else {
-            this.waitForDb(this.getArray, [tableName, query, sort, limit, callback]);
+            this.waitForDb(this.filter, [tableName, query, sort, limit, callback]);
         }
     }
 
