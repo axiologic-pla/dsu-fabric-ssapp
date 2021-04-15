@@ -1,9 +1,10 @@
 import utils from "../utils.js";
 
+const defaultPhoto = utils.getFetchUrl("/download/code/assets/images/default.png");
 export default class Product {
   name = "";
   gtin = "";
-  photo = utils.getFetchUrl("/download/code/assets/images/default.png");
+  photo = defaultPhoto;
   description = "";
   leaflet = "";
   manufName = " ";
@@ -57,5 +58,9 @@ export default class Product {
 
   clone(){
     return new Product(JSON.parse(JSON.stringify(this)));
+  }
+
+  hasPhoto(){
+    return typeof this.photo !== "undefined" && this.photo !== defaultPhoto;
   }
 }

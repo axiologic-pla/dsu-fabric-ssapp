@@ -423,12 +423,16 @@ export default class ManageProductController extends WebcController {
             }
             return processCards(0)
         }
-        if (typeof this.productPhoto === "undefined" && typeof product.photo !== "undefined") {
+        if (product.hasPhoto()) {
+          if(typeof this.productPhoto !== "undefined"){
+            dsuBuilder.addFileDataToDossier(transactionId, basePath + PRODUCT_IMAGE_FILE, this.productPhoto, imageCallback);
+          }else{
             const src = this.getPathToVersion(product.version - 1) + PRODUCT_IMAGE_FILE;
             const dest = this.getPathToVersion(product.version) + PRODUCT_IMAGE_FILE;
             dsuBuilder.copy(transactionId, src, dest, imageCallback);
+          }
         }else{
-            dsuBuilder.addFileDataToDossier(transactionId, basePath + PRODUCT_IMAGE_FILE, this.productPhoto, imageCallback);
+          imageCallback();
         }
     });
   }
