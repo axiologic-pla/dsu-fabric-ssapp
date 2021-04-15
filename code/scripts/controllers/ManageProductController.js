@@ -157,7 +157,7 @@ export default class ManageProductController extends WebcController {
       if(!(imageData instanceof Uint8Array)){
           imageData = new Uint8Array(imageData);
       }
-      let base64Image = btoa(String.fromCharCode(...imageData));
+    let base64Image = utils.bytesToBase64(imageData);
       base64Image = `data:image/png;base64, ${base64Image}`;
       product.photo = base64Image;
   }
