@@ -106,7 +106,13 @@ export default class ManageProductController extends WebcController {
         return;
       }
 
-      this.showModal("Creating product....");
+      this.createWebcModal({
+        disableExpanding: true,
+        disableClosing: true,
+        disableFooter: true,
+        modalTitle: "Info",
+        modalContent: "Saving product..."
+      });
       this.buildProductDSU(product, (err, keySSI) => {
         if (err) {
           this.hideModal();
@@ -154,10 +160,17 @@ export default class ManageProductController extends WebcController {
       if (typeof imageData === "undefined") {
           return;
       }
+
+      if(typeof imageData === "string"){
+        product.photo = imageData;
+        return;
+      }
+
       if(!(imageData instanceof Uint8Array)){
           imageData = new Uint8Array(imageData);
       }
-    let base64Image = utils.bytesToBase64(imageData);
+
+      let base64Image = utils.bytesToBase64(imageData);
       base64Image = `data:image/png;base64, ${base64Image}`;
       product.photo = base64Image;
   }
@@ -372,69 +385,109 @@ export default class ManageProductController extends WebcController {
   }
 
   addProductFilesToDSU(transactionId, product, callback) {
-    const basePath = '/product/' + product.version;
-    // product.photo = PRODUCT_IMAGE_FILE;
+    const basePath = this.getPathToVersion(product.version);
     product.leaflet = LEAFLET_ATTACHMENT_FILE;
     const productStorageFile = basePath + PRODUCT_STORAGE_FILE;
-    dsuBuilder.addFileDataToDossier(transactionId, productStorageFile, JSON.stringify(product), (err) => {
+
+    //step #1 managing product photo
+    let imageProcessing = ()=>{
+      const imagePath = basePath + PRODUCT_IMAGE_FILE;
+
+      let finishedImageProcessing = (newImageAvailable)=>{
+        if(newImageAvailable){
+          //TODO: maybe we should remove this information from the product JSON before saving into DSU
+          product.photo = this.getPathToVersion(product.version)+PRODUCT_IMAGE_FILE;
+        }
+        processInformationFiles();
+      }
+
+      //if the user selected a photo we need to added into dsu
+      if(typeof this.productPhoto !== "undefined"){
+        //TODO: maybe we should remove this information from the product JSON before saving into DSU
+        product.photo = imagePath;
+        dsuBuilder.addFileDataToDossier(transactionId, basePath + PRODUCT_IMAGE_FILE, this.productPhoto, (err)=>{
+          if(err){
+            return callback(err);
+          }
+          finishedImageProcessing(true);
+        });
+      }else{
+        //if there was a photo on the previous product we need to copy to the new version
+        if (product.hasPhoto()) {
+          const src = this.getPathToVersion(product.version - 1) + PRODUCT_IMAGE_FILE;
+          const dest = imagePath;
+          //TODO: maybe we should remove this information from the product JSON before saving into DSU
+          product.photo = imagePath;
+          return dsuBuilder.copy(transactionId, src, dest, (err)=>{
+            if(err){
+              return callback(err);
+            }
+            finishedImageProcessing(true);
+          });
+        }
+
+        //??? should we remove any default photo from the product ???
+        //product.photo = "";
+        finishedImageProcessing();
+      }
+    }
+
+    //step #2 managing leaflet and smpc files updates
+    let processInformationFiles = (err) => {
       if (err) {
         return callback(err);
       }
 
-        let imageCallback = (err) => {
-            if (err) {
-                return callback(err);
-            }
+      let languageTypeCards = this.model.languageTypeCards;
 
-            let languageTypeCards = this.model.languageTypeCards;
-
-            let processCards = (cardIndex) => {
-                let languageAndTypeCard = languageTypeCards[cardIndex];
-                if (!languageAndTypeCard) {
-                    return dsuBuilder.buildDossier(transactionId, callback);
-                }
-
-
-                if (!languageAndTypeCard.inherited && languageAndTypeCard.files.length === 0) {
-                    processCards(cardIndex + 1);
-                }
-
-                let uploadPath = this.getAttachmentPath(product.version, languageAndTypeCard.type.value, languageAndTypeCard.language.value);
-                // `${basePath}/${languageAndTypeCard.type.value}/${languageAndTypeCard.language.value}`;
-
-                if (!languageAndTypeCard.inherited) {
-                    this.uploadAttachmentFiles(transactionId, uploadPath, languageAndTypeCard.type.value, languageAndTypeCard.files, done);
-                } else {
-                    const src = this.getAttachmentPath(product.version - 1, languageAndTypeCard.type.value, languageAndTypeCard.language.value);
-                    const dest = this.getAttachmentPath(product.version, languageAndTypeCard.type.value, languageAndTypeCard.language.value);
-                    dsuBuilder.copy(transactionId, src, dest, done);
-                }
-
-                function done(err) {
-                    if (err) {
-                        return callback(err);
-                    }
-                    if (cardIndex < languageTypeCards.length) {
-                        processCards(cardIndex + 1)
-                    } else {
-                        return dsuBuilder.buildDossier(transactionId, callback);
-                    }
-                }
-            }
-            return processCards(0)
+      let processCard = (cardIndex) => {
+        let languageAndTypeCard = languageTypeCards[cardIndex];
+        if (!languageAndTypeCard) {
+          return finishingStep();
         }
-        if (product.hasPhoto()) {
-          if(typeof this.productPhoto !== "undefined"){
-            dsuBuilder.addFileDataToDossier(transactionId, basePath + PRODUCT_IMAGE_FILE, this.productPhoto, imageCallback);
-          }else{
-            const src = this.getPathToVersion(product.version - 1) + PRODUCT_IMAGE_FILE;
-            const dest = this.getPathToVersion(product.version) + PRODUCT_IMAGE_FILE;
-            dsuBuilder.copy(transactionId, src, dest, imageCallback);
+
+        if (!languageAndTypeCard.inherited && languageAndTypeCard.files.length === 0) {
+          processCard(cardIndex + 1);
+        }
+
+        let uploadPath = this.getAttachmentPath(product.version, languageAndTypeCard.type.value, languageAndTypeCard.language.value);
+
+        if (!languageAndTypeCard.inherited) {
+          this.uploadAttachmentFiles(transactionId, uploadPath, languageAndTypeCard.type.value, languageAndTypeCard.files, doneProcessingCard);
+        } else {
+          const src = this.getAttachmentPath(product.version - 1, languageAndTypeCard.type.value, languageAndTypeCard.language.value);
+          const dest = this.getAttachmentPath(product.version, languageAndTypeCard.type.value, languageAndTypeCard.language.value);
+          dsuBuilder.copy(transactionId, src, dest, doneProcessingCard);
+        }
+
+        function doneProcessingCard(err) {
+          if (err) {
+            return callback(err);
           }
-        }else{
-          imageCallback();
+          if (cardIndex < languageTypeCards.length) {
+            processCard(cardIndex + 1)
+          } else {
+            return finishingStep();
+          }
         }
-    });
+      }
+
+      return processCard(0);
+    };
+
+    //step #3 saving product into dsu as JSON and build DSU
+    let finishingStep = ()=>{
+        dsuBuilder.addFileDataToDossier(transactionId, productStorageFile, JSON.stringify(product), (err) => {
+          if (err) {
+            return callback(err);
+          }
+
+          dsuBuilder.buildDossier(transactionId, callback);
+        });
+    };
+
+    //start of the flow
+    imageProcessing();
   }
 
   uploadAttachmentFiles(transactionId, basePath, attachmentType, files, callback) {
@@ -494,7 +547,7 @@ export default class ManageProductController extends WebcController {
     }, () => {
 
       // this.DSUStorage.call("mountDSU", `/${product.gtin}`, product.keySSI, (err) => {
-        this.saveImage(product, this.productPhoto);
+        this.saveImage(product, this.productPhoto||this.model.product.photo);
         this.storageService.insertRecord(constants.PRODUCTS_TABLE, `${this.gtin}|${product.version}`, product, () => {
           this.storageService.getRecord(constants.LAST_VERSION_PRODUCTS_TABLE, this.gtin, (err, prod) => {
             if (err || !prod) {
