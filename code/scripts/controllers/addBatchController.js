@@ -348,7 +348,7 @@ export default class addBatchController extends WebcController {
             this.model.batch.bloomFilterDecommissionedSerialisations = [];
           }
           this.model.decommissionedSerialNumbers = this.model.actionModalModel.serialNumbers;
-          this.model.batch.decommissionReason = this.model.actionModalModel.reason;
+          this.model.batch.decommissionReason = this.model.actionModalModel.reason.value;
           break
 
       }
