@@ -114,7 +114,13 @@ export default class addBatchController extends WebcController {
           return this.showErrorModalAndRedirect("Invalid batch info" + err.message, "batches");
         }
         if (!this.model.editMode) {
-          this.showModal("Creating new batch...");
+          this.createWebcModal({
+            disableExpanding: true,
+            disableClosing: true,
+            disableFooter: true,
+            modalTitle: "Info",
+            modalContent: "Saving batch..."
+          });
           this.buildBatchDSU(batch, (err, keySSI) => {
             if (err) {
               printOpenDSUError(createOpenDSUErrorWrapper("Batch DSU build failed.", err));
@@ -143,7 +149,13 @@ export default class addBatchController extends WebcController {
       } catch (err) {
         return this.showErrorModal( "Invalid list of serial numbers");
       }
-      this.showModal("Updating batch... ");
+      this.createWebcModal({
+        disableExpanding: true,
+        disableClosing: true,
+        disableFooter: true,
+        modalTitle: "Info",
+        modalContent: "Saving batch..."
+      });
       this.updateBatchDSU(batch, (err, gtinSSI) => {
         if (err) {
           printOpenDSUError(createOpenDSUErrorWrapper("Failed to update batch DSU", err));
