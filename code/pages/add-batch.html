@@ -20,14 +20,9 @@
                         </div>
                     </div>
                     <div class="col p-0">
-                        <div data-if="@editMode">
-                            <div class="read-only-container col mb-3 mt-2 pl-3" slot="true">
-                                <div class="form-label">Expiry date</div>
-                                <psk-date-input data-format="DD MM YYYY" read-only required
-                                                value="@batch.expiryForDisplay"></psk-date-input>
-                            </div>
-                            <i class="fa fa-pencil-square-o editable-icon" slot="false"></i>
-                            <div class="background-container col pl-3 mb-3 pl-3" slot="false">
+                        <div>
+                            <i class="fa fa-pencil-square-o editable-icon"></i>
+                            <div class="background-container col pl-3 mb-3 pl-3">
                                 <div class="form-label">Expiry date</div>
                                 <psk-date-input data-format="DD MM YYYY" placeholder="dd/mm/yyyy" required
                                                 value="@batch.expiryForDisplay"></psk-date-input>
