@@ -5,7 +5,7 @@ export default class AuditController extends WebcController {
     constructor(element, history) {
         super(element, history);
 
-        this.setModel({});
+        this.model = {};
         this.logService = new LogService(this.DSUStorage);
 
         this.model.addExpression('logListLoaded', () => {
@@ -16,14 +16,20 @@ export default class AuditController extends WebcController {
             return typeof this.model.logs !== "undefined" && this.model.logs.length > 0;
         }, 'logs');
 
-        this.on("show-keySSI", (event) => {
-            this.showModal('viewKeySSIModal', {logData: event.data}, () => {});
+        this.onTagClick('show-audit-entry', (model, target, event) => {
+            const logData = model.allInfo;
+            this.createWebcModal({
+                template: 'show-audit-entry',
+                disableExpanding: true,
+                modalTitle: "Audit Entry",
+                model: logData
+            });
         });
 
         this.logService.getLogs((err, logs) => {
 
-            function unknownLog(item){
-                let le = {
+            function basicLogProcessing(item){
+                return {
                     action:item.action,
                     username:item.username,
                     creationTime:item.creationTime,
@@ -32,51 +38,45 @@ export default class AuditController extends WebcController {
                         all:JSON.stringify(item),
                         }
                     };
-                return le;
-            };
+            }
 
-            function productLog(item){
-                let le = {
-                    action:`${item.action} ${item.logInfo.name} [${item.logInfo.gtin}] `,
-                    username:item.username,
-                    creationTime:item.logInfo.creationTime,
-                    keySSI:item.logInfo.keySSI,
-                    allInfo: {
-                        keySSI:item.keySSI,
-                        all:JSON.stringify(item),
-                    }
-                };
-                return le;
-            };
+            function productLogProcessing(item){
+                let le = basicLogProcessing(item);
 
-            function batchLog(item){
-                let le = {
-                    action:`${item.action} ${item.logInfo.batchNumber} [${item.logInfo.gtin}] version ${item.logInfo.version}`,
-                    username:item.username,
-                    creationTime:item.logInfo.creationTime,
-                    keySSI:item.logInfo.keySSI,
-                    allInfo: {
-                        keySSI:item.keySSI,
-                        all:JSON.stringify(item),
-                    }
-                };
+                le.action = `${item.action} ${item.logInfo.name} [${item.logInfo.gtin}] `;
+                le.creationTime = item.logInfo.creationTime;
+                le.keySSI = item.logInfo.keySSI;
+
                 return le;
-            };
+            }
+
+            function batchLogProcessing(item){
+                let le = productLogProcessing(item);
+                le.action = `${item.action} ${item.logInfo.batchNumber} [${item.logInfo.gtin}] version ${item.logInfo.version}`;
+                return le;
+            }
 
             if (typeof logs === "undefined" || logs === null) {
                 logs = [];
             }
-            this.model.logs = logs.map( item => {
-                console.log("Log item", item);
+
+            this.model.logs = logs.map( (item, index) => {
+                let viewLog;
                 try{
                     switch(item.logType){
-                        case "PRODUCT_LOG": return productLog(item); break;
-                        case "BATCH_LOG": return batchLog(item); break;
-                        default: return unknownLog(item);
+                        case "PRODUCT_LOG":
+                            viewLog = productLogProcessing(item);
+                            break;
+                        case "BATCH_LOG":
+                            viewLog = batchLogProcessing(item);
+                            break;
+                        default:
+                            viewLog = basicLogProcessing(item);
                     }
                 } catch(err){
-                    return unknownLog(item);
+                    viewLog = basicLogProcessing(item);
                 }
+                return viewLog;
             });
         })
     }
