@@ -114,6 +114,11 @@ const bytesToBase64 = (bytes) => {
     }
     return result;
 }
+
+function sanitizeCode(code) {
+    return code.replace(/"/g, "\\\"");
+}
+
 export default {
     convertDateFromISOToGS1Format,
     convertDateToISO,
@@ -121,5 +126,6 @@ export default {
     getFetchUrl,
     fetch: executeFetch,
     sortByProperty,
-    bytesToBase64
+    bytesToBase64,
+    sanitizeCode
 }
