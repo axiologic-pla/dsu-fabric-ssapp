@@ -61,8 +61,8 @@ export default class ManageProductController extends WebcController {
     if (typeof this.gtin !== "undefined") {
       this.storageService.getRecord(constants.LAST_VERSION_PRODUCTS_TABLE, this.gtin, (err, product) => {
         this.model.product = new Product(product);
-        // this.model.product.photo = `/download/${product.gtin}/product/${product.version}/image.png`;
         this.model.product.version++;
+        this.model.product.previousVersion = product.version;
         this.model.product.isCodeEditable = false;
         this.model.product.batchSpecificVersion = false;
         this.getInheritedCards(product, product.version, (err, inheritedCards) => {

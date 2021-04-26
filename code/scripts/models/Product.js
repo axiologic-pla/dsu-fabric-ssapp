@@ -9,6 +9,7 @@ export default class Product {
   leaflet = "";
   manufName = " ";
   version = 1;
+  previousVersion = 1;
   batchSpecificVersion = false;
   files = [];
   transferred = false;
