@@ -14,10 +14,10 @@ export default class batchesController extends WebcController {
       batches.forEach((batch) => {
         batch.code = utils.sanitizeCode(this.generateSerializationForBatch(batch, batch.defaultSerialNumber));
         if (batch.defaultRecalledSerialNumber) {
-          batch.recalledCode = this.generateSerializationForBatch(batch, batch.defaultRecalledSerialNumber);
+          batch.recalledCode = utils.sanitizeCode(this.generateSerializationForBatch(batch, batch.defaultRecalledSerialNumber));
         }
         if (batch.defaultDecommissionedSerialNumber) {
-          batch.decommissionedCode = this.generateSerializationForBatch(batch, batch.defaultDecommissionedSerialNumber);
+          batch.decommissionedCode = utils.sanitizeCode(this.generateSerializationForBatch(batch, batch.defaultDecommissionedSerialNumber));
         }
         let wrongBatch = JSON.parse(JSON.stringify(batch));
         wrongBatch.defaultSerialNumber = "WRONG";

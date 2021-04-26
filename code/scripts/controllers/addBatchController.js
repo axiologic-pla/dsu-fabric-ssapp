@@ -99,8 +99,7 @@ export default class addBatchController extends WebcController {
       if (!batch.expiryForDisplay) {
         return this.showErrorModal("Invalid date");
       }
-      batch.expiry = utils.convertDateToISO(batch.expiryForDisplay);
-      batch.expiry = utils.convertDateFromISOToGS1Format(batch.expiry);
+      batch.expiry = utils.convertDateToGS1Format(batch.expiryForDisplay);
       this.storageService.filter(constants.BATCHES_STORAGE_TABLE, "__timestamp > 0", (err, batches) => {
         try {
           this.addSerialNumbers(batch);
@@ -144,6 +143,10 @@ export default class addBatchController extends WebcController {
 
     this.onTagClick("update-batch", () => {
       let batch = this.initBatch();
+      if (!batch.expiryForDisplay) {
+        return this.showErrorModal("Invalid date");
+      }
+      batch.expiry = utils.convertDateToGS1Format(batch.expiryForDisplay);
       try {
         this.addSerialNumbers(batch);
       } catch (err) {
@@ -178,7 +181,6 @@ export default class addBatchController extends WebcController {
       this.model.versions.value = "latest";
       this.gtin = this.model.products.value;
     })
-
 
     this.model.onChange("versions.value", (event) => {
       if (typeof this.gtin === "undefined") {

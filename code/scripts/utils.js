@@ -16,6 +16,9 @@ function convertDateFromISOToGS1Format(isoDateString, separator){
     return `${ye}${mo}${da}`;
 }
 
+function convertDateToGS1Format(dateString){
+    return convertDateFromISOToGS1Format(convertDateToISO(dateString));
+}
 
 function convertDateTOGMTFormat(date){
     let formatter = new Intl.DateTimeFormat('en', {
@@ -122,6 +125,7 @@ function sanitizeCode(code) {
 export default {
     convertDateFromISOToGS1Format,
     convertDateToISO,
+    convertDateToGS1Format,
     convertDateTOGMTFormat,
     getFetchUrl,
     fetch: executeFetch,
