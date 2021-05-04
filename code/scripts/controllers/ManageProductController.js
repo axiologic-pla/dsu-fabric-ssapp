@@ -292,11 +292,22 @@ export default class ManageProductController extends WebcController {
   }
 
   createProductDSU(transactionId, product, callback) {
-    this.addProductFilesToDSU(transactionId, product, (err, keySSI) => {
-      if (err) {
+    const keyssiSpace = require("opendsu").loadAPI("keyssi");
+    const hint = JSON.stringify({bricksDomain: dsuBuilder.holderInfo.subdomain});
+
+    keyssiSpace.createSeedSSI(dsuBuilder.holderInfo.domain, undefined, hint, (err, keySSI)=>{
+      if(err){
         return callback(err);
       }
-      callback(undefined, keySSI);
+
+      dsuBuilder.setKeySSI(transactionId, keySSI.getIdentifier(), {headers:{"x-force-dsu-create":true}}, ()=>{
+        this.addProductFilesToDSU(transactionId, product, (err, keySSI) => {
+          if (err) {
+            return callback(err);
+          }
+          callback(undefined, keySSI);
+        });
+      });
     });
   }
 

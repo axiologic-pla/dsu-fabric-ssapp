@@ -78,9 +78,12 @@ export default class DSU_Builder {
         });
     }
 
-    setKeySSI(transactionId, keyssi, callback) {
+    setKeySSI(transactionId, keyssi, options, callback) {
         const url = `/${this.holderInfo.domain}/setKeySSI/${transactionId}`;
-        doPost(url, keyssi, callback);
+        if(typeof options === "function"){
+            return doPost(url, keyssi, callback);
+        }
+        doPost(url, keyssi, options, callback);
     }
 
     setGtinSSI(transactionId, dlDomain, bricksDomain, gtin, batch, expiration, callback) {
