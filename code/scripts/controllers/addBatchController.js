@@ -230,17 +230,17 @@ export default class addBatchController extends WebcController {
   initBatch() {
     try {
       this.storageService.beginBatch();
-      let result = this.model.batch;
-      result.serialNumbers = this.model.serialNumbers;
-      result.recalledSerialNumbers = this.model.recalledSerialNumbers;
-      result.decommissionedSerialNumbers = this.model.decommissionedSerialNumbers;
-      return result;
     } catch (err) {
       reportUserRelevantError("Dropping previous user input");
       this.storageService.cancelBatch((err, res) => {
         this.storageService.beginBatch();
       })
     }
+    let result = this.model.batch;
+    result.serialNumbers = this.model.serialNumbers;
+    result.recalledSerialNumbers = this.model.recalledSerialNumbers;
+    result.decommissionedSerialNumbers = this.model.decommissionedSerialNumbers;
+    return result;
   }
 
   getVersionOptions = (gtin) => {
