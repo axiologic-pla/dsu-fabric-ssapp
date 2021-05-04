@@ -300,11 +300,16 @@ export default class ManageProductController extends WebcController {
         return callback(err);
       }
 
-      dsuBuilder.setKeySSI(transactionId, keySSI.getIdentifier(), {headers:{"x-force-dsu-create":true}}, ()=>{
+      dsuBuilder.setKeySSI(transactionId, keySSI.getIdentifier(), {headers:{"x-force-dsu-create":true}}, (err)=>{
+        if (err) {
+          return callback(err);
+        }
+
         this.addProductFilesToDSU(transactionId, product, (err, keySSI) => {
           if (err) {
             return callback(err);
           }
+
           callback(undefined, keySSI);
         });
       });

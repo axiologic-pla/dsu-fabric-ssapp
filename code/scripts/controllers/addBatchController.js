@@ -395,11 +395,27 @@ export default class addBatchController extends WebcController {
   }
 
   buildBatchDSU(batch, callback) {
+    const keyssiSpace = require("opendsu").loadAPI("keyssi");
+    const hint = JSON.stringify({bricksDomain: dsuBuilder.holderInfo.subdomain});
+
     dsuBuilder.getTransactionId((err, transactionId) => {
       if (err) {
         return callback(err);
       }
-      this.writeDataToBatchDSU(batch, transactionId, callback);
+
+      keyssiSpace.createSeedSSI(dsuBuilder.holderInfo.domain, undefined, hint, (err, keySSI)=> {
+        if (err) {
+          return callback(err);
+        }
+
+        dsuBuilder.setKeySSI(transactionId, keySSI.getIdentifier(), {headers: {"x-force-dsu-create": true}}, (err) => {
+          if (err) {
+            return callback(err);
+          }
+
+          this.writeDataToBatchDSU(batch, transactionId, callback);
+        });
+      });
     });
   }
 
