@@ -81,6 +81,7 @@ export default class DSU_Builder {
     setKeySSI(transactionId, keyssi, options, callback) {
         const url = `/${this.holderInfo.domain}/setKeySSI/${transactionId}`;
         if(typeof options === "function"){
+            callback = options;
             return doPost(url, keyssi, callback);
         }
         doPost(url, keyssi, options, callback);
