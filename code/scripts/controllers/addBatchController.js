@@ -330,6 +330,8 @@ export default class addBatchController extends WebcController {
           serialNumbersLog.creationTime = new Date().toUTCString();
           if (this.model.actionModalModel.resetAll) {
             serialNumbersLog.action = "Reset valid serial numbers list";
+            this.model.batch.serialNumbers = '';
+            this.model.batch.defaultSerialNumber = '';
             this.model.batch.bloomFilterSerialisations = [];
           }
           break
