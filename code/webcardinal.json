@@ -37,6 +37,10 @@
       "name": "Add product",
       "tag": "add-product",
       "indexed": false
+    },{
+      "name": "Import",
+      "tag": "import",
+      "indexed": false
     }
   ]
 }
