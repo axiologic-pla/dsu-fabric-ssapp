@@ -1,3 +1,5 @@
+import LogService from "../services/LogService";
+
 const { WebcController } = WebCardinal.controllers;
 const mappings = require("epi-utils").loadApi("mappings");
 const messages = [{
@@ -54,7 +56,6 @@ const model = {
 export default class batchesController extends WebcController {
     constructor(...props) {
         super(...props);
-
         this.model = this.setModel(model);
         this.model.onChange('filesChooser', () => {
             let filesArray = this.model.filesChooser.files || [];
@@ -62,9 +63,10 @@ export default class batchesController extends WebcController {
         this.on('add-file-folder', (event) => {
             let filesArray = event.data || [];
         });
+        this.logService = new LogService(this.DSUStorage);
         //TODO extract if... look into MangeProductController
         const holderInfo = {domain:"epi", subdomain:"default"};
-        const mappingEngine = mappings.getEPIMappingEngine(this.DSUStorage,{holderInfo:holderInfo});
+        const mappingEngine = mappings.getEPIMappingEngine(this.DSUStorage,{holderInfo:holderInfo,logService:this.logService});
 
         mappingEngine.digestMessages(messages).then(undigestedMessages=>{
 
