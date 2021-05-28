@@ -1,7 +1,6 @@
-import LogService from "../services/LogService";
+import LogService from "../services/LogService.js";
 
 const { WebcController } = WebCardinal.controllers;
-const mappings = require("epi-utils").loadApi("mappings");
 const messages = [{
     "messageType" : "Product",
 
@@ -55,8 +54,11 @@ const model = {
 }
 export default class batchesController extends WebcController {
     constructor(...props) {
+        const mappings = require("epi-utils").loadApi("mappings");
+
         super(...props);
-        this.model = this.setModel(model);
+        this.model = model;
+
         this.model.onChange('filesChooser', () => {
             let filesArray = this.model.filesChooser.files || [];
         });

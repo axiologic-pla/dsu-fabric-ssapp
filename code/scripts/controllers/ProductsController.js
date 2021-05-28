@@ -44,6 +44,11 @@ export default class ProductsController extends WebcController {
       this.navigateToPageTag("manage-product");
     });
 
+      this.onTagClick("import", (model, target, event) => {
+          event.stopImmediatePropagation();
+          this.navigateToPageTag("import");
+      });
+
     this.onTagClick("transfer", (model, target, event) => {
       const gtin = target.getAttribute("gtin");
       this.storageService.getRecord(constants.LAST_VERSION_PRODUCTS_TABLE, gtin, (err, product) => {

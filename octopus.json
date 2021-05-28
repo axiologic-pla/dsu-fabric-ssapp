@@ -20,6 +20,23 @@
       ]
     },
     {
+      "name": "building gtin-resolver",
+      "actions": [
+        {
+          "type": "execute",
+          "cmd": "cd ../gtin-resolver && npm run build"
+        },
+        {
+          "type": "copy",
+          "src": "../gtin-resolver/build/bundles/gtinResolver.js",
+          "target": "code/scripts/bundles/gtinResolver.js",
+          "options": {
+            "overwrite": true
+          }
+        }
+      ]
+    },
+    {
       "name": "PSK bundles",
       "src": "",
       "actions": [
