@@ -10,7 +10,7 @@ const messages = [{
     "messageId" : "00012856374589",
     "messageDateTime" : "2021-04-27T10:12:12CET",
     "product" : {
-        "productCode" : "07612791468124",
+        "productCode" : "05596791488128",
         "internalMaterialCode" : "100200",
         "inventedName" : "Ritalin",
         "nameMedicinalProduct" : "Ritalin LA HGC 40mg 1x30",
