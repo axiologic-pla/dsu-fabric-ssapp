@@ -53,7 +53,7 @@ const model = {
         "list-files": true
     }
 }
-export default class batchesController extends WebcController {
+export default class importController extends WebcController {
     constructor(...props) {
         const mappings = require("epi-utils").loadApi("mappings");
 
