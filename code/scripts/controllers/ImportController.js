@@ -1,48 +1,8 @@
 import LogService from "../services/LogService.js";
+import utils from "../utils.js";
+import getSharedStorage from "../services/SharedDBStorageService.js";
 
 const { WebcController } = WebCardinal.controllers;
-// const messages = [{
-//     "messageType" : "Product",
-//
-//     "messageTypeVersion" : 0.1,
-//     "senderId" : "NOVARTIS_P75_010",
-//     "receiverId" : "ePI_DSU_NOVARTIS",
-//     "messageId" : "00012856374589",
-//     "messageDateTime" : "2021-04-27T10:12:12CET",
-//     "product" : {
-//         "productCode" : "05596791488128",
-//         "internalMaterialCode" : "100200",
-//         "inventedName" : "Ritalin",
-//         "nameMedicinalProduct" : "Ritalin LA HGC 40mg 1x30",
-//         "strength" : "40mg",
-//         "flagEnableAdverseEventReporting" : false,
-//         "adverseEventReportingURL" : "",
-//         "flagEnableACFProductCheck" : false,
-//         "acfProductCheckURL" : "",
-//         "flagDisplayEPI_BatchRecalled" : false,
-//         "flagDisplayEPI_SNRecalled" : true,
-//         "flagDisplayEPI_SNDecommissioned" : true,
-//         "flagDisplayEPI_SNUnknown" : true,
-//         "flagDisplayEPI_EXPIncorrect" : true,
-//         "flagDisplayEPI_BatchExpired" : true,
-//         "patientSpecificLeaflet" : "",
-//         "healthcarePractitionerInfo" : "",
-//         "markets" : [
-//             {
-//                 "marketId" : "DE",
-//                 "nationalCode" : "1234567",
-//                 "mahName" : "Novartis",
-//                 "legalEntityName" : "Novartis Deutschland AG"
-//             },
-//             {
-//                 "marketId" : "AT",
-//                 "nationalCode" : "23456",
-//                 "mahName" : "Novartis",
-//                 "legalEntityName" : "Novartis Österreich AG"
-//             }
-//         ]
-//     }
-// }];
 const model = {
     filesChooser: {
         label: "Select files",
@@ -51,20 +11,29 @@ const model = {
         filesAppend: true,
         "event-name": "uploadProducts",
         "list-files": true
-    }
+    },
+    importIsDisabled:true,
+    importProductsLogs:[],
+    importBatchesLogs:[]
 }
 export default class importController extends WebcController {
     constructor(...props) {
         const mappings = require("epi-utils").loadApi("mappings");
-
         super(...props);
+        this.filesArray = [];
         this.model = model;
 
-        this.on('uploadProducts', (event) => {
-            let filesArray = event.data || [];
-            console.log(filesArray);
-            this.getMessagesFromFiles(filesArray).then((messages) => {
 
+        this.on('uploadProducts', (event) => {
+            this.filesArray = event.data || [];
+            this.model.importIsDisabled = this.filesArray.length === 0;
+        });
+
+        this.onTagClick("import",()=>{
+            if(this.filesArray.length === 0){
+                return;
+            }
+            this.getMessagesFromFiles(this.filesArray).then((messages) => {
                 this.logService = new LogService(this.DSUStorage);
                 //TODO extract if... look into MangeProductController
                 const holderInfo = {domain: "epi", subdomain: "default"};
@@ -73,19 +42,18 @@ export default class importController extends WebcController {
                     logService: this.logService
                 });
 
-                console.log(messages);
-
                 mappingEngine.digestMessages(messages).then(undigestedMessages => {
-
                     console.log(undigestedMessages);
+                    this.getImportLogs();
 
                 }).catch(err => {
                     console.log(err);
                 })
 
             });
-
         });
+
+        this.getImportLogs();
 
     }
 
@@ -127,7 +95,32 @@ export default class importController extends WebcController {
                }
            }
        })
+    }
 
+     getImportLogs(){
+        let importProductsLogs = [];
+        let importBatchesLogs = [];
+        const storageService = getSharedStorage(this.DSUStorage);
+        const getMappingLogs = require("epi-utils").loadApi("mappings").getMappingLogs(storageService);
+        getMappingLogs((err, importLogs)=>{
+            if(err){
+                console.log(err);
+            }
+            importLogs.forEach(log=>{
+                if(log.message){
+                    if(typeof log.message.product === "object"){
+                        log.timeAgo  = utils.timeAgo (log.timestamp)
+                        importProductsLogs.push(log);
+                    }
+
+                    if(typeof log.message.batch === "object"){
+                        importBatchesLogs.push(log);
+                    }
+                }
+            });
+            this.model.importProductsLogs = importProductsLogs.reverse();
+            this.model.importBatchesLogs = importBatchesLogs.reverse();
+        });
     }
 }
 

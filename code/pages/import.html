@@ -2,4 +2,41 @@
   <p>Select your files</p>
   <psk-files-chooser data-view-model="@filesChooser">
   </psk-files-chooser>
+
+  <hr/>
+  <button class="btn btn-primary"  disabled="@importIsDisabled" data-tag="import">Import </button>
+
+  <h3>Import Logs</h3>
+  <psk-tab-navigator default="0">
+    <psk-tab title="Products Import Log">
+
+      <table class="table">
+        <thead>
+        <tr>
+          <th scope="col">Product Code</th>
+          <th scope="col">Date</th>
+          <th scope="col">Status</th>
+          <th scope="col">Action</th>
+          <th scope="col"> - </th>
+        </tr>
+        </thead>
+        <tbody data-for="@importProductsLogs">
+        <tr>
+          <th scope="row">{{@message.product.productCode}}</th>
+          <td>{{@timeAgo}}</td>
+          <td>{{@status}}</td>
+          <td>{{@action}}</td>
+          <td><button class="btn btn-sm">View Message</button></td>
+        </tr>
+        </tbody>
+      </table>
+
+    </psk-tab>
+    <psk-tab title="Batches Import Log">
+      <div data-for="@importBatchesLogs">
+        Import Log
+      </div>
+    </psk-tab>
+  </psk-tab-navigator>
 </webc-container>
+
