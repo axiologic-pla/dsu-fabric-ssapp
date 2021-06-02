@@ -46,6 +46,7 @@ export default class importController extends WebcController {
               try {
                 let undigestedProdMsg;
                 let undigestedBatchMsg;
+                window.WebCardinal.loader.hidden=false;
                 if (productMessages.length > 0) {
                   undigestedProdMsg = await mappingEngine.digestMessages(productMessages);
                 }
@@ -58,6 +59,7 @@ export default class importController extends WebcController {
               } catch (err) {
                 console.log("Error on digestMessages", err);
               }
+              window.WebCardinal.loader.hidden=true;
             });
         });
 
