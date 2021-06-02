@@ -33,23 +33,31 @@ export default class importController extends WebcController {
             if(this.filesArray.length === 0){
                 return;
             }
-            this.getMessagesFromFiles(this.filesArray).then((messages) => {
+            this.getMessagesFromFiles(this.filesArray).then(async (messages) => {
                 this.logService = new LogService(this.DSUStorage);
-                //TODO extract if... look into MangeProductController
-                const holderInfo = {domain: "epi", subdomain: "default"};
-                const mappingEngine = mappings.getEPIMappingEngine(this.DSUStorage, {
-                    holderInfo: holderInfo,
-                    logService: this.logService
-                });
+              //TODO extract if... look into MangeProductController
+              const holderInfo = {domain: "epi", subdomain: "default"};
+              const mappingEngine = mappings.getEPIMappingEngine(this.DSUStorage, {
+                holderInfo: holderInfo,
+                logService: this.logService
+              });
+              const productMessages = messages.filter(msg => msg.messageType === "Product");
+              const batchMessages = messages.filter(msg => msg.messageType === "Batch");
+              try {
+                let undigestedProdMsg;
+                let undigestedBatchMsg;
+                if (productMessages.length > 0) {
+                  undigestedProdMsg = await mappingEngine.digestMessages(productMessages);
+                }
+                if (batchMessages.length > 0) {
+                  undigestedBatchMsg = await mappingEngine.digestMessages(batchMessages);
+                }
 
-                mappingEngine.digestMessages(messages).then(undigestedMessages => {
-                    console.log(undigestedMessages);
-                    this.getImportLogs();
-
-                }).catch(err => {
-                    console.log(err);
-                })
-
+                console.log("Undigested messages: ", undigestedProdMsg, undigestedBatchMsg);
+                this.getImportLogs();
+              } catch (err) {
+                console.log("Error on digestMessages", err);
+              }
             });
         });
 
@@ -107,16 +115,16 @@ export default class importController extends WebcController {
                 console.log(err);
             }
             importLogs.forEach(log=>{
-                if(log.message){
-                    if(typeof log.message.product === "object"){
-                        log.timeAgo  = utils.timeAgo (log.timestamp)
-                        importProductsLogs.push(log);
-                    }
-
-                    if(typeof log.message.batch === "object"){
-                        importBatchesLogs.push(log);
-                    }
+              if (log.message) {
+                log.timeAgo = utils.timeAgo(log.timestamp)
+                if (typeof log.message.product === "object") {
+                  importProductsLogs.push(log);
                 }
+
+                if (typeof log.message.batch === "object") {
+                  importBatchesLogs.push(log);
+                }
+              }
             });
             this.model.importProductsLogs = importProductsLogs.reverse();
             this.model.importBatchesLogs = importBatchesLogs.reverse();

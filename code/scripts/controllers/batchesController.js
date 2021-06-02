@@ -9,7 +9,6 @@ export default class batchesController extends WebcController {
     this.setModel({});
     this.model.batches = [];
     this.storageService = getSharedStorage(this.DSUStorage);
-
     this.storageService.filter(constants.BATCHES_STORAGE_TABLE, "__timestamp > 0", (err, batches) => {
       batches.forEach((batch) => {
         batch.code = utils.sanitizeCode(this.generateSerializationForBatch(batch, batch.defaultSerialNumber));
@@ -51,7 +50,10 @@ export default class batchesController extends WebcController {
 
       this.showModalFromTemplate('modal2DMatrix', ()=>{ return} , () => { return},{model: this.model});
     });
-
+    this.onTagClick("import-batch", (model, target, event) => {
+      event.stopImmediatePropagation();
+      this.navigateToPageTag("import");
+    });
     this.onTagClick("add-batch", () => {
       this.navigateToPageTag("add-batch");
     });
