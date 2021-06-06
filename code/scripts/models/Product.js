@@ -26,6 +26,8 @@ export default class Product {
   showEPIOnBatchExpired = true;
   practitionerInfo = "SmPC";
   patientLeafletInfo = "Patient Information";
+  strength = "";
+  internalMaterialCode = "";
   imagePath;
 
   constructor(product) {

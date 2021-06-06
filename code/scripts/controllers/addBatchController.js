@@ -79,7 +79,7 @@ export default class addBatchController extends WebcController {
       this.model.products.options = options;
     });
 
-    this.model.onChange("batch.batchNumber",  (event) => {
+    this.model.onChange("batch.batchNumber", (event) => {
       this.serialNumbersLogService.filter(this.model.batch.batchNumber, "__timestamp > 0", (err, logs) => {
         if (err || typeof logs === "undefined") {
           logs = [];
@@ -92,14 +92,18 @@ export default class addBatchController extends WebcController {
       this.navigateToPageTag("batches");
     })
     this.onTagClick("add-batch", () => {
-      if(!this.model.batch.gtin){
+      if (!this.model.batch.gtin) {
         return this.showErrorModal("Invalid product code. Please select a valid code");
       }
       let batch = this.initBatch();
       if (!batch.expiryForDisplay) {
         return this.showErrorModal("Invalid date");
       }
-      batch.expiry = utils.convertDateToGS1Format(batch.expiryForDisplay);
+      // manage ignore date if day is not used we save it as last day of the month
+      if (!batch.enableExpiryDay) {
+          batch.expiryForDisplay = utils.getIgnoreDayDate(batch.expiryForDisplay)
+      }
+      batch.expiry = utils.convertDateToGS1Format(batch.expiryForDisplay, batch.enableExpiryDay);
       this.storageService.filter(constants.BATCHES_STORAGE_TABLE, "__timestamp > 0", (err, batches) => {
         try {
           this.addSerialNumbers(batch);
@@ -146,11 +150,17 @@ export default class addBatchController extends WebcController {
       if (!batch.expiryForDisplay) {
         return this.showErrorModal("Invalid date");
       }
-      batch.expiry = utils.convertDateToGS1Format(batch.expiryForDisplay);
+
+      // manage ignore date if day is not used we save it as last day of the month
+      if (!batch.enableExpiryDay) {
+        batch.expiryForDisplay = utils.getIgnoreDayDate(batch.expiryForDisplay)
+      }
+      batch.expiry = utils.convertDateToGS1Format(batch.expiryForDisplay, batch.enableExpiryDay);
+
       try {
         this.addSerialNumbers(batch);
       } catch (err) {
-        return this.showErrorModal( "Invalid list of serial numbers");
+        return this.showErrorModal("Invalid list of serial numbers");
       }
       this.createWebcModal({
         disableExpanding: true,
@@ -169,9 +179,9 @@ export default class addBatchController extends WebcController {
     })
 
     this.model.onChange("serial_update_options.value", (event) => {
-      if(this.model.serial_update_options.value === "update-history"){
+      if (this.model.serial_update_options.value === "update-history") {
         this.showSerialHistoryModal()
-      }else{
+      } else {
         this.updateSerialsModal(this.model.serial_update_options.value);
       }
     });
@@ -284,11 +294,14 @@ export default class addBatchController extends WebcController {
 
     });
   }
-  showSerialHistoryModal(){
-    this.showModalFromTemplate('serial-numbers-update-history', () => {}, () => {
+
+  showSerialHistoryModal() {
+    this.showModalFromTemplate('serial-numbers-update-history', () => {
+    }, () => {
       this.model.serial_update_options.value = "Select an option";
     }, {model: this.model});
   }
+
   updateSerialsModal(type) {
     this.model.actionModalModel = {
       title: "Enter serial numbers separated by comma",
@@ -405,7 +418,7 @@ export default class addBatchController extends WebcController {
         return callback(err);
       }
 
-      keyssiSpace.createSeedSSI(dsuBuilder.holderInfo.domain, undefined, hint, (err, keySSI)=> {
+      keyssiSpace.createSeedSSI(dsuBuilder.holderInfo.domain, undefined, hint, (err, keySSI) => {
         if (err) {
           return callback(err);
         }

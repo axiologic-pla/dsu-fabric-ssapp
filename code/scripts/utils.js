@@ -16,9 +16,23 @@ function convertDateFromISOToGS1Format(isoDateString, separator){
     return `${ye}${mo}${da}`;
 }
 
-function convertDateToGS1Format(dateString){
-    return convertDateFromISOToGS1Format(convertDateToISO(dateString));
-}
+    function convertDateToGS1Format(dateString, useDay) {
+        let gs1Date = convertDateFromISOToGS1Format(convertDateToISO(dateString));
+        if (!useDay) {
+            gs1Date = gs1Date.slice(0, -2) + "00";
+        }
+        return gs1Date
+    }
+
+    function getIgnoreDayDate(dateString) {
+      let dt = new Date(dateString);
+      let y = dt.getFullYear();
+      let m = ("0" + (dt.getMonth() + 1)).slice(-2);
+      const d = ("0" + dt.getDate()).slice(-2);
+      const lastMonthDay = new Date(y, m, 0).getDate();
+      const gmtDate = new Date(y + '-' + m + '-' + lastMonthDay + 'T00:00:00Z');
+      return gmtDate.getTime();
+    }
 
 function convertDateTOGMTFormat(date){
     let formatter = new Intl.DateTimeFormat('en', {
@@ -183,6 +197,7 @@ export default {
     convertDateToISO,
     convertDateToGS1Format,
     convertDateTOGMTFormat,
+    getIgnoreDayDate,
     getFetchUrl,
     fetch: executeFetch,
     sortByProperty,

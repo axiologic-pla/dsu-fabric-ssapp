@@ -19,6 +19,8 @@ export default class Batch {
   expiredDateCheck = true;
   recalledMessage = "";
   defaultMessage = "";
+  packagingSiteName = "";
+  enableExpiryDay = true;
 
   constructor(batch) {
     if (typeof batch !== undefined) {

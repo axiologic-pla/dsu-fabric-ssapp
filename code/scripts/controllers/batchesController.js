@@ -21,7 +21,7 @@ export default class batchesController extends WebcController {
         let wrongBatch = JSON.parse(JSON.stringify(batch));
         wrongBatch.defaultSerialNumber = "WRONG";
         batch.wrongCode = utils.sanitizeCode(this.generateSerializationForBatch(wrongBatch, wrongBatch.defaultSerialNumber));
-        batch.formatedDate = utils.convertDateFromISOToGS1Format(batch.expiryForDisplay, "/");
+        batch.formatedDate = batch.expiry.match(/.{1,2}/g).join('/');
         this.model.batches.push(batch);
       });
     });
