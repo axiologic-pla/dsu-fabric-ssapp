@@ -30,9 +30,12 @@
                     <div class="d-flex flex-lg-row flex-sm-column justify-content-start">
                         <div class="p-0 col-sm-12 col-lg-6">
                             <i class="fa fa-pencil-square-o editable-icon"></i>
-                            <div class="background-container col mb-3">
-                                <div class="form-label">Expiry date</div>
-                                <psk-date-input data-format="DD MM YYYY" placeholder="dd/mm/yyyy" required
+                            <div class="form-label">Expiry date</div>
+                            <div class="background-container col mb-3" data-if="@batch.enableExpiryDay">
+
+                                <psk-date-input slot="true" data-format="DD MM YYYY" placeholder="dd/mm/yyyy" required
+                                                value="@batch.expiryForDisplay"></psk-date-input>
+                                <psk-date-input slot="false" type="month" data-format="MM YYYY" placeholder="mm/yyyy" required
                                                 value="@batch.expiryForDisplay"></psk-date-input>
                             </div>
                         </div>
