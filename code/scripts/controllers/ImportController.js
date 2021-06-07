@@ -13,8 +13,8 @@ const model = {
         "list-files": true
     },
     importIsDisabled:true,
-    importProductsLogs:[],
-    importBatchesLogs:[]
+    successfullyImportedLogs:[],
+    failedImportedLogs:[]
 }
 export default class importController extends WebcController {
     constructor(...props) {
@@ -55,11 +55,11 @@ export default class importController extends WebcController {
                 }
 
                 console.log("Undigested messages: ", undigestedProdMsg, undigestedBatchMsg);
-                this.getImportLogs();
               } catch (err) {
                 console.log("Error on digestMessages", err);
               }
               window.WebCardinal.loader.hidden=true;
+              this.getImportLogs();
             });
         });
 
@@ -107,29 +107,27 @@ export default class importController extends WebcController {
        })
     }
 
-     getImportLogs(){
-        let importProductsLogs = [];
-        let importBatchesLogs = [];
+    getImportLogs() {
+        let successfullyImportedLogs = [];
+        let failedImportedLogs = [];
         const storageService = getSharedStorage(this.DSUStorage);
         const getMappingLogs = require("epi-utils").loadApi("mappings").getMappingLogs(storageService);
-        getMappingLogs((err, importLogs)=>{
-            if(err){
+        getMappingLogs((err, importLogs) => {
+            if (err) {
                 console.log(err);
             }
-            importLogs.forEach(log=>{
-              if (log.message) {
-                log.timeAgo = utils.timeAgo(log.timestamp)
-                if (typeof log.message.product === "object") {
-                  importProductsLogs.push(log);
+            importLogs.forEach(log => {
+                if (log.message) {
+                    log.timeAgo = utils.timeAgo(log.timestamp)
+                    if (log.status === "success") {
+                        successfullyImportedLogs.push(log);
+                    } else {
+                        failedImportedLogs.push(log);
+                    }
                 }
-
-                if (typeof log.message.batch === "object") {
-                  importBatchesLogs.push(log);
-                }
-              }
             });
-            this.model.importProductsLogs = importProductsLogs.reverse();
-            this.model.importBatchesLogs = importBatchesLogs.reverse();
+            this.model.successfullyImportedLogs = successfullyImportedLogs.reverse();
+            this.model.failedImportedLogs = failedImportedLogs.reverse();
         });
     }
 }

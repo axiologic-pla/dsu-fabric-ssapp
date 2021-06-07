@@ -8,22 +8,24 @@
         <button class="btn btn-primary" data-tag="import" disabled="@importIsDisabled">Import</button>
 
         <h3>Import Logs</h3>
-        <psk-tab-navigator default="0">
-            <psk-tab title="Products Import Log">
+        <psk-tab-navigator default="1">
+            <psk-tab title="Successfully Imported Logs">
 
                 <table class="table">
                     <thead>
                     <tr>
-                        <th scope="col">Product Code</th>
+                        <th scope="col">Item Code</th>
+                        <th scope="col">Type</th>
                         <th scope="col">Date</th>
                         <th scope="col">Status</th>
                         <th scope="col">Action</th>
                         <th scope="col"> -</th>
                     </tr>
                     </thead>
-                    <tbody data-for="@importProductsLogs">
+                    <tbody data-for="@successfullyImportedLogs">
                     <tr>
-                        <th scope="row">{{@message.product.productCode}}</th>
+                        <td>{{@itemCode}}</td>
+                        <td>{{@itemType}}</td>
                         <td>{{@timeAgo}}</td>
                         <td>{{@status}}</td>
                         <td>{{@action}}</td>
@@ -35,20 +37,22 @@
                 </table>
 
             </psk-tab>
-            <psk-tab title="Batches Import Log">
+            <psk-tab title="Failed Imported Logs">
                 <table class="table">
                     <thead>
                     <tr>
-                        <th scope="col">Batch number</th>
+                        <th scope="col">Item Code</th>
+                        <th scope="col">Type</th>
                         <th scope="col">Date</th>
                         <th scope="col">Status</th>
                         <th scope="col">Action</th>
                         <th scope="col"> -</th>
                     </tr>
                     </thead>
-                    <tbody data-for="@importBatchesLogs">
+                    <tbody data-for="@failedImportedLogs">
                     <tr>
-                        <th scope="row">{{@message.batch.batch}}</th>
+                        <td>{{@itemCode}}</td>
+                        <td>{{@itemType}}</td>
                         <td>{{@timeAgo}}</td>
                         <td>{{@status}}</td>
                         <td>{{@action}}</td>
