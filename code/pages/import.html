@@ -1,14 +1,14 @@
 <webc-container controller="ImportController">
     <div class="m-5">
         <p>Select your files</p>
-        <psk-files-chooser data-view-model="@filesChooser">
+        <psk-files-chooser id="import-files" data-view-model="@filesChooser">
         </psk-files-chooser>
 
         <hr/>
-        <button class="btn btn-primary" data-tag="import" disabled="@importIsDisabled">Import</button>
+        <psk-button data-tag="import"  disabled="@importIsDisabled" label="Import"></psk-button>
 
         <h3>Import Logs</h3>
-        <psk-tab-navigator default="1">
+        <psk-tab-navigator default="1" id="import-logs-status">
             <psk-tab title="Successfully Imported Logs">
 
                 <table class="table">
