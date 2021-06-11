@@ -8,10 +8,10 @@
         <psk-button data-tag="import"  disabled="@importIsDisabled" label="Import"></psk-button>
 
         <h3>Import Logs</h3>
-        <psk-tab-navigator default="1" id="import-logs-status">
+        <psk-tab-navigator selected="@selectedTab" id="import-logs-status">
             <psk-tab title="Successfully Imported Logs">
 
-                <table class="table">
+                <table class="import-success-table table">
                     <thead>
                     <tr>
                         <th scope="col">Item Code</th>
@@ -23,7 +23,7 @@
                     </tr>
                     </thead>
                     <tbody data-for="@successfullyImportedLogs">
-                    <tr>
+                    <tr is-fresh="@isFresh">
                         <td>{{@itemCode}}</td>
                         <td>{{@itemType}}</td>
                         <td>{{@timeAgo}}</td>
@@ -38,7 +38,7 @@
 
             </psk-tab>
             <psk-tab title="Failed Imported Logs">
-                <table class="table">
+                <table class="import-failed-table table">
                     <thead>
                     <tr>
                         <th scope="col">Item Code</th>
@@ -50,7 +50,7 @@
                     </tr>
                     </thead>
                     <tbody data-for="@failedImportedLogs">
-                    <tr>
+                    <tr is-fresh="@isFresh">
                         <td>{{@itemCode}}</td>
                         <td>{{@itemType}}</td>
                         <td>{{@timeAgo}}</td>

@@ -4,6 +4,7 @@ import getSharedStorage from "../services/SharedDBStorageService.js";
 
 const { WebcController } = WebCardinal.controllers;
 const model = {
+    selectedTab:0,
     filesChooser: {
         label: "Select files",
         accept: "json",
@@ -19,10 +20,10 @@ const model = {
 export default class importController extends WebcController {
     constructor(...props) {
         const mappings = require("epi-utils").loadApi("mappings");
+        const MessagesPipe = require("epi-utils").getMessagesPipe();
         super(...props);
         this.filesArray = [];
         this.model = model;
-
 
         this.on('uploadProducts', (event) => {
             this.filesArray = event.data || [];
@@ -41,25 +42,38 @@ export default class importController extends WebcController {
                 holderInfo: holderInfo,
                 logService: this.logService
               });
-              const productMessages = messages.filter(msg => msg.messageType === "Product");
-              const batchMessages = messages.filter(msg => msg.messageType === "Batch");
               try {
-                let undigestedProdMsg;
-                let undigestedBatchMsg;
-                window.WebCardinal.loader.hidden=false;
-                if (productMessages.length > 0) {
-                  undigestedProdMsg = await mappingEngine.digestMessages(productMessages);
-                }
-                if (batchMessages.length > 0) {
-                  undigestedBatchMsg = await mappingEngine.digestMessages(batchMessages);
-                }
 
-                console.log("Undigested messages: ", undigestedProdMsg, undigestedBatchMsg);
+                 window.WebCardinal.loader.hidden=false;
+
+                 const MessageQueuingService = require("epi-utils").loadApi("services").getMessageQueuingServiceInstance();
+                 let messagesPipe = new MessagesPipe(30, 2*1000, MessageQueuingService.getNextMessagesBlock);
+
+                  messagesPipe.onNewGroup(async (groupMessages) => {
+                      let undigestedMessages = await mappingEngine.digestMessages(groupMessages);
+
+                      console.log(undigestedMessages);
+                      window.WebCardinal.loader.hidden=true;
+                      this.getImportLogs();
+
+                      if (undigestedMessages.length === 0) {
+                          //this.showModal("All messages were successfully imported. Check the Import Logs table for further details", "Import Status");
+                          this.model.selectedTab = 0;
+                      } else {
+                          this.model.selectedTab = 1;
+                          // this.showModalFromTemplate('check-failed-imported-messages', () => {
+                          // }, () => {
+                          //
+                          // }, {model: undigestedMessages})
+                      }
+                  })
+
+                  messagesPipe.addInQueue(messages);
+
               } catch (err) {
                 console.log("Error on digestMessages", err);
               }
-              window.WebCardinal.loader.hidden=true;
-              this.getImportLogs();
+
             });
         });
 
@@ -116,9 +130,11 @@ export default class importController extends WebcController {
             if (err) {
                 console.log(err);
             }
+            let now = Date.now();
             importLogs.forEach(log => {
                 if (log.message) {
                     log.timeAgo = utils.timeAgo(log.timestamp)
+                    log.isFresh = now - log.timestamp < 60 * 1000;
                     if (log.status === "success") {
                         successfullyImportedLogs.push(log);
                     } else {
