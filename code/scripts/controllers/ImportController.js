@@ -1,4 +1,3 @@
-import LogService from "../services/LogService.js";
 import utils from "../utils.js";
 import getSharedStorage from "../services/SharedDBStorageService.js";
 
@@ -35,12 +34,14 @@ export default class importController extends WebcController {
                 return;
             }
             this.getMessagesFromFiles(this.filesArray).then(async (messages) => {
-                this.logService = new LogService(this.DSUStorage);
+              const LogService = require("epi-utils").loadApi("services").LogService
+              let logService = new LogService(this.DSUStorage);
+
               //TODO extract if... look into MangeProductController
               const holderInfo = {domain: "epi", subdomain: "default"};
               const mappingEngine = mappings.getEPIMappingEngine(this.DSUStorage, {
                 holderInfo: holderInfo,
-                logService: this.logService
+                logService: logService
               });
               try {
 
