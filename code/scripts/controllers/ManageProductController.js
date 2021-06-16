@@ -3,22 +3,40 @@ import Product from '../models/Product.js';
 import Languages from "../models/Languages.js";
 import constants from '../constants.js';
 import getSharedStorage from '../services/SharedDBStorageService.js';
-import DSU_Builder from '../services/DSU_Builder.js';
 import UploadTypes from "../models/UploadTypes.js";
 import utils from "../utils.js";
-import LogService from '../services/LogService.js';
 import Utils from "../models/Utils.js";
 
-const dsuBuilder = new DSU_Builder();
 const PRODUCT_STORAGE_FILE = constants.PRODUCT_STORAGE_FILE;
 const PRODUCT_IMAGE_FILE = constants.PRODUCT_IMAGE_FILE;
 const LEAFLET_ATTACHMENT_FILE = constants.LEAFLET_ATTACHMENT_FILE;
 const SMPC_ATTACHMENT_FILE = constants.SMPC_ATTACHMENT_FILE;
 
 export default class ManageProductController extends WebcController {
-  constructor(element, history) {
-    super(element, history);
+  constructor(...props) {
+    super(...props);
     this.setModel({});
+
+
+    const mappings = require("epi-utils").loadApi("mappings");
+    const epiUtils = require("epi-utils").getMappingsUtils();
+    const LogService = require("epi-utils").loadApi("services").LogService
+    let logService = new LogService(this.DSUStorage);
+
+    //TODO extract if... look into MangeProductController
+    this.holderInfo = {domain: "epi", subdomain: "default",
+      userDetails:{
+        company:"CopmanyName",
+        username:"customUsername"
+      },
+
+    };
+    this.mappingEngine = mappings.getEPIMappingEngine(this.DSUStorage, {
+      holderInfo: this.holderInfo,
+      logService: logService
+    });
+
+
     this.storageService = getSharedStorage(this.DSUStorage);
     this.logService = new LogService(this.DSUStorage);
 
@@ -46,16 +64,18 @@ export default class ManageProductController extends WebcController {
     });
 
     const ensureHolderCredential = () => {
+
+
       this.model.submitLabel = this.model.product.isCodeEditable ? "Save Product" : "Update Product";
-      dsuBuilder.ensureHolderInfo((err, holderInfo) => {
-        if (!err && holderInfo) {
-          this.model.product.manufName = holderInfo.userDetails.company;
-          this.model.username = holderInfo.userDetails.username;
-        } else {
-          printOpenDSUError(createOpenDSUErrorWrapper("Invalid configuration detected!", err));
-          this.showErrorModalAndRedirect("Invalid configuration detected! Configure your wallet properly in the Holder section!", "products");
-        }
-      })
+      // dsuBuilder.ensureHolderInfo((err, holderInfo) => {
+      //     if (!err && holderInfo) {
+      //         this.model.product.manufName = holderInfo.userDetails.company;
+      //         this.model.username = holderInfo.userDetails.username;
+      //     } else {
+      //         printOpenDSUError(createOpenDSUErrorWrapper("Invalid configuration detected!", err));
+      //         this.showErrorModalAndRedirect("Invalid configuration detected! Configure your wallet properly in the Holder section!", "products");
+      //     }
+      // })
     };
 
     if (typeof this.gtin !== "undefined") {
@@ -69,7 +89,6 @@ export default class ManageProductController extends WebcController {
           if (err) {
             this.showErrorModalAndRedirect("Failed to get inherited cards", "products");
           }
-
           this.model.languageTypeCards = inheritedCards;
         });
         ensureHolderCredential();
@@ -91,17 +110,9 @@ export default class ManageProductController extends WebcController {
 
     })
 
-
     this.onTagClick("add-product", async (event) => {
-        let product = this.model.product.clone();
-      try {
-        this.storageService.beginBatch();
-      } catch (err) {
-        reportUserRelevantError("Dropping previous user input");
-        this.storageService.cancelBatch((err, res) => {
-          this.storageService.beginBatch();
-        })
-      }
+      let product = this.model.product.clone();
+
       if (!this.isValid(product)) {
         return;
       }
@@ -113,67 +124,109 @@ export default class ManageProductController extends WebcController {
         modalTitle: "Info",
         modalContent: "Saving product..."
       });
-      this.buildProductDSU(product, (err, keySSI) => {
-        if (err) {
-          this.hideModal();
-          printOpenDSUError(createOpenDSUErrorWrapper("Product DSU build failed!", err))
-          return this.showErrorModalAndRedirect("Product DSU build failed.", "products");
+
+      product.photo =  this.getImageAsBase64(this.productPhoto||this.model.product.photo);
+
+      let message = {
+        messageType:"Product",
+        product:{}
+      };
+
+      let productPropsMapping= epiUtils.productDataSourceMapping;
+
+      for(let prop in product){
+        if(typeof productPropsMapping[prop] !== "undefined"){
+          message.product[productPropsMapping[prop]] = product[prop];
         }
+        else{
+          console.log("Ignoring prop:", prop);
+          //message.product[prop] = product[prop];
+        }
+      }
 
-        console.log("Product DSU KeySSI:", keySSI);
+      console.log(message);
 
-        let finish = (err) => {
-          if (err) {
-            this.hideModal();
-            printOpenDSUError(createOpenDSUErrorWrapper("Product keySSI failed to be stored in your wallet.", err))
-            return this.showErrorModalAndRedirect("Product keySSI failed to be stored in your wallet.", "products");
+
+      try{
+        let undigestedMessages = await this.mappingEngine.digestMessages([message]);
+        console.log(undigestedMessages);
+        if(undigestedMessages.length === 0){
+          let addPhotoMessage = {
+            messageType:"ProductPhoto",
+            productCode : message.product.productCode,
+            senderId:this.model.username,
+            imageData: message.product.photo
           }
-
-          this.storageService.commitBatch((err, res) => {
-            if (err) {
-              printOpenDSUError(createOpenDSUErrorWrapper("Failed to commit batch. Concurrency issues or other issue", err))
-            }
-              this.hideModal();
-              this.navigateToPageTag("products");
-          });
+          undigestedMessages = await this.mappingEngine.digestMessages([addPhotoMessage])
+          console.log("Photo undigested messages",undigestedMessages);
         }
-        if (typeof product.keySSI === "undefined") {
-          return this.buildConstProductDSU(product.gtin, keySSI, (err, gtinSSI) => {
-            if (err) {
-              this.hideModal();
-              printOpenDSUError(createOpenDSUErrorWrapper("Failed to create an Immutable Product DSU!", err))
-              return this.showErrorModalAndRedirect("An Immutable DSU for the current GTIN already exists!", "products");
-            }
-
-            product.keySSI = keySSI;
-            console.log("ConstProductDSU GTIN_SSI:", gtinSSI);
-            this.persistProduct(product, finish);
-          });
+        else{
+          //show an error?
         }
 
-        this.persistProduct(product, finish);
-      });
+      }
+      catch (e){
+        console.log(e);
+      }
+      this.hideModal();
+      this.navigateToPageTag("products");
+
+
+      // this.buildProductDSU(product, (err, keySSI) => {
+      //     if (err) {
+      //         this.hideModal();
+      //         printOpenDSUError(createOpenDSUErrorWrapper("Product DSU build failed!", err))
+      //         return this.showErrorModalAndRedirect("Product DSU build failed.", "products");
+      //     }
+      //
+      //     console.log("Product DSU KeySSI:", keySSI);
+      //
+      //     let finish = (err) => {
+      //         if (err) {
+      //             this.hideModal();
+      //             printOpenDSUError(createOpenDSUErrorWrapper("Product keySSI failed to be stored in your wallet.", err))
+      //             return this.showErrorModalAndRedirect("Product keySSI failed to be stored in your wallet.", "products");
+      //         }
+      //
+      //         this.storageService.commitBatch((err, res) => {
+      //             if (err) {
+      //                 printOpenDSUError(createOpenDSUErrorWrapper("Failed to commit batch. Concurrency issues or other issue", err))
+      //             }
+      //             this.hideModal();
+      //             this.navigateToPageTag("products");
+      //         });
+      //     }
+      //     if (typeof product.keySSI === "undefined") {
+      //         return this.buildConstProductDSU(product.gtin, keySSI, (err, gtinSSI) => {
+      //             if (err) {
+      //                 this.hideModal();
+      //                 printOpenDSUError(createOpenDSUErrorWrapper("Failed to create an Immutable Product DSU!", err))
+      //                 return this.showErrorModalAndRedirect("An Immutable DSU for the current GTIN already exists!", "products");
+      //             }
+      //
+      //             product.keySSI = keySSI;
+      //             console.log("ConstProductDSU GTIN_SSI:", gtinSSI);
+      //             this.persistProduct(product, finish);
+      //         });
+      //     }
+      //
+      //     this.persistProduct(product, finish);
+      // });
     });
   }
 
-  saveImage(product, imageData){
-      if (typeof imageData === "undefined") {
-          return;
-      }
-
-      if(typeof imageData === "string"){
-        product.photo = imageData;
-        return;
-      }
-
-      if(!(imageData instanceof Uint8Array)){
-          imageData = new Uint8Array(imageData);
-      }
-
-      let base64Image = utils.bytesToBase64(imageData);
-      base64Image = `data:image/png;base64, ${base64Image}`;
-      product.photo = base64Image;
+  getImageAsBase64(imageData) {
+    if (typeof imageData === "string") {
+      return imageData;
+    }
+    if (!(imageData instanceof Uint8Array)) {
+      imageData = new Uint8Array(imageData);
+    }
+    let base64Image = utils.bytesToBase64(imageData);
+    base64Image = `data:image/png;base64, ${base64Image}`;
+    return base64Image;
   }
+
 
   addLanguageTypeFilesListener(event) {
     const languages = {
@@ -212,9 +265,9 @@ export default class ManageProductController extends WebcController {
       }
       let selectedLanguage = Languages.getListAsVM().find(lang => lang.value === this.model.modalData.product.language);
       let selectedType = UploadTypes.getListAsVM().find(type => type.value === this.model.modalData.product.type);
-        let card = this.generateCard(false, selectedType.value, selectedLanguage.value);
-        card.files = this.model.modalData.files;
-        this.model.languageTypeCards.push(card);
+      let card = this.generateCard(false, selectedType.value, selectedLanguage.value);
+      card.files = this.model.modalData.files;
+      this.model.languageTypeCards.push(card);
     }, () => {
       return
     }, {model: this.model});
@@ -228,7 +281,7 @@ export default class ManageProductController extends WebcController {
     return this.model.languageTypeCards.filter(lf => lf.files.length > 0).length > 0;
   }
 
-   isValid(product) {
+  isValid(product) {
 
     if (product.version === 1) {
       if (!this.filesWereProvided()) {
@@ -275,7 +328,7 @@ export default class ManageProductController extends WebcController {
       });
     });
   }
-
+  //TODO: ************TO BE REMOVED************
   buildProductDSU(product, callback) {
     dsuBuilder.getTransactionId((err, transactionId) => {
       if (err) {
@@ -291,6 +344,7 @@ export default class ManageProductController extends WebcController {
 
   }
 
+  //TODO: ************TO BE REMOVED************
   createProductDSU(transactionId, product, callback) {
     const keyssiSpace = require("opendsu").loadAPI("keyssi");
     const hint = JSON.stringify({bricksDomain: dsuBuilder.holderInfo.subdomain});
@@ -316,6 +370,7 @@ export default class ManageProductController extends WebcController {
     });
   }
 
+  //TODO: ************TO BE REMOVED************
   updateProductDSU(transactionId, product, callback) {
     dsuBuilder.setKeySSI(transactionId, product.keySSI, (err) => {
       if (err) {
@@ -346,9 +401,9 @@ export default class ManageProductController extends WebcController {
       let languageTypeCards = [];
       //used temporarily to avoid the usage of dsu cached instances which are not up to date
       productDSU.load(err => {
-          if (err) {
-              return callback(err);
-          }
+        if (err) {
+          return callback(err);
+        }
 
         productDSU.listFolders(this.getPathToLeaflet(version), (err, leaflets) => {
           if (err) {
@@ -360,10 +415,10 @@ export default class ManageProductController extends WebcController {
               return callback(err);
             }
             leaflets.forEach(leafletLanguageCode => {
-                languageTypeCards.push(this.generateCard(true, "leaflet", leafletLanguageCode));
+              languageTypeCards.push(this.generateCard(true, "leaflet", leafletLanguageCode));
             })
             smpcs.forEach(smpcLanguageCode => {
-                languageTypeCards.push(this.generateCard(true, "smpc", smpcLanguageCode));
+              languageTypeCards.push(this.generateCard(true, "smpc", smpcLanguageCode));
             });
 
             callback(undefined, languageTypeCards);
@@ -374,14 +429,14 @@ export default class ManageProductController extends WebcController {
   }
 
   generateCard(inherited, type, code){
-        let card = {
-            inherited: inherited,
-            type: {value: type},
-            language: {value: code}
-        };
-        card.type.label = UploadTypes.getLanguage(type);
-        card.language.label = Languages.getLanguage(code);
-        return card;
+    let card = {
+      inherited: inherited,
+      type: {value: type},
+      language: {value: code}
+    };
+    card.type.label = UploadTypes.getLanguage(type);
+    card.language.label = Languages.getLanguage(code);
+    return card;
   }
 
   getPathToLeaflet(version){
@@ -493,13 +548,13 @@ export default class ManageProductController extends WebcController {
 
     //step #3 saving product into dsu as JSON and build DSU
     let finishingStep = ()=>{
-        dsuBuilder.addFileDataToDossier(transactionId, productStorageFile, JSON.stringify(product), (err) => {
-          if (err) {
-            return callback(err);
-          }
+      dsuBuilder.addFileDataToDossier(transactionId, productStorageFile, JSON.stringify(product), (err) => {
+        if (err) {
+          return callback(err);
+        }
 
-          dsuBuilder.buildDossier(transactionId, callback);
-        });
+        dsuBuilder.buildDossier(transactionId, callback);
+      });
     };
 
     //start of the flow
@@ -548,6 +603,7 @@ export default class ManageProductController extends WebcController {
     });
   }
 
+  //TODO: ************TO BE REMOVED************
   persistProduct(product, callback) {
     product.gs1Data = `(01)${product.gtin}(21)${Utils.generateNumericID(12)}(10)${Utils.generateID(6)}(17)111111`;
     if (typeof this.gtin === "undefined") {
@@ -563,18 +619,18 @@ export default class ManageProductController extends WebcController {
     }, () => {
 
       // this.DSUStorage.call("mountDSU", `/${product.gtin}`, product.keySSI, (err) => {
-        this.saveImage(product, this.productPhoto||this.model.product.photo);
-        this.storageService.insertRecord(constants.PRODUCTS_TABLE, `${this.gtin}|${product.version}`, product, () => {
-          this.storageService.getRecord(constants.LAST_VERSION_PRODUCTS_TABLE, this.gtin, (err, prod) => {
-            if (err || !prod) {
-              product.initialVersion = product.version;
-              this.storageService.insertRecord(constants.LAST_VERSION_PRODUCTS_TABLE, this.gtin, product, callback);
-            } else {
-              this.storageService.updateRecord(constants.LAST_VERSION_PRODUCTS_TABLE, this.gtin, product, callback);
-            }
-          });
+      this.saveImage(product, this.productPhoto||this.model.product.photo);
+      this.storageService.insertRecord(constants.PRODUCTS_TABLE, `${this.gtin}|${product.version}`, product, () => {
+        this.storageService.getRecord(constants.LAST_VERSION_PRODUCTS_TABLE, this.gtin, (err, prod) => {
+          if (err || !prod) {
+            product.initialVersion = product.version;
+            this.storageService.insertRecord(constants.LAST_VERSION_PRODUCTS_TABLE, this.gtin, product, callback);
+          } else {
+            this.storageService.updateRecord(constants.LAST_VERSION_PRODUCTS_TABLE, this.gtin, product, callback);
+          }
         });
       });
+    });
     // });
   }
 }
