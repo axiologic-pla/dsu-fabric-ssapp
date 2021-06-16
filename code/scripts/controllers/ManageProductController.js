@@ -139,26 +139,27 @@ export default class ManageProductController extends WebcController {
           message.product[productPropsMapping[prop]] = product[prop];
         }
         else{
-          console.log("Ignoring prop:", prop);
-          //message.product[prop] = product[prop];
+          message.product[prop] = product[prop];
         }
       }
-
-      console.log(message);
+      message.product.photo = product.photo;
 
 
       try{
         let undigestedMessages = await this.mappingEngine.digestMessages([message]);
         console.log(undigestedMessages);
         if(undigestedMessages.length === 0){
-          let addPhotoMessage = {
-            messageType:"ProductPhoto",
-            productCode : message.product.productCode,
-            senderId:this.model.username,
-            imageData: message.product.photo
+
+          if(typeof this.productPhoto !== "undefined"){
+            let addPhotoMessage = {
+              messageType:"ProductPhoto",
+              productCode : message.product.productCode,
+              senderId:this.model.username,
+              imageData: message.product.photo
+            }
+            undigestedMessages = await this.mappingEngine.digestMessages([addPhotoMessage])
+            console.log("Photo undigested messages",undigestedMessages);
           }
-          undigestedMessages = await this.mappingEngine.digestMessages([addPhotoMessage])
-          console.log("Photo undigested messages",undigestedMessages);
         }
         else{
           //show an error?
