@@ -6,6 +6,7 @@ import getSharedStorage from '../services/SharedDBStorageService.js';
 import UploadTypes from "../models/UploadTypes.js";
 import utils from "../utils.js";
 import Utils from "../models/Utils.js";
+const arrayBufferToBase64 = require("epi-utils").getMappingsUtils().arrayBufferToBase64;
 
 const PRODUCT_STORAGE_FILE = constants.PRODUCT_STORAGE_FILE;
 const PRODUCT_IMAGE_FILE = constants.PRODUCT_IMAGE_FILE;
@@ -145,21 +146,53 @@ export default class ManageProductController extends WebcController {
       message.product.photo = product.photo;
 
 
+      console.log(this.model.languageTypeCards);
+
       try{
         let undigestedMessages = await this.mappingEngine.digestMessages([message]);
         console.log(undigestedMessages);
         if(undigestedMessages.length === 0){
 
-          if(typeof this.productPhoto !== "undefined"){
-            let addPhotoMessage = {
-              messageType:"ProductPhoto",
-              productCode : message.product.productCode,
-              senderId:this.model.username,
-              imageData: message.product.photo
-            }
-            undigestedMessages = await this.mappingEngine.digestMessages([addPhotoMessage])
-            console.log("Photo undigested messages",undigestedMessages);
+          //process photo
+
+          let newPhoto = typeof this.productPhoto !== "undefined";
+
+          let addPhotoMessage = {
+            inherited: !newPhoto,
+            messageType: "ProductPhoto",
+            productCode: message.product.productCode,
+            senderId: this.model.username,
           }
+          if (newPhoto) {
+            addPhotoMessage.imageData = arrayBufferToBase64(this.productPhoto);
+          }
+
+          undigestedMessages = await this.mappingEngine.digestMessages([addPhotoMessage])
+          console.log("Photo undigested messages", undigestedMessages);
+
+          //process leaflet & cards smpc
+
+          let cardMessages = [];
+
+          for (let i = 0; i < this.model.languageTypeCards.length; i++) {
+            let card = this.model.languageTypeCards[i];
+            let cardMessage = {
+              inherited:card.inherited,
+              productCode: message.product.productCode,
+              language: card.language.value,
+              messageType: card.type.value
+            }
+
+            if (!card.inherited) {
+              cardMessage.xmlFileContent = await $$.promisify(this.getXMLFileContent.bind(this))(card.files);
+              cardMessage.otherFilesContent = await $$.promisify(this.getOtherCardFiles.bind(this))(card.files)
+            }
+
+            cardMessages.push(cardMessage);
+          }
+          let undigestedLeafletMessages = await this.mappingEngine.digestMessages(cardMessages);
+          console.log(undigestedLeafletMessages);
+
         }
         else{
           //show an error?
@@ -215,6 +248,45 @@ export default class ManageProductController extends WebcController {
       // });
     });
   }
+
+  getXMLFileContent(files, callback){
+    let xmlFiles = files.filter((file) => file.name.endsWith('.xml'));
+
+    if (xmlFiles.length === 0) {
+      return callback(new Error("No xml files found."))
+    }
+    this.getBase64FileContent(xmlFiles[0],callback)
+  }
+
+  async getOtherCardFiles(files, callback){
+    let anyOtherFiles = files.filter((file) => !file.name.endsWith('.xml'))
+
+    let filesContent = [];
+    for(let i = 0; i<anyOtherFiles.length; i++){
+      let file = anyOtherFiles[i];
+      filesContent.push({
+        filename:file.name,
+        fileContent: await $$.promisify(this.getBase64FileContent)(file)
+      })
+    }
+    callback(undefined,filesContent);
+  }
+
+
+  getBase64FileContent(file, callback){
+    let fileReader = new FileReader();
+
+    fileReader.onload = function (evt) {
+      let arrayBuffer = fileReader.result;
+      let base64FileContent = arrayBufferToBase64(arrayBuffer);
+      callback(undefined, base64FileContent);
+    }
+
+    fileReader.readAsArrayBuffer(file);
+  }
+
+
+
 
   getImageAsBase64(imageData) {
     if (typeof imageData === "string") {
