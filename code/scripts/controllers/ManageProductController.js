@@ -1,5 +1,6 @@
 const {WebcController} = WebCardinal.controllers;
 import Product from '../models/Product.js';
+import HolderService from '../services/HolderService.js';
 import Languages from "../models/Languages.js";
 import constants from '../constants.js';
 import getSharedStorage from '../services/SharedDBStorageService.js';
@@ -16,20 +17,6 @@ export default class ManageProductController extends WebcController {
     const epiUtils = require("epi-utils").getMappingsUtils();
     const LogService = require("epi-utils").loadApi("services").LogService
     let logService = new LogService(this.DSUStorage);
-
-    //TODO extract if... look into MangeProductController
-    this.holderInfo = {domain: "epi", subdomain: "default",
-      userDetails:{
-        company:"CopmanyName",
-        username:"customUsername"
-      },
-
-    };
-    this.mappingEngine = mappings.getEPIMappingEngine(this.DSUStorage, {
-      holderInfo: this.holderInfo,
-      logService: logService
-    });
-
 
     this.storageService = getSharedStorage(this.DSUStorage);
     this.logService = new LogService(this.DSUStorage);
@@ -58,15 +45,23 @@ export default class ManageProductController extends WebcController {
     });
 
     const ensureHolderCredential = () => {
-      // dsuBuilder.ensureHolderInfo((err, holderInfo) => {
-      //     if (!err && holderInfo) {
-      //         this.model.product.manufName = holderInfo.userDetails.company;
-      //         this.model.username = holderInfo.userDetails.username;
-      //     } else {
-      //         printOpenDSUError(createOpenDSUErrorWrapper("Invalid configuration detected!", err));
-      //         this.showErrorModalAndRedirect("Invalid configuration detected! Configure your wallet properly in the Holder section!", "products");
-      //     }
-      // })
+      const holderService = HolderService.getHolderService();
+      holderService.ensureHolderInfo((err, holderInfo) => {
+
+        if (!err && holderInfo) {
+          this.model.product.manufName = holderInfo.userDetails.company;
+          this.model.username = holderInfo.userDetails.username;
+
+          this.mappingEngine = mappings.getEPIMappingEngine(this.DSUStorage, {
+            holderInfo: holderInfo,
+            logService: logService
+          });
+
+        } else {
+          printOpenDSUError(createOpenDSUErrorWrapper("Invalid configuration detected!", err));
+          this.showErrorModalAndRedirect("Invalid configuration detected! Configure your wallet properly in the Holder section!", "products");
+        }
+      })
     };
 
     if (typeof this.gtin !== "undefined") {
