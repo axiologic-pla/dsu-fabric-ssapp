@@ -1,5 +1,6 @@
 import utils from "../utils.js";
 import getSharedStorage from "../services/SharedDBStorageService.js";
+import HolderService from "../services/HolderService.js";
 
 const { WebcController } = WebCardinal.controllers;
 const model = {
@@ -37,12 +38,20 @@ export default class importController extends WebcController {
               const LogService = require("epi-utils").loadApi("services").LogService
               let logService = new LogService(this.DSUStorage);
 
-              //TODO extract if... look into MangeProductController
-              const holderInfo = {domain: "epi", subdomain: "default"};
-              const mappingEngine = mappings.getEPIMappingEngine(this.DSUStorage, {
-                holderInfo: holderInfo,
-                logService: logService
-              });
+              let mappingEngine;
+              try {
+                  const holderService = HolderService.getHolderService();
+                  const holderInfo = await $$.promisify(holderService.ensureHolderInfo.bind(holderService.ensureHolderInfo))();
+                  mappingEngine = mappings.getEPIMappingEngine(this.DSUStorage, {
+                      holderInfo: holderInfo,
+                      logService: logService
+                  });
+              }
+              catch (e){
+                  printOpenDSUError(createOpenDSUErrorWrapper("Invalid configuration detected!", e));
+                  this.showErrorModalAndRedirect("Invalid configuration detected! Configure your wallet properly in the Holder section!", "import");
+              }
+
               try {
 
                  window.WebCardinal.loader.hidden=false;
@@ -58,14 +67,9 @@ export default class importController extends WebcController {
                       this.getImportLogs();
 
                       if (undigestedMessages.length === 0) {
-                          //this.showModal("All messages were successfully imported. Check the Import Logs table for further details", "Import Status");
                           this.model.selectedTab = 0;
                       } else {
                           this.model.selectedTab = 1;
-                          // this.showModalFromTemplate('check-failed-imported-messages', () => {
-                          // }, () => {
-                          //
-                          // }, {model: undigestedMessages})
                       }
                   })
 
@@ -74,12 +78,10 @@ export default class importController extends WebcController {
               } catch (err) {
                 console.log("Error on digestMessages", err);
               }
-
             });
         });
 
         this.getImportLogs();
-
     }
 
    async getMessagesFromFiles(files){
