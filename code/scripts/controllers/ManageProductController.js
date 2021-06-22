@@ -5,19 +5,12 @@ import constants from '../constants.js';
 import getSharedStorage from '../services/SharedDBStorageService.js';
 import UploadTypes from "../models/UploadTypes.js";
 import utils from "../utils.js";
-import Utils from "../models/Utils.js";
 const arrayBufferToBase64 = require("epi-utils").getMappingsUtils().arrayBufferToBase64;
-
-const PRODUCT_STORAGE_FILE = constants.PRODUCT_STORAGE_FILE;
-const PRODUCT_IMAGE_FILE = constants.PRODUCT_IMAGE_FILE;
-const LEAFLET_ATTACHMENT_FILE = constants.LEAFLET_ATTACHMENT_FILE;
-const SMPC_ATTACHMENT_FILE = constants.SMPC_ATTACHMENT_FILE;
 
 export default class ManageProductController extends WebcController {
   constructor(...props) {
     super(...props);
     this.setModel({});
-
 
     const mappings = require("epi-utils").loadApi("mappings");
     const epiUtils = require("epi-utils").getMappingsUtils();
@@ -65,9 +58,6 @@ export default class ManageProductController extends WebcController {
     });
 
     const ensureHolderCredential = () => {
-
-
-      this.model.submitLabel = this.model.product.isCodeEditable ? "Save Product" : "Update Product";
       // dsuBuilder.ensureHolderInfo((err, holderInfo) => {
       //     if (!err && holderInfo) {
       //         this.model.product.manufName = holderInfo.userDetails.company;
@@ -81,6 +71,7 @@ export default class ManageProductController extends WebcController {
 
     if (typeof this.gtin !== "undefined") {
       this.storageService.getRecord(constants.LAST_VERSION_PRODUCTS_TABLE, this.gtin, (err, product) => {
+        this.model.submitLabel = "Update Product";
         this.model.product = new Product(product);
         this.model.product.version++;
         this.model.product.previousVersion = product.version;
@@ -95,6 +86,7 @@ export default class ManageProductController extends WebcController {
         ensureHolderCredential();
       });
     } else {
+      this.model.submitLabel = "Save Product";
       this.model.product = new Product();
       ensureHolderCredential();
     }
@@ -205,47 +197,6 @@ export default class ManageProductController extends WebcController {
       this.hideModal();
       this.navigateToPageTag("products");
 
-
-      // this.buildProductDSU(product, (err, keySSI) => {
-      //     if (err) {
-      //         this.hideModal();
-      //         printOpenDSUError(createOpenDSUErrorWrapper("Product DSU build failed!", err))
-      //         return this.showErrorModalAndRedirect("Product DSU build failed.", "products");
-      //     }
-      //
-      //     console.log("Product DSU KeySSI:", keySSI);
-      //
-      //     let finish = (err) => {
-      //         if (err) {
-      //             this.hideModal();
-      //             printOpenDSUError(createOpenDSUErrorWrapper("Product keySSI failed to be stored in your wallet.", err))
-      //             return this.showErrorModalAndRedirect("Product keySSI failed to be stored in your wallet.", "products");
-      //         }
-      //
-      //         this.storageService.commitBatch((err, res) => {
-      //             if (err) {
-      //                 printOpenDSUError(createOpenDSUErrorWrapper("Failed to commit batch. Concurrency issues or other issue", err))
-      //             }
-      //             this.hideModal();
-      //             this.navigateToPageTag("products");
-      //         });
-      //     }
-      //     if (typeof product.keySSI === "undefined") {
-      //         return this.buildConstProductDSU(product.gtin, keySSI, (err, gtinSSI) => {
-      //             if (err) {
-      //                 this.hideModal();
-      //                 printOpenDSUError(createOpenDSUErrorWrapper("Failed to create an Immutable Product DSU!", err))
-      //                 return this.showErrorModalAndRedirect("An Immutable DSU for the current GTIN already exists!", "products");
-      //             }
-      //
-      //             product.keySSI = keySSI;
-      //             console.log("ConstProductDSU GTIN_SSI:", gtinSSI);
-      //             this.persistProduct(product, finish);
-      //         });
-      //     }
-      //
-      //     this.persistProduct(product, finish);
-      // });
     });
   }
 
@@ -284,8 +235,6 @@ export default class ManageProductController extends WebcController {
 
     fileReader.readAsArrayBuffer(file);
   }
-
-
 
 
   getImageAsBase64(imageData) {
@@ -374,96 +323,6 @@ export default class ManageProductController extends WebcController {
     return true;
   }
 
-  buildConstProductDSU(gtin, productDSUKeySSI, callback) {
-    dsuBuilder.getTransactionId((err, transactionId) => {
-      if (err) {
-        return callback(err);
-      }
-      dsuBuilder.setGtinSSI(transactionId, dsuBuilder.holderInfo.domain, dsuBuilder.holderInfo.subdomain, gtin, (err) => {
-        if (err) {
-          return callback(err);
-        }
-
-        let keySSIInstance = productDSUKeySSI;
-        if (typeof keySSIInstance === "string") {
-          const keySSISpace = require("opendsu").loadAPI("keyssi");
-          keySSIInstance = keySSISpace.parse(keySSIInstance);
-        }
-        let sReadProductKeySSI = keySSIInstance.derive();
-        dsuBuilder.mount(transactionId, "/product", keySSIInstance.getIdentifier(), (err) => {
-          if (err) {
-            return callback(err);
-          }
-
-          //TODO: derive a sReadSSI here...
-          dsuBuilder.buildDossier(transactionId, callback);
-        });
-      });
-    });
-  }
-  //TODO: ************TO BE REMOVED************
-  buildProductDSU(product, callback) {
-    dsuBuilder.getTransactionId((err, transactionId) => {
-      if (err) {
-        return callback(err);
-      }
-
-      if (product.version > 1) {
-        this.updateProductDSU(transactionId, product, callback);
-      } else {
-        this.createProductDSU(transactionId, product, callback);
-      }
-    });
-
-  }
-
-  //TODO: ************TO BE REMOVED************
-  createProductDSU(transactionId, product, callback) {
-    const keyssiSpace = require("opendsu").loadAPI("keyssi");
-    const hint = JSON.stringify({bricksDomain: dsuBuilder.holderInfo.subdomain});
-
-    keyssiSpace.createSeedSSI(dsuBuilder.holderInfo.domain, undefined, hint, (err, keySSI)=>{
-      if(err){
-        return callback(err);
-      }
-
-      dsuBuilder.setKeySSI(transactionId, keySSI.getIdentifier(), {headers:{"x-force-dsu-create":true}}, (err)=>{
-        if (err) {
-          return callback(err);
-        }
-
-        this.addProductFilesToDSU(transactionId, product, (err, keySSI) => {
-          if (err) {
-            return callback(err);
-          }
-
-          callback(undefined, keySSI);
-        });
-      });
-    });
-  }
-
-  //TODO: ************TO BE REMOVED************
-  updateProductDSU(transactionId, product, callback) {
-    dsuBuilder.setKeySSI(transactionId, product.keySSI, (err) => {
-      if (err) {
-        return callback(err);
-      }
-
-      this.addProductFilesToDSU(transactionId, product, callback);
-    });
-  }
-
-
-  uploadFile(transactionId, filename, file, callback) {
-    dsuBuilder.addFileDataToDossier(transactionId, filename, file, (err, data) => {
-      if (err) {
-        return callback(err);
-      }
-      callback(undefined, data);
-    });
-  }
-
   getInheritedCards(product, version, callback){
     const resolver = require("opendsu").loadAPI("resolver");
     resolver.loadDSU(product.keySSI, (err, productDSU) => {
@@ -526,184 +385,5 @@ export default class ManageProductController extends WebcController {
 
   getAttachmentPath(version, attachmentType, language){
     return `${this.getPathToVersion(version)}/${attachmentType}/${language}`;
-  }
-
-  addProductFilesToDSU(transactionId, product, callback) {
-    const basePath = this.getPathToVersion(product.version);
-    product.leaflet = LEAFLET_ATTACHMENT_FILE;
-    const productStorageFile = basePath + PRODUCT_STORAGE_FILE;
-
-    //step #1 managing product photo
-    let imageProcessing = ()=>{
-      const imagePath = basePath + PRODUCT_IMAGE_FILE;
-
-      let finishedImageProcessing = (newImageAvailable)=>{
-        if(newImageAvailable){
-          //TODO: maybe we should remove this information from the product JSON before saving into DSU
-          product.photo = this.getPathToVersion(product.version)+PRODUCT_IMAGE_FILE;
-        }
-        processInformationFiles();
-      }
-
-      //if the user selected a photo we need to added into dsu
-      if(typeof this.productPhoto !== "undefined"){
-        //TODO: maybe we should remove this information from the product JSON before saving into DSU
-        product.photo = imagePath;
-        dsuBuilder.addFileDataToDossier(transactionId, basePath + PRODUCT_IMAGE_FILE, this.productPhoto, (err)=>{
-          if(err){
-            return callback(err);
-          }
-          finishedImageProcessing(true);
-        });
-      }else{
-        //if there was a photo on the previous product we need to copy to the new version
-        if (product.hasPhoto()) {
-          const src = this.getPathToVersion(product.version - 1) + PRODUCT_IMAGE_FILE;
-          const dest = imagePath;
-          //TODO: maybe we should remove this information from the product JSON before saving into DSU
-          product.photo = imagePath;
-          return dsuBuilder.copy(transactionId, src, dest, (err)=>{
-            if(err){
-              return callback(err);
-            }
-            finishedImageProcessing(true);
-          });
-        }
-
-        //??? should we remove any default photo from the product ???
-        //product.photo = "";
-        finishedImageProcessing();
-      }
-    }
-
-    //step #2 managing leaflet and smpc files updates
-    let processInformationFiles = (err) => {
-      if (err) {
-        return callback(err);
-      }
-
-      let languageTypeCards = this.model.languageTypeCards;
-
-      let processCard = (cardIndex) => {
-        let languageAndTypeCard = languageTypeCards[cardIndex];
-        if (!languageAndTypeCard) {
-          return finishingStep();
-        }
-
-        if (!languageAndTypeCard.inherited && languageAndTypeCard.files.length === 0) {
-          processCard(cardIndex + 1);
-        }
-
-        let uploadPath = this.getAttachmentPath(product.version, languageAndTypeCard.type.value, languageAndTypeCard.language.value);
-
-        if (!languageAndTypeCard.inherited) {
-          this.uploadAttachmentFiles(transactionId, uploadPath, languageAndTypeCard.type.value, languageAndTypeCard.files, doneProcessingCard);
-        } else {
-          const src = this.getAttachmentPath(product.version - 1, languageAndTypeCard.type.value, languageAndTypeCard.language.value);
-          const dest = this.getAttachmentPath(product.version, languageAndTypeCard.type.value, languageAndTypeCard.language.value);
-          dsuBuilder.copy(transactionId, src, dest, doneProcessingCard);
-        }
-
-        function doneProcessingCard(err) {
-          if (err) {
-            return callback(err);
-          }
-          if (cardIndex < languageTypeCards.length) {
-            processCard(cardIndex + 1)
-          } else {
-            return finishingStep();
-          }
-        }
-      }
-
-      return processCard(0);
-    };
-
-    //step #3 saving product into dsu as JSON and build DSU
-    let finishingStep = ()=>{
-      dsuBuilder.addFileDataToDossier(transactionId, productStorageFile, JSON.stringify(product), (err) => {
-        if (err) {
-          return callback(err);
-        }
-
-        dsuBuilder.buildDossier(transactionId, callback);
-      });
-    };
-
-    //start of the flow
-    imageProcessing();
-  }
-
-  uploadAttachmentFiles(transactionId, basePath, attachmentType, files, callback) {
-    if (files === undefined || files === null) {
-      return callback(undefined, []);
-    }
-    let xmlFiles = files.filter((file) => file.name.endsWith('.xml'))
-    if (xmlFiles.length === 0) {
-      return callback(new Error("No xml files found."))
-    }
-    let anyOtherFiles = files.filter((file) => !file.name.endsWith('.xml'))
-    let responses = [];
-    const uploadTypeConfig = {
-      "leaflet": LEAFLET_ATTACHMENT_FILE,
-      "smpc": SMPC_ATTACHMENT_FILE
-    }
-
-    this.uploadFile(transactionId, basePath + uploadTypeConfig[attachmentType], xmlFiles[0], (err, data) => {
-      if (err) {
-        return callback(err);
-      }
-      responses.push(data);
-
-      let uploadFilesRecursive = (file) => {
-        this.uploadFile(transactionId, basePath + "/" + file.name, file, (err, data) => {
-          if (err) {
-            return callback(err);
-          }
-          responses.push(data);
-          if (anyOtherFiles.length > 0) {
-            uploadFilesRecursive(anyOtherFiles.shift())
-          } else {
-            return callback(undefined, responses);
-          }
-        });
-      }
-
-      if (anyOtherFiles.length > 0) {
-        return uploadFilesRecursive(anyOtherFiles.shift());
-      }
-      return callback(undefined, responses);
-    });
-  }
-
-  //TODO: ************TO BE REMOVED************
-  persistProduct(product, callback) {
-    product.gs1Data = `(01)${product.gtin}(21)${Utils.generateNumericID(12)}(10)${Utils.generateID(6)}(17)111111`;
-    if (typeof this.gtin === "undefined") {
-      this.gtin = product.gtin;
-    }
-
-    product.creationTime = utils.convertDateTOGMTFormat(new Date());
-    this.logService.log({
-      logInfo: product,
-      username: this.model.username,
-      action: "Created product",
-      logType: 'PRODUCT_LOG'
-    }, () => {
-
-      // this.DSUStorage.call("mountDSU", `/${product.gtin}`, product.keySSI, (err) => {
-      this.saveImage(product, this.productPhoto||this.model.product.photo);
-      this.storageService.insertRecord(constants.PRODUCTS_TABLE, `${this.gtin}|${product.version}`, product, () => {
-        this.storageService.getRecord(constants.LAST_VERSION_PRODUCTS_TABLE, this.gtin, (err, prod) => {
-          if (err || !prod) {
-            product.initialVersion = product.version;
-            this.storageService.insertRecord(constants.LAST_VERSION_PRODUCTS_TABLE, this.gtin, product, callback);
-          } else {
-            this.storageService.updateRecord(constants.LAST_VERSION_PRODUCTS_TABLE, this.gtin, product, callback);
-          }
-        });
-      });
-    });
-    // });
   }
 }
