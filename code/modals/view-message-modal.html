@@ -1,0 +1,22 @@
+<div class="custom-modal-header header-color" slot="header">
+    <h5>{{@actionModalModel.title}}</h5>
+</div>
+<main>
+    <div class="code-container">
+        <psk-code id="view-json" language="json">
+            {{@actionModalModel.messageData}}
+        </psk-code>
+    </div>
+</main>
+<footer class="modal-action-menu" slot="footer">
+    <psk-button class="marketplace-manager-button" data-close label="@actionModalModel.denyButtonText"></psk-button>
+    <psk-button class="marketplace-manager-button" data-confirm label="@actionModalModel.acceptButtonText">
+        <psk-icon icon="download"></psk-icon>
+    </psk-button>
+
+</footer>
+<style>
+    .language-json {
+        max-height: 350px;
+    }
+</style>

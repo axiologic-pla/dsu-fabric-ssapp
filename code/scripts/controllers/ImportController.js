@@ -81,6 +81,28 @@ export default class importController extends WebcController {
             });
         });
 
+        this.onTagClick("view-message", (model, target, event) => {
+            this.model.actionModalModel = {
+                title: "Message",
+                messageData: JSON.stringify(model.message, null, 4),
+                denyButtonText: 'Close',
+                acceptButtonText: "Download"
+            }
+
+            this.showModalFromTemplate('view-message-modal',
+              () => {
+                  let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(model.message));
+                  let downloadAnchorNode = document.createElement('a');
+                  downloadAnchorNode.setAttribute("href", dataStr);
+                  downloadAnchorNode.setAttribute("download", model.itemType + "_"+ model.itemCode +".json");
+                  document.body.appendChild(downloadAnchorNode); // required for firefox
+                  downloadAnchorNode.click();
+                  downloadAnchorNode.remove();
+              }, () => {
+                  return
+              }, {model: this.model});
+        })
+
         this.getImportLogs();
     }
 
@@ -145,6 +167,7 @@ export default class importController extends WebcController {
                     }
                 }
             });
+
             this.model.successfullyImportedLogs = successfullyImportedLogs.reverse();
             this.model.failedImportedLogs = failedImportedLogs.reverse();
         });
