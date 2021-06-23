@@ -250,7 +250,7 @@ export default class addBatchController extends WebcController {
 
         if (versionIndex < 0) {
           return this.showErrorModal("All versions for this product are batch specific." +
-            " Latest can not be applied, please select a batch specific version o add a new version for this product");
+            " Latest can not be applied, please select a batch specific version or add a new version for this product");
         }
         const product = versionedRecords[versionIndex];
         this.model.productDescription = product.description || "";
