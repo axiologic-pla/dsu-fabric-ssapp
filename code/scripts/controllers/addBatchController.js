@@ -2,15 +2,17 @@ const {WebcController} = WebCardinal.controllers;
 import constants from "../constants.js";
 import Batch from "../models/Batch.js";
 import getSharedStorage from '../services/SharedDBStorageService.js';
-import DSU_Builder from "../services/DSU_Builder.js";
 import utils from "../utils.js";
 import LogService from "../services/LogService.js";
+import HolderService from "../services/HolderService.js";
 
-const dsuBuilder = new DSU_Builder();
+const holderService = HolderService.getHolderService();
 
 export default class addBatchController extends WebcController {
-  constructor(element, history) {
-    super(element, history);
+  constructor(...props) {
+    super(...props);
+    const epiUtils = require("epi-utils").getMappingsUtils();
+    const mappings = require("epi-utils").loadApi("mappings");
     let state = this.history.location.state;
     const editMode = state != null && state.batchData != null;
     const editData = editMode ? JSON.parse(state.batchData) : undefined;
@@ -21,8 +23,14 @@ export default class addBatchController extends WebcController {
     // this.serialNumbersLogService = new LogService(this.DSUStorage, constants.SERIAL_NUMBERS_LOGS_TABLE);
     this.serialNumbersLogService = getSharedStorage(this.DSUStorage);
     this.versionOffset = 1;
-    dsuBuilder.ensureHolderInfo((err, holderInfo) => {
+    holderService.ensureHolderInfo((err, holderInfo) => {
       if (!err) {
+
+        this.mappingEngine = mappings.getEPIMappingEngine(this.DSUStorage, {
+          holderInfo: holderInfo,
+          logService: this.logService
+        });
+
         this.model.username = holderInfo.userDetails.username;
       } else {
         this.showErrorModalAndRedirect("Invalid configuration detected! Configure your wallet properly in the Holder section!", "batches");
@@ -90,8 +98,9 @@ export default class addBatchController extends WebcController {
 
     this.onTagClick("cancel", () => {
       this.navigateToPageTag("batches");
-    })
-    this.onTagClick("add-batch", () => {
+    });
+
+    this.onTagClick("add-batch", async () => {
       if (!this.model.batch.gtin) {
         return this.showErrorModal("Invalid product code. Please select a valid code");
       }
@@ -104,9 +113,8 @@ export default class addBatchController extends WebcController {
           batch.expiryForDisplay = utils.getIgnoreDayDate(batch.expiryForDisplay)
       }
       batch.expiry = utils.convertDateToGS1Format(batch.expiryForDisplay, batch.enableExpiryDay);
-      this.storageService.filter(constants.BATCHES_STORAGE_TABLE, "__timestamp > 0", (err, batches) => {
         try {
-          this.addSerialNumbers(batch);
+          //this.addSerialNumbers(batch);
         } catch (err) {
           return this.showErrorModal(err, "Invalid list of serial numbers");
         }
@@ -124,25 +132,54 @@ export default class addBatchController extends WebcController {
             modalTitle: "Info",
             modalContent: "Saving batch..."
           });
-          this.buildBatchDSU(batch, (err, keySSI) => {
-            if (err) {
-              printOpenDSUError(createOpenDSUErrorWrapper("Batch DSU build failed.", err));
-              return this.showErrorModalAndRedirect("Batch DSU build failed.", "batches");
-            }
-            batch.keySSI = keySSI;
-            batch.creationTime = utils.convertDateTOGMTFormat(new Date());
 
-            this.buildImmutableDSU(batch, (err, gtinSSI) => {
-              if (err) {
-                printOpenDSUError(createOpenDSUErrorWrapper("Failed to build immutable DSU", err));
-                return this.showErrorModalAndRedirect("Failed to build immutable DSU", "batches");
-              }
-              this.persistBatch(batch);
-            });
-          });
+          let message = {
+            messageType:"Batch",
+            batch:{}
+          }
+
+          let batchPropsMapping= epiUtils.batchDataSourceMapping
+
+          for(let prop in batch){
+            if(typeof batchPropsMapping[prop] !== "undefined"){
+              message.batch[batchPropsMapping[prop]] = batch[prop];
+            }
+            else{
+              message.batch[prop] = batch[prop];
+            }
+          }
+
+          try{
+            console.log(message);
+            let undigestedMessages = await this.mappingEngine.digestMessages([message]);
+            console.log(undigestedMessages);
+          }
+          catch (e) {
+            console.log(e);
+          }
+
+          this.hideModal();
+          this.navigateToPageTag("batches");
+
+
+          // this.buildBatchDSU(batch, (err, keySSI) => {
+          //   if (err) {
+          //     printOpenDSUError(createOpenDSUErrorWrapper("Batch DSU build failed.", err));
+          //     return this.showErrorModalAndRedirect("Batch DSU build failed.", "batches");
+          //   }
+          //   batch.keySSI = keySSI;
+          //   batch.creationTime = utils.convertDateTOGMTFormat(new Date());
+          //
+          //   this.buildImmutableDSU(batch, (err, gtinSSI) => {
+          //     if (err) {
+          //       printOpenDSUError(createOpenDSUErrorWrapper("Failed to build immutable DSU", err));
+          //       return this.showErrorModalAndRedirect("Failed to build immutable DSU", "batches");
+          //     }
+          //     this.persistBatch(batch);
+          //   });
+          // });
 
         }
-      });
     });
 
     this.onTagClick("update-batch", () => {
@@ -238,19 +275,20 @@ export default class addBatchController extends WebcController {
   }
 
   initBatch() {
-    try {
-      this.storageService.beginBatch();
-    } catch (err) {
-      reportUserRelevantError("Dropping previous user input");
-      this.storageService.cancelBatch((err, res) => {
-        this.storageService.beginBatch();
-      })
-    }
     let result = this.model.batch;
-    result.serialNumbers = this.model.serialNumbers;
-    result.recalledSerialNumbers = this.model.recalledSerialNumbers;
-    result.decommissionedSerialNumbers = this.model.decommissionedSerialNumbers;
+    result.serialNumbers = this.stringToArray(this.model.serialNumbers);
+    result.recalledSerialNumbers = this.stringToArray(this.model.recalledSerialNumbers);
+    result.decommissionedSerialNumbers = this.stringToArray(this.model.decommissionedSerialNumbers);
+    console.log(result);
     return result;
+  }
+
+  //TODO move it to utils
+  stringToArray(string){
+    if(typeof string ==="undefined"){
+      return [];
+    }
+    return string.split(/[ ,]+/).filter(v => v !== '')
   }
 
   getVersionOptions = (gtin) => {
@@ -408,33 +446,34 @@ export default class addBatchController extends WebcController {
     }
 
   }
+  //TODO: remove it
+  // buildBatchDSU(batch, callback) {
+  //   const keyssiSpace = require("opendsu").loadAPI("keyssi");
+  //   const hint = JSON.stringify({bricksDomain: dsuBuilder.holderInfo.subdomain});
+  //
+  //   dsuBuilder.getTransactionId((err, transactionId) => {
+  //     if (err) {
+  //       return callback(err);
+  //     }
+  //
+  //     keyssiSpace.createSeedSSI(dsuBuilder.holderInfo.domain, undefined, hint, (err, keySSI) => {
+  //       if (err) {
+  //         return callback(err);
+  //       }
+  //
+  //       dsuBuilder.setKeySSI(transactionId, keySSI.getIdentifier(), {headers: {"x-force-dsu-create": true}}, (err) => {
+  //         if (err) {
+  //           return callback(err);
+  //         }
+  //
+  //         this.writeDataToBatchDSU(batch, transactionId, callback);
+  //       });
+  //     });
+  //   });
+  // }
 
-  buildBatchDSU(batch, callback) {
-    const keyssiSpace = require("opendsu").loadAPI("keyssi");
-    const hint = JSON.stringify({bricksDomain: dsuBuilder.holderInfo.subdomain});
-
-    dsuBuilder.getTransactionId((err, transactionId) => {
-      if (err) {
-        return callback(err);
-      }
-
-      keyssiSpace.createSeedSSI(dsuBuilder.holderInfo.domain, undefined, hint, (err, keySSI) => {
-        if (err) {
-          return callback(err);
-        }
-
-        dsuBuilder.setKeySSI(transactionId, keySSI.getIdentifier(), {headers: {"x-force-dsu-create": true}}, (err) => {
-          if (err) {
-            return callback(err);
-          }
-
-          this.writeDataToBatchDSU(batch, transactionId, callback);
-        });
-      });
-    });
-  }
-
-  updateBatchDSU(batch, callback) {
+  //TODO remove it
+  /*updateBatchDSU(batch, callback) {
     dsuBuilder.getTransactionId((err, transactionId) => {
       if (err) {
         return callback(err);
@@ -446,9 +485,11 @@ export default class addBatchController extends WebcController {
         this.writeDataToBatchDSU(batch, transactionId, true, callback);
       })
     });
-  }
+  }*/
 
-  writeDataToBatchDSU(batch, transactionId, ignoreMount, callback) {
+
+  //TODO remove it
+  /*writeDataToBatchDSU(batch, transactionId, ignoreMount, callback) {
     if (typeof ignoreMount === "function") {
       callback = ignoreMount;
       ignoreMount = false;
@@ -477,9 +518,9 @@ export default class addBatchController extends WebcController {
         dsuBuilder.buildDossier(transactionId, callback);
       });
     });
-  }
-
-  buildImmutableDSU(batch, callback) {
+  }*/
+  //TODO remove it
+  /*buildImmutableDSU(batch, callback) {
     dsuBuilder.getTransactionId((err, transactionId) => {
       if (err) {
         return callback(err);
@@ -501,9 +542,9 @@ export default class addBatchController extends WebcController {
         });
       });
     });
-  }
-
-  persistBatchInWallet(batch, callback) {
+  }*/
+  //TODO remove it
+  /*persistBatchInWallet(batch, callback) {
     this.storageService.getRecord(constants.BATCHES_STORAGE_TABLE, batch.batchNumber, (err, record) => {
       if (err || !record) {
         this.storageService.insertRecord(constants.BATCHES_STORAGE_TABLE, batch.batchNumber, batch, callback);
@@ -511,6 +552,6 @@ export default class addBatchController extends WebcController {
         this.storageService.updateRecord(constants.BATCHES_STORAGE_TABLE, batch.batchNumber, batch, callback);
       }
     });
-  }
+  }*/
 
 };

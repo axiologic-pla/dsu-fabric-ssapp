@@ -132,9 +132,6 @@ export default class ManageProductController extends WebcController {
       }
       message.product.photo = product.photo;
 
-
-      console.log(this.model.languageTypeCards);
-
       try{
         let undigestedMessages = await this.mappingEngine.digestMessages([message]);
         console.log(undigestedMessages);
