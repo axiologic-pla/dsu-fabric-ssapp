@@ -18,8 +18,8 @@
                         <th scope="col">Type</th>
                         <th scope="col">Date</th>
                         <th scope="col">Status</th>
+                        <th scope="col">Command</th>
                         <th scope="col">Action</th>
-                        <th scope="col"> -</th>
                     </tr>
                     </thead>
                     <tbody data-for="@successfullyImportedLogs">
@@ -30,7 +30,7 @@
                         <td>{{@status}}</td>
                         <td>{{@action}}</td>
                         <td>
-                            <button class="btn btn-sm" data-tag="view-message">View Message</button>
+                            <button class="btn btn-link p-0 col align-self-center text-left" data-tag="view-message">View Message</button>
                         </td>
                     </tr>
                     </tbody>
@@ -45,8 +45,8 @@
                         <th scope="col">Type</th>
                         <th scope="col">Date</th>
                         <th scope="col">Status</th>
+                        <th scope="col">Command</th>
                         <th scope="col">Action</th>
-                        <th scope="col"> -</th>
                     </tr>
                     </thead>
                     <tbody data-for="@failedImportedLogs">
@@ -57,7 +57,7 @@
                         <td>{{@status}}</td>
                         <td>{{@action}}</td>
                         <td>
-                            <button class="btn btn-sm" data-tag="view-message">View Message</button>
+                            <button class="btn btn-link p-0 col align-self-center text-left" data-tag="view-message">View Message</button>
                         </td>
                     </tr>
                     </tbody>

@@ -18,6 +18,7 @@ export default class Product {
   adverseEventsReportingEnabled = true;
   antiCounterfeitingEnabled = true;
   showEPIOnBatchRecalled = false;
+  showEPIOnUnknownBatchNumber = false;
   showEPIOnSNRecalled = false;
   showEPIOnSNDecommissioned = false;
   showEPIOnSNUnknown = false;

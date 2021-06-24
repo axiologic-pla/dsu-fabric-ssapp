@@ -294,7 +294,6 @@ export default class addBatchController extends WebcController {
     result.serialNumbers = this.stringToArray(this.model.serialNumbers);
     result.recalledSerialNumbers = this.stringToArray(this.model.recalledSerialNumbers);
     result.decommissionedSerialNumbers = this.stringToArray(this.model.decommissionedSerialNumbers);
-    console.log(result);
     return result;
   }
 
@@ -431,33 +430,32 @@ export default class addBatchController extends WebcController {
   }
 
   addSerialNumbers(batch) {
-    const serialError = new Error("Error on add serial numbers");
 
-    if (batch.serialNumbers) {
-      let serialNumbersArray = batch.serialNumbers.split(/[\r\n ,]+/);
-      if (serialNumbersArray.length === 0 || serialNumbersArray[0] === '') {
-        throw serialError;
-      }
-      batch.defaultSerialNumber = serialNumbersArray[0];
-      batch.addSerialNumbers(serialNumbersArray, "validSerialNumbers");
+    if (batch.serialNumbers.length>0) {
+      // let serialNumbersArray = batch.serialNumbers.split(/[\r\n ,]+/);
+      // if (serialNumbersArray.length === 0 || serialNumbersArray[0] === '') {
+      //   throw serialError;
+      // }
+      batch.defaultSerialNumber = batch.serialNumbers[0];
+      //batch.addSerialNumbers(serialNumbersArray, "validSerialNumbers");
     }
 
-    if (batch.recalledSerialNumbers) {
-      let recalledSerialNumbersArray = batch.recalledSerialNumbers.split(/[\r\n ,]+/);
-      if (recalledSerialNumbersArray.length === 0 || recalledSerialNumbersArray[0] === '') {
-        throw serialError;
-      }
-      batch.defaultRecalledSerialNumber = recalledSerialNumbersArray[0];
-      batch.addSerialNumbers(recalledSerialNumbersArray, "recalledSerialNumbers");
+    if (batch.recalledSerialNumbers.length>0) {
+      // let recalledSerialNumbersArray = batch.recalledSerialNumbers.split(/[\r\n ,]+/);
+      // if (recalledSerialNumbersArray.length === 0 || recalledSerialNumbersArray[0] === '') {
+      //   throw serialError;
+      // }
+      batch.defaultRecalledSerialNumber = batch.recalledSerialNumbers[0];
+      //batch.addSerialNumbers(recalledSerialNumbersArray, "recalledSerialNumbers");
     }
 
-    if (batch.decommissionedSerialNumbers) {
-      let decommissionedSerialNumbersArray = batch.decommissionedSerialNumbers.split(/[\r\n ,]+/);
-      if (decommissionedSerialNumbersArray.length === 0 || decommissionedSerialNumbersArray[0] === '') {
-        throw serialError;
-      }
-      batch.defaultDecommissionedSerialNumber = decommissionedSerialNumbersArray[0];
-      batch.addSerialNumbers(decommissionedSerialNumbersArray, "decommissionedSerialNumbers");
+    if (batch.decommissionedSerialNumbers.length>0) {
+      // let decommissionedSerialNumbersArray = batch.decommissionedSerialNumbers.split(/[\r\n ,]+/);
+      // if (decommissionedSerialNumbersArray.length === 0 || decommissionedSerialNumbersArray[0] === '') {
+      //   throw serialError;
+      // }
+      batch.defaultDecommissionedSerialNumber = batch.decommissionedSerialNumbers[0];
+      //batch.addSerialNumbers(decommissionedSerialNumbersArray, "decommissionedSerialNumbers");
     }
 
   }

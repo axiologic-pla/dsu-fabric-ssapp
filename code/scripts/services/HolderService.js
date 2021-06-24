@@ -16,9 +16,9 @@ class HolderService {
                 if (err) {
                     return callback(Error("No holder info available!"));
                 }
-
-                if(typeof holderInfo.subdomain ==="undefined"){
-                    holderInfo.subdomain = "default";
+                debugger;
+                if(!holderInfo.subdomain){
+                    holderInfo.subdomain = holderInfo.domain;
                 }
 
                 this.holderInfo = holderInfo;
