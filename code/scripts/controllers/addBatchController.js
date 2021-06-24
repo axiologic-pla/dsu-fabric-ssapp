@@ -46,10 +46,6 @@ export default class addBatchController extends WebcController {
       placeholder: "Select a product"
     }
 
-    this.model.versions = {
-      placeholder: "-"
-    }
-
     this.model.serial_update_options = {
       options: [
         {label: "Update Valid", value: "update-valid-serial"},
@@ -60,10 +56,6 @@ export default class addBatchController extends WebcController {
       placeholder: "Select an option"
     }
     if (editMode) {
-      this.getVersionOptions(this.model.batch.gtin).then(result => {
-        this.model.versions.options = result;
-        this.model.versions.value = this.model.batch.version;
-      });
       this.gtin = this.model.batch.gtin;
     }
 
@@ -74,7 +66,7 @@ export default class addBatchController extends WebcController {
       this.model.serialNumbersLogs = logs;
     });
 
-    this.storageService.filter(constants.LAST_VERSION_PRODUCTS_TABLE, "__timestamp > 0", (err, products) => {
+    this.storageService.filter(constants.PRODUCTS_TABLE, "__timestamp > 0", (err, products) => {
       if (err || !products) {
         printOpenDSUError(createOpenDSUErrorWrapper("Failed to retrieve products list!", err));
         return this.showErrorModalAndRedirect("Failed to retrieve products list! Create a product first!", "products", 5000);
@@ -114,7 +106,7 @@ export default class addBatchController extends WebcController {
       }
       batch.expiry = utils.convertDateToGS1Format(batch.expiryForDisplay, batch.enableExpiryDay);
         try {
-          //this.addSerialNumbers(batch);
+          this.addSerialNumbers(batch);
         } catch (err) {
           return this.showErrorModal(err, "Invalid list of serial numbers");
         }
@@ -223,51 +215,74 @@ export default class addBatchController extends WebcController {
       }
     });
 
+
+    // this.model.onChange("batch.gtin",()=>{
+    //   this.model.batch.gtin = product.gtin;
+    //   this.model.batch.productName = product.name;
+    //   this.model.batch.product = product.keySSI
+    // })
+
     this.model.onChange("products.value", async (event) => {
-      this.model.versions.options = await this.getVersionOptions(this.model.products.value);
-      this.model.versions.value = "latest";
-      this.gtin = this.model.products.value;
-    })
-
-    this.model.onChange("versions.value", (event) => {
-      if (typeof this.gtin === "undefined") {
-        return this.showErrorModal("A product should be selected before selecting a version");
-      }
-
-      this.storageService.filter(constants.PRODUCTS_TABLE, "__timestamp > 0", (err, records) => {
-        const versionedRecords = records.filter(record => record.gtin === this.gtin);
-        let versionIndex;
-        if (this.model.versions.value !== "latest") {
-          versionIndex = parseInt(this.model.versions.value - this.versionOffset);
-        } else {
-          //latest version is calculated form selected product array
-          //exclude batch specific versions to calculate latest version
-          versionIndex = this.model.versions.options.length - this.versionOffset - 1;
-          while (versionIndex >= 0 && versionedRecords[versionIndex].batchSpecificVersion) {
-            versionIndex--
-          }
+      this.model.batch.gtin = this.model.products.value;
+      this.storageService.filter(constants.PRODUCTS_TABLE, `gtin == ${this.model.products.value}`, (err, products) => {
+        if(err){
+          printOpenDSUError(createOpenDSUErrorWrapper("Failed to get a valid product", err));
+          return this.showErrorModalAndRedirect("Failed to get a valid product", "batches");
         }
-
-        if (versionIndex < 0) {
-          return this.showErrorModal("All versions for this product are batch specific." +
-            " Latest can not be applied, please select a batch specific version o add a new version for this product");
-        }
-        const product = versionedRecords[versionIndex];
-        this.model.productDescription = product.description || "";
-        this.model.batch.language = product.language;
-        if (this.model.versions.value === "latest") {
-          this.model.batch.version = this.model.versions.value;
-          this.model.batch.versionLabel = this.model.versions.value;
-        } else {
-          this.model.batch.version = product.version;
-          this.model.batch.versionLabel = product.batchSpecificVersion ? product.version + " - (batch specific)" : product.version;
-        }
+        let product = products[0];
         this.model.batch.gtin = product.gtin;
         this.model.batch.productName = product.name;
-        this.model.batch.product = product.keySSI;
+        this.model.productDescription = product.description || "";
+        this.model.batch.product = product.keySSI
       });
 
+
+
+
+
+
     })
+    //TODO remove it
+    // this.model.onChange("versions.value", (event) => {
+    //   if (typeof this.gtin === "undefined") {
+    //     return this.showErrorModal("A product should be selected before selecting a version");
+    //   }
+    //
+    //   this.storageService.filter(constants.PRODUCTS_TABLE, "__timestamp > 0", (err, records) => {
+    //     const versionedRecords = records.filter(record => record.gtin === this.gtin);
+    //     let versionIndex;
+    //     if (this.model.versions.value !== "latest") {
+    //       versionIndex = parseInt(this.model.versions.value - this.versionOffset);
+    //     } else {
+    //       //latest version is calculated form selected product array
+    //       //exclude batch specific versions to calculate latest version
+    //       versionIndex = this.model.versions.options.length - this.versionOffset - 1;
+    //       //TODO remove it
+    //       // while (versionIndex >= 0 && versionedRecords[versionIndex].batchSpecificVersion) {
+    //       //   versionIndex--
+    //       // }
+    //     }
+    //
+    //     if (versionIndex < 0) {
+    //       return this.showErrorModal("All versions for this product are batch specific." +
+    //         " Latest can not be applied, please select a batch specific version o add a new version for this product");
+    //     }
+    //     const product = versionedRecords[versionIndex];
+    //     this.model.productDescription = product.description || "";
+    //     this.model.batch.language = product.language;
+    //     if (this.model.versions.value === "latest") {
+    //       this.model.batch.version = this.model.versions.value;
+    //       this.model.batch.versionLabel = this.model.versions.value;
+    //     } else {
+    //       this.model.batch.version = product.version;
+    //       this.model.batch.versionLabel =  product.version;
+    //     }
+    //     this.model.batch.gtin = product.gtin;
+    //     this.model.batch.productName = product.name;
+    //     this.model.batch.product = product.keySSI;
+    //   });
+    //
+    // })
 
     this.on('openFeedback', (e) => {
       this.feedbackEmitter = e.detail;
@@ -290,25 +305,25 @@ export default class addBatchController extends WebcController {
     }
     return string.split(/[ ,]+/).filter(v => v !== '')
   }
-
-  getVersionOptions = (gtin) => {
-    return new Promise((resolve, reject) => {
-      this.storageService.getRecord(constants.LAST_VERSION_PRODUCTS_TABLE, gtin, (err, product) => {
-        if (err) {
-          return reject(err)
-        } else {
-          this.versionOffset = product.initialVersion;
-          const options = [];
-          let labelValue = product.batchSpecificVersion ? " - (batch specific)" : ""
-          for (let i = this.versionOffset; i <= product.version; i++) {
-            options.push({label: i + labelValue, value: i + ""});
-          }
-          options.unshift({label: "latest version", value: "latest"});
-          resolve(options);
-        }
-      });
-    })
-  }
+  //TODO remove it
+  // getVersionOptions = (gtin) => {
+  //   return new Promise((resolve, reject) => {
+  //     this.storageService.getRecord(constants.LAST_VERSION_PRODUCTS_TABLE, gtin, (err, product) => {
+  //       if (err) {
+  //         return reject(err)
+  //       } else {
+  //         this.versionOffset = product.initialVersion;
+  //         const options = [];
+  //
+  //         for (let i = this.versionOffset; i <= product.version; i++) {
+  //           options.push({label: i, value: i});
+  //         }
+  //         options.unshift({label: "latest version", value: "latest"});
+  //         resolve(options);
+  //       }
+  //     });
+  //   })
+  // }
   persistBatch = (batch) => {
     this.persistBatchInWallet(batch, (err) => {
       if (err) {

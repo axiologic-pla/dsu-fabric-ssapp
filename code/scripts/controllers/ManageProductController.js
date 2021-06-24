@@ -65,13 +65,12 @@ export default class ManageProductController extends WebcController {
     };
 
     if (typeof this.gtin !== "undefined") {
-      this.storageService.getRecord(constants.LAST_VERSION_PRODUCTS_TABLE, this.gtin, (err, product) => {
+      this.storageService.getRecord(constants.PRODUCTS_TABLE, this.gtin, (err, product) => {
         this.model.submitLabel = "Update Product";
         this.model.product = new Product(product);
         this.model.product.version++;
         this.model.product.previousVersion = product.version;
         this.model.product.isCodeEditable = false;
-        this.model.product.batchSpecificVersion = false;
         this.getInheritedCards(product, product.version, (err, inheritedCards) => {
           if (err) {
             this.showErrorModalAndRedirect("Failed to get inherited cards", "products");
@@ -160,26 +159,30 @@ export default class ManageProductController extends WebcController {
 
           for (let i = 0; i < this.model.languageTypeCards.length; i++) {
             let card = this.model.languageTypeCards[i];
-            let cardMessage = {
-              inherited:card.inherited,
-              productCode: message.product.productCode,
-              language: card.language.value,
-              messageType: card.type.value
-            }
 
             if (!card.inherited) {
-              cardMessage.xmlFileContent = await $$.promisify(this.getXMLFileContent.bind(this))(card.files);
-              cardMessage.otherFilesContent = await $$.promisify(this.getOtherCardFiles.bind(this))(card.files)
+
+              let cardMessage = {
+                inherited: card.inherited,
+                productCode: message.product.productCode,
+                language: card.language.value,
+                messageType: card.type.value,
+                xmlFileContent: await $$.promisify(this.getXMLFileContent.bind(this))(card.files),
+                otherFilesContent: await $$.promisify(this.getOtherCardFiles.bind(this))(card.files)
+              }
+              cardMessages.push(cardMessage);
             }
 
-            cardMessages.push(cardMessage);
+
           }
-          let undigestedLeafletMessages = await this.mappingEngine.digestMessages(cardMessages);
-          console.log(undigestedLeafletMessages);
+          if(cardMessages.length>0){
+            let undigestedLeafletMessages = await this.mappingEngine.digestMessages(cardMessages);
+            console.log(undigestedLeafletMessages);
+          }
 
         }
         else{
-          //show an error?
+          //TODO show an error?
         }
 
       }
@@ -364,18 +367,14 @@ export default class ManageProductController extends WebcController {
   }
 
   getPathToLeaflet(version){
-    return `${this.getPathToVersion(version)}/leaflet`;
+    return `/leaflet`;
   }
 
   getPathToSmPC(version){
-    return `${this.getPathToVersion(version)}/smpc`;
-  }
-
-  getPathToVersion(version){
-    return `/product/${version}`;
+    return `/smpc`;
   }
 
   getAttachmentPath(version, attachmentType, language){
-    return `${this.getPathToVersion(version)}/${attachmentType}/${language}`;
+    return `/${attachmentType}/${language}`;
   }
 }
