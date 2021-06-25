@@ -57,6 +57,9 @@ export default class addBatchController extends WebcController {
     if (editMode) {
       this.gtin = this.model.batch.gtin;
       this.model.batch.version++;
+
+      this.model.batch.enableExpiryDay = this.model.batch.expiry.slice(-2) !== "00";
+
       this.getProductFromGtin(this.gtin, (err, product) => {
         this.model.batch.productName = product.name;
         this.model.productDescription = product.description;
