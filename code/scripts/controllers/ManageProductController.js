@@ -139,19 +139,18 @@ export default class ManageProductController extends WebcController {
           //process photo
 
           let newPhoto = typeof this.productPhoto !== "undefined";
-
-          let addPhotoMessage = {
-            inherited: !newPhoto,
-            messageType: "ProductPhoto",
-            productCode: message.product.productCode,
-            senderId: this.model.username,
-          }
           if (newPhoto) {
-            addPhotoMessage.imageData = arrayBufferToBase64(this.productPhoto);
-          }
+            let addPhotoMessage = {
+              inherited: !newPhoto,
+              messageType: "ProductPhoto",
+              productCode: message.product.productCode,
+              senderId: this.model.username,
+              imageData : arrayBufferToBase64(this.productPhoto)
+            }
 
-          undigestedMessages = await this.mappingEngine.digestMessages([addPhotoMessage])
-          console.log("Photo undigested messages", undigestedMessages);
+            undigestedMessages = await this.mappingEngine.digestMessages([addPhotoMessage])
+            console.log("Photo undigested messages", undigestedMessages);
+          }
 
           //process leaflet & cards smpc
 
