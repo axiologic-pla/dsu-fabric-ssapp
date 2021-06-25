@@ -20,7 +20,6 @@ export default class addBatchController extends WebcController {
     this.setModel({});
     this.storageService = getSharedStorage(this.DSUStorage);
     this.logService = new LogService(this.DSUStorage);
-    // this.serialNumbersLogService = new LogService(this.DSUStorage, constants.SERIAL_NUMBERS_LOGS_TABLE);
     this.serialNumbersLogService = getSharedStorage(this.DSUStorage);
     this.versionOffset = 1;
     holderService.ensureHolderInfo((err, holderInfo) => {
@@ -57,6 +56,11 @@ export default class addBatchController extends WebcController {
     }
     if (editMode) {
       this.gtin = this.model.batch.gtin;
+      this.model.batch.version++;
+      this.getProductFromGtin(this.gtin, (err, product) => {
+        this.model.batch.productName = product.name;
+        this.model.productDescription = product.description;
+      });
     }
 
     this.serialNumbersLogService.filter(this.model.batch.batchNumber, "__timestamp > 0", (err, logs) => {
@@ -92,7 +96,7 @@ export default class addBatchController extends WebcController {
       this.navigateToPageTag("batches");
     });
 
-    this.onTagClick("add-batch", async () => {
+    let addOrUpdateBatch = async () => {
       if (!this.model.batch.gtin) {
         return this.showErrorModal("Invalid product code. Please select a valid code");
       }
@@ -116,7 +120,6 @@ export default class addBatchController extends WebcController {
           printOpenDSUError(createOpenDSUErrorWrapper("Invalid batch info", err));
           return this.showErrorModalAndRedirect("Invalid batch info" + err.message, "batches");
         }
-        if (!this.model.editMode) {
           this.createWebcModal({
             disableExpanding: true,
             disableClosing: true,
@@ -152,60 +155,11 @@ export default class addBatchController extends WebcController {
 
           this.hideModal();
           this.navigateToPageTag("batches");
+    };
 
+    this.onTagClick("update-batch", addOrUpdateBatch)
+    this.onTagClick("add-batch", addOrUpdateBatch);
 
-          // this.buildBatchDSU(batch, (err, keySSI) => {
-          //   if (err) {
-          //     printOpenDSUError(createOpenDSUErrorWrapper("Batch DSU build failed.", err));
-          //     return this.showErrorModalAndRedirect("Batch DSU build failed.", "batches");
-          //   }
-          //   batch.keySSI = keySSI;
-          //   batch.creationTime = utils.convertDateTOGMTFormat(new Date());
-          //
-          //   this.buildImmutableDSU(batch, (err, gtinSSI) => {
-          //     if (err) {
-          //       printOpenDSUError(createOpenDSUErrorWrapper("Failed to build immutable DSU", err));
-          //       return this.showErrorModalAndRedirect("Failed to build immutable DSU", "batches");
-          //     }
-          //     this.persistBatch(batch);
-          //   });
-          // });
-
-        }
-    });
-
-    this.onTagClick("update-batch", () => {
-      let batch = this.initBatch();
-      if (!batch.expiryForDisplay) {
-        return this.showErrorModal("Invalid date");
-      }
-
-      // manage ignore date if day is not used we save it as last day of the month
-      if (!batch.enableExpiryDay) {
-        batch.expiryForDisplay = utils.getIgnoreDayDate(batch.expiryForDisplay)
-      }
-      batch.expiry = utils.convertDateToGS1Format(batch.expiryForDisplay, batch.enableExpiryDay);
-
-      try {
-        this.addSerialNumbers(batch);
-      } catch (err) {
-        return this.showErrorModal("Invalid list of serial numbers");
-      }
-      this.createWebcModal({
-        disableExpanding: true,
-        disableClosing: true,
-        disableFooter: true,
-        modalTitle: "Info",
-        modalContent: "Saving batch..."
-      });
-      this.updateBatchDSU(batch, (err, gtinSSI) => {
-        if (err) {
-          printOpenDSUError(createOpenDSUErrorWrapper("Failed to update batch DSU", err));
-          return this.showErrorModalAndRedirect("Failed to update batch DSU", "batches");
-        }
-        this.persistBatch(batch);
-      });
-    })
 
     this.model.onChange("serial_update_options.value", (event) => {
       if (this.model.serial_update_options.value === "update-history") {
@@ -215,77 +169,36 @@ export default class addBatchController extends WebcController {
       }
     });
 
-
-    // this.model.onChange("batch.gtin",()=>{
-    //   this.model.batch.gtin = product.gtin;
-    //   this.model.batch.productName = product.name;
-    //   this.model.batch.product = product.keySSI
-    // })
-
     this.model.onChange("products.value", async (event) => {
       this.model.batch.gtin = this.model.products.value;
-      this.storageService.filter(constants.PRODUCTS_TABLE, `gtin == ${this.model.products.value}`, (err, products) => {
+      this.getProductFromGtin(this.model.batch.gtin,(err, product)=>{
         if(err){
           printOpenDSUError(createOpenDSUErrorWrapper("Failed to get a valid product", err));
           return this.showErrorModalAndRedirect("Failed to get a valid product", "batches");
         }
-        let product = products[0];
         this.model.batch.gtin = product.gtin;
         this.model.batch.productName = product.name;
         this.model.productDescription = product.description || "";
         this.model.batch.product = product.keySSI
       });
-
-
-
-
-
-
     })
-    //TODO remove it
-    // this.model.onChange("versions.value", (event) => {
-    //   if (typeof this.gtin === "undefined") {
-    //     return this.showErrorModal("A product should be selected before selecting a version");
-    //   }
-    //
-    //   this.storageService.filter(constants.PRODUCTS_TABLE, "__timestamp > 0", (err, records) => {
-    //     const versionedRecords = records.filter(record => record.gtin === this.gtin);
-    //     let versionIndex;
-    //     if (this.model.versions.value !== "latest") {
-    //       versionIndex = parseInt(this.model.versions.value - this.versionOffset);
-    //     } else {
-    //       //latest version is calculated form selected product array
-    //       //exclude batch specific versions to calculate latest version
-    //       versionIndex = this.model.versions.options.length - this.versionOffset - 1;
-    //       //TODO remove it
-    //       // while (versionIndex >= 0 && versionedRecords[versionIndex].batchSpecificVersion) {
-    //       //   versionIndex--
-    //       // }
-    //     }
-    //
-    //     if (versionIndex < 0) {
-    //       return this.showErrorModal("All versions for this product are batch specific." +
-    //         " Latest can not be applied, please select a batch specific version o add a new version for this product");
-    //     }
-    //     const product = versionedRecords[versionIndex];
-    //     this.model.productDescription = product.description || "";
-    //     this.model.batch.language = product.language;
-    //     if (this.model.versions.value === "latest") {
-    //       this.model.batch.version = this.model.versions.value;
-    //       this.model.batch.versionLabel = this.model.versions.value;
-    //     } else {
-    //       this.model.batch.version = product.version;
-    //       this.model.batch.versionLabel =  product.version;
-    //     }
-    //     this.model.batch.gtin = product.gtin;
-    //     this.model.batch.productName = product.name;
-    //     this.model.batch.product = product.keySSI;
-    //   });
-    //
-    // })
 
     this.on('openFeedback', (e) => {
       this.feedbackEmitter = e.detail;
+    });
+  }
+
+  getProductFromGtin (gtin, callback){
+    this.storageService.filter(constants.PRODUCTS_TABLE, `gtin == ${gtin}`, (err, products) => {
+      if(err){
+        printOpenDSUError(createOpenDSUErrorWrapper("Failed to get a valid product", err));
+        return this.showErrorModalAndRedirect("Failed to get a valid product", "batches");
+      }
+      let product = products[0];
+      if(!product){
+        return  callback(new Error(`No product found for gtin ${gtin}`));
+      }
+      callback(undefined,product);
     });
   }
 
@@ -303,48 +216,6 @@ export default class addBatchController extends WebcController {
       return [];
     }
     return string.split(/[ ,]+/).filter(v => v !== '')
-  }
-  //TODO remove it
-  // getVersionOptions = (gtin) => {
-  //   return new Promise((resolve, reject) => {
-  //     this.storageService.getRecord(constants.LAST_VERSION_PRODUCTS_TABLE, gtin, (err, product) => {
-  //       if (err) {
-  //         return reject(err)
-  //       } else {
-  //         this.versionOffset = product.initialVersion;
-  //         const options = [];
-  //
-  //         for (let i = this.versionOffset; i <= product.version; i++) {
-  //           options.push({label: i, value: i});
-  //         }
-  //         options.unshift({label: "latest version", value: "latest"});
-  //         resolve(options);
-  //       }
-  //     });
-  //   })
-  // }
-  persistBatch = (batch) => {
-    this.persistBatchInWallet(batch, (err) => {
-      if (err) {
-        printOpenDSUError(createOpenDSUErrorWrapper("Failing to store Batch keySSI!", err));
-        return this.showErrorModalAndRedirect("Failing to store Batch keySSI!", "batches");
-      }
-      this.logService.log({
-        logInfo: batch,
-        username: this.model.username,
-        action: this.model.editMode ? "Update Batch" : "Created Batch",
-        logType: 'BATCH_LOG'
-      }, () => {
-        this.storageService.commitBatch((err, res) => {
-          if (err) {
-            printOpenDSUError(createOpenDSUErrorWrapper("Failed to commit batch. Concurrency issues or other issue", err))
-          }
-          this.hideModal();
-          this.navigateToPageTag("batches");
-        });
-      });
-
-    });
   }
 
   showSerialHistoryModal() {
@@ -430,141 +301,18 @@ export default class addBatchController extends WebcController {
   }
 
   addSerialNumbers(batch) {
-
     if (batch.serialNumbers.length>0) {
-      // let serialNumbersArray = batch.serialNumbers.split(/[\r\n ,]+/);
-      // if (serialNumbersArray.length === 0 || serialNumbersArray[0] === '') {
-      //   throw serialError;
-      // }
       batch.defaultSerialNumber = batch.serialNumbers[0];
-      //batch.addSerialNumbers(serialNumbersArray, "validSerialNumbers");
     }
 
     if (batch.recalledSerialNumbers.length>0) {
-      // let recalledSerialNumbersArray = batch.recalledSerialNumbers.split(/[\r\n ,]+/);
-      // if (recalledSerialNumbersArray.length === 0 || recalledSerialNumbersArray[0] === '') {
-      //   throw serialError;
-      // }
       batch.defaultRecalledSerialNumber = batch.recalledSerialNumbers[0];
-      //batch.addSerialNumbers(recalledSerialNumbersArray, "recalledSerialNumbers");
     }
 
     if (batch.decommissionedSerialNumbers.length>0) {
-      // let decommissionedSerialNumbersArray = batch.decommissionedSerialNumbers.split(/[\r\n ,]+/);
-      // if (decommissionedSerialNumbersArray.length === 0 || decommissionedSerialNumbersArray[0] === '') {
-      //   throw serialError;
-      // }
       batch.defaultDecommissionedSerialNumber = batch.decommissionedSerialNumbers[0];
-      //batch.addSerialNumbers(decommissionedSerialNumbersArray, "decommissionedSerialNumbers");
     }
-
   }
-  //TODO: remove it
-  // buildBatchDSU(batch, callback) {
-  //   const keyssiSpace = require("opendsu").loadAPI("keyssi");
-  //   const hint = JSON.stringify({bricksDomain: dsuBuilder.holderInfo.subdomain});
-  //
-  //   dsuBuilder.getTransactionId((err, transactionId) => {
-  //     if (err) {
-  //       return callback(err);
-  //     }
-  //
-  //     keyssiSpace.createSeedSSI(dsuBuilder.holderInfo.domain, undefined, hint, (err, keySSI) => {
-  //       if (err) {
-  //         return callback(err);
-  //       }
-  //
-  //       dsuBuilder.setKeySSI(transactionId, keySSI.getIdentifier(), {headers: {"x-force-dsu-create": true}}, (err) => {
-  //         if (err) {
-  //           return callback(err);
-  //         }
-  //
-  //         this.writeDataToBatchDSU(batch, transactionId, callback);
-  //       });
-  //     });
-  //   });
-  // }
 
-  //TODO remove it
-  /*updateBatchDSU(batch, callback) {
-    dsuBuilder.getTransactionId((err, transactionId) => {
-      if (err) {
-        return callback(err);
-      }
-      dsuBuilder.setKeySSI(transactionId, batch.keySSI, (err) => {
-        if (err) {
-          return callback(err)
-        }
-        this.writeDataToBatchDSU(batch, transactionId, true, callback);
-      })
-    });
-  }*/
-
-
-  //TODO remove it
-  /*writeDataToBatchDSU(batch, transactionId, ignoreMount, callback) {
-    if (typeof ignoreMount === "function") {
-      callback = ignoreMount;
-      ignoreMount = false;
-    }
-    let cleanBatch = JSON.parse(JSON.stringify(batch));
-
-    delete cleanBatch.serialNumbers;
-    delete cleanBatch.recalledSerialNumbers;
-    delete cleanBatch.decommissionedSerialNumbers;
-    delete cleanBatch.defaultSerialNumber;
-    delete cleanBatch.defaultRecalledSerialNumber;
-    delete cleanBatch.defaultDecommissionedSerialNumber;
-
-    dsuBuilder.addFileDataToDossier(transactionId, constants.BATCH_STORAGE_FILE, JSON.stringify(cleanBatch), (err) => {
-      if (err) {
-        return callback(err);
-      }
-
-      if (ignoreMount) {
-        return dsuBuilder.buildDossier(transactionId, callback);
-      }
-      dsuBuilder.mount(transactionId, constants.PRODUCT_DSU_MOUNT_POINT, cleanBatch.product, (err) => {
-        if (err) {
-          return callback(err);
-        }
-        dsuBuilder.buildDossier(transactionId, callback);
-      });
-    });
-  }*/
-  //TODO remove it
-  /*buildImmutableDSU(batch, callback) {
-    dsuBuilder.getTransactionId((err, transactionId) => {
-      if (err) {
-        return callback(err);
-      }
-
-      if (!batch.gtin || !batch.batchNumber || !batch.expiry) {
-        return this.showErrorModal("GTIN, batchNumber and expiry date are mandatory");
-      }
-      dsuBuilder.setGtinSSI(transactionId, dsuBuilder.holderInfo.domain, dsuBuilder.holderInfo.subdomain, batch.gtin, batch.batchNumber, batch.expiry, (err) => {
-        if (err) {
-          return callback(err);
-        }
-        //TODO: derive a sReadSSI here...
-        dsuBuilder.mount(transactionId, "/batch", batch.keySSI, (err) => {
-          if (err) {
-            return callback(err);
-          }
-          dsuBuilder.buildDossier(transactionId, callback);
-        });
-      });
-    });
-  }*/
-  //TODO remove it
-  /*persistBatchInWallet(batch, callback) {
-    this.storageService.getRecord(constants.BATCHES_STORAGE_TABLE, batch.batchNumber, (err, record) => {
-      if (err || !record) {
-        this.storageService.insertRecord(constants.BATCHES_STORAGE_TABLE, batch.batchNumber, batch, callback);
-      } else {
-        this.storageService.updateRecord(constants.BATCHES_STORAGE_TABLE, batch.batchNumber, batch, callback);
-      }
-    });
-  }*/
 
 };
