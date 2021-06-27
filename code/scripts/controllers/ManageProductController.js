@@ -71,11 +71,14 @@ export default class ManageProductController extends WebcController {
         this.model.product.version++;
         this.model.product.previousVersion = product.version;
         this.model.product.isCodeEditable = false;
-        this.getInheritedCards(product, product.version, (err, inheritedCards) => {
+        this.getProductAttachments(product, (err, attachments) => {
           if (err) {
             this.showErrorModalAndRedirect("Failed to get inherited cards", "products");
           }
-          this.model.languageTypeCards = inheritedCards;
+          this.model.languageTypeCards = attachments.languageTypeCards;
+          if(attachments.productPhoto){
+            this.model.product.photo = attachments.productPhoto;
+          }
         });
         ensureHolderCredential();
       });
@@ -112,8 +115,6 @@ export default class ManageProductController extends WebcController {
         modalContent: "Saving product..."
       });
 
-      product.photo =  this.getImageAsBase64(this.productPhoto||this.model.product.photo);
-
       let message = {
         messageType:"Product",
         product:{}
@@ -125,11 +126,7 @@ export default class ManageProductController extends WebcController {
         if(typeof productPropsMapping[prop] !== "undefined"){
           message.product[productPropsMapping[prop]] = product[prop];
         }
-        else{
-          message.product[prop] = product[prop];
-        }
       }
-      message.product.photo = product.photo;
 
       try{
         let undigestedMessages = await this.mappingEngine.digestMessages([message]);
@@ -141,7 +138,6 @@ export default class ManageProductController extends WebcController {
           let newPhoto = typeof this.productPhoto !== "undefined";
           if (newPhoto) {
             let addPhotoMessage = {
-              inherited: !newPhoto,
               messageType: "ProductPhoto",
               productCode: message.product.productCode,
               senderId: this.model.username,
@@ -317,7 +313,7 @@ export default class ManageProductController extends WebcController {
     return true;
   }
 
-  getInheritedCards(product, version, callback){
+  getProductAttachments(product, callback){
     const resolver = require("opendsu").loadAPI("resolver");
     resolver.loadDSU(product.keySSI, (err, productDSU) => {
       if (err) {
@@ -331,12 +327,12 @@ export default class ManageProductController extends WebcController {
           return callback(err);
         }
 
-        productDSU.listFolders(this.getPathToLeaflet(version), (err, leaflets) => {
+        productDSU.listFolders("/leaflet", (err, leaflets) => {
           if (err) {
             return callback(err);
           }
 
-          productDSU.listFolders(this.getPathToSmPC(version), (err, smpcs) => {
+          productDSU.listFolders("/smpc", (err, smpcs) => {
             if (err) {
               return callback(err);
             }
@@ -347,7 +343,20 @@ export default class ManageProductController extends WebcController {
               languageTypeCards.push(this.generateCard(true, "smpc", smpcLanguageCode));
             });
 
-            callback(undefined, languageTypeCards);
+            productDSU.stat(constants.PRODUCT_IMAGE_FILE, (err, stat) => {
+              if (stat.type === "file") {
+                productDSU.readFile(constants.PRODUCT_IMAGE_FILE, (err, data) => {
+                  if (err) {
+                    return callback(err);
+                  }
+                  let productPhoto = this.getImageAsBase64(data);
+                  callback(undefined, {languageTypeCards: languageTypeCards, productPhoto: productPhoto});
+                })
+              } else {
+                callback(undefined, {languageTypeCards: languageTypeCards});
+              }
+            });
+
           });
         });
       });
@@ -365,15 +374,4 @@ export default class ManageProductController extends WebcController {
     return card;
   }
 
-  getPathToLeaflet(version){
-    return `/leaflet`;
-  }
-
-  getPathToSmPC(version){
-    return `/smpc`;
-  }
-
-  getAttachmentPath(version, attachmentType, language){
-    return `/${attachmentType}/${language}`;
-  }
 }
