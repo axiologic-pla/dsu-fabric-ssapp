@@ -49,35 +49,38 @@ export default class ProductsController extends WebcController {
           this.navigateToPageTag("import");
       });
 
-    this.onTagClick("transfer", (model, target, event) => {
-      const gtin = target.getAttribute("gtin");
-      this.storageService.getRecord(constants.LAST_VERSION_PRODUCTS_TABLE, gtin, (err, product) => {
-      this.model.actionModalModel = {
-        title: "Enter the company name to which the product is transferred",
-        transferCode: $$.Buffer.from(JSON.stringify(product)).toString("base64"),
-        acceptButtonText: 'Accept',
-        mah: "",
-        denyButtonText: 'Cancel'
-      }
+      this.onTagClick("transfer", (model, target, event) => {
+          const gtin = target.getAttribute("gtin");
+          this.storageService.getRecord(constants.PRODUCTS_TABLE, gtin, (err, product) => {
 
-      this.showModalFromTemplate("transfer-product-modal",
-        (event) => {
-          product.transferred = true;
-          product.manufName = this.model.actionModalModel.mah;
-          this.logService.log({
-            logInfo: product,
-            username: this.model.username,
-            action: `Transferred product to ${this.model.actionModalModel.mah}`,
-            logType: 'PRODUCT_LOG'
-                    }, ()=>{});
-          });
+              this.model.actionModalModel = {
+                  title: "Enter the company name to which the product is transferred",
+                  transferCode: $$.Buffer.from(JSON.stringify(product)).toString("base64"),
+                  acceptButtonText: 'Accept',
+                  mah: "",
+                  denyButtonText: 'Cancel'
+              }
 
-        },
-        (event) => {
-          return
-        },
-        {model: this.model})
-    });
+              this.showModalFromTemplate("transfer-product-modal",
+                  (event) => {
+                      product.transferred = true;
+                      product.manufName = this.model.actionModalModel.mah;
+                      this.logService.log({
+                          logInfo: product,
+                          username: this.model.username,
+                          action: `Transferred product to ${this.model.actionModalModel.mah}`,
+                          logType: 'PRODUCT_LOG'
+                      }, () => {
+                      });
+                  },
+
+                  (event) => {
+                      return
+                  },
+                  {model: this.model})
+
+          })
+      });
 
     this.onTagClick("get-transferred-product", (event) => {
       this.model.actionModalModel = {
@@ -96,7 +99,7 @@ export default class ProductsController extends WebcController {
             if (err) {
               return console.log(err);
             }
-                    this.storageService.filter(constants.LAST_VERSION_PRODUCTS_TABLE, "__timestamp > 0", (err, products) => {
+                    this.storageService.filter(constants.PRODUCTS_TABLE, "__timestamp > 0", (err, products) => {
                         this.products = products;
                         this.model.productsForDisplay = products;
                     });
@@ -136,11 +139,8 @@ export default class ProductsController extends WebcController {
       if (err) {
         return callback(err);
       }
-
-                product.initialVersion = product.version;
-      product.transferred = false;
-                this.storageService.insertRecord(constants.PRODUCTS_TABLE, `${product.gtin}|${product.version}`, product, () => {
-                    this.storageService.insertRecord(constants.LAST_VERSION_PRODUCTS_TABLE, product.gtin, product, callback);
+                product.transferred = false;
+                this.storageService.insertRecord(constants.PRODUCTS_TABLE, `${product.gtin}`, product, () => {
                 });
             });
     });
