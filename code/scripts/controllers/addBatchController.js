@@ -112,11 +112,6 @@ export default class addBatchController extends WebcController {
           batch.expiryForDisplay = utils.getIgnoreDayDate(batch.expiryForDisplay)
       }
       batch.expiry = utils.convertDateToGS1Format(batch.expiryForDisplay, batch.enableExpiryDay);
-        try {
-          this.addSerialNumbers(batch);
-        } catch (err) {
-          return this.showErrorModal(err, "Invalid list of serial numbers");
-        }
 
         let error = batch.validate();
         if (error) {
@@ -302,20 +297,5 @@ export default class addBatchController extends WebcController {
       this.model.serial_update_options.value = "Select an option";
     }, {model: this.model});
   }
-
-  addSerialNumbers(batch) {
-    if (batch.serialNumbers.length>0) {
-      batch.defaultSerialNumber = batch.serialNumbers[0];
-    }
-
-    if (batch.recalledSerialNumbers.length>0) {
-      batch.defaultRecalledSerialNumber = batch.recalledSerialNumbers[0];
-    }
-
-    if (batch.decommissionedSerialNumbers.length>0) {
-      batch.defaultDecommissionedSerialNumber = batch.decommissionedSerialNumbers[0];
-    }
-  }
-
 
 };
