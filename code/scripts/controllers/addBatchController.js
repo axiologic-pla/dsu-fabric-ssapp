@@ -127,20 +127,11 @@ export default class addBatchController extends WebcController {
           });
 
           let message = {
-            messageType:"Batch",
             batch:{}
           }
 
-          let batchPropsMapping= epiUtils.batchDataSourceMapping
-
-          for(let prop in batch){
-            if(typeof batchPropsMapping[prop] !== "undefined"){
-              message.batch[batchPropsMapping[prop]] = batch[prop];
-            }
-            else{
-              message.batch[prop] = batch[prop];
-            }
-          }
+          epiUtils.transformToMessage(batch, message.batch, epiUtils.batchDataSourceMapping);
+          message.messageType ="Batch";
 
           try{
             console.log(message);
@@ -263,10 +254,11 @@ export default class addBatchController extends WebcController {
           serialNumbersLog.action = "Updated valid serial numbers list";
           serialNumbersLog.creationTime = new Date().toUTCString();
           if (this.model.actionModalModel.resetAll) {
-            serialNumbersLog.action = "Reset valid serial numbers list";
-            this.model.batch.serialNumbers = '';
-            this.model.batch.defaultSerialNumber = '';
-            this.model.batch.bloomFilterSerialisations = [];
+            /*            serialNumbersLog.action = "Reset valid serial numbers list";
+                        this.model.batch.serialNumbers = '';
+                        this.model.batch.defaultSerialNumber = '';
+                        this.model.batch.bloomFilterSerialisations = [];*/
+            this.model.batch.snValidReset = true;
           }
           break
         case "update-recalled-serial":
@@ -274,16 +266,18 @@ export default class addBatchController extends WebcController {
           serialNumbersLog.creationTime = new Date().toUTCString();
           serialNumbersLog.action = "Updated recalled serial numbers list";
           if (this.model.actionModalModel.resetAll) {
-            serialNumbersLog.action = "Reset recalled serial numbers list";
-            this.model.batch.bloomFilterRecalledSerialisations = [];
+            /*       serialNumbersLog.action = "Reset recalled serial numbers list";
+                   this.model.batch.bloomFilterRecalledSerialisations = [];*/
+            this.model.batch.snRecalledReset = true;
           }
           break
         case "update-decommissioned-serial":
           serialNumbersLog.action = "Updated decommissioned serial numbers list";
           serialNumbersLog.creationTime = new Date().toUTCString();
           if (this.model.actionModalModel.resetAll) {
-            serialNumbersLog.action = "Reset decommissioned serial numbers list";
-            this.model.batch.bloomFilterDecommissionedSerialisations = [];
+            /* serialNumbersLog.action = "Reset decommissioned serial numbers list";
+             this.model.batch.bloomFilterDecommissionedSerialisations = [];*/
+            this.model.batch.snDecomReset = true;
           }
           this.model.decommissionedSerialNumbers = this.model.actionModalModel.serialNumbers;
           this.model.batch.decommissionReason = this.model.actionModalModel.reason.value;

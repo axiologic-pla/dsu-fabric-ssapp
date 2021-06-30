@@ -21,7 +21,9 @@ export default class Batch {
   defaultMessage = "";
   packagingSiteName = "";
   enableExpiryDay = true;
-
+  snDecomReset = false;
+  snValidReset = false;
+  snRecalledReset = false;
   constructor(batch) {
     if (typeof batch !== undefined) {
       for (let prop in batch) {

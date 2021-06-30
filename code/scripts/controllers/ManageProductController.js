@@ -120,13 +120,7 @@ export default class ManageProductController extends WebcController {
         product:{}
       };
 
-      let productPropsMapping= epiUtils.productDataSourceMapping;
-
-      for(let prop in product){
-        if(typeof productPropsMapping[prop] !== "undefined"){
-          message.product[productPropsMapping[prop]] = product[prop];
-        }
-      }
+      epiUtils.transformToMessage(product, message.product, epiUtils.productDataSourceMapping);
 
       try{
         let undigestedMessages = await this.mappingEngine.digestMessages([message]);
