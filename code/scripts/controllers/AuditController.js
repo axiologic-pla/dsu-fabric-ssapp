@@ -2,8 +2,8 @@ const { WebcController } = WebCardinal.controllers;
 import LogService from "../services/LogService.js";
 
 export default class AuditController extends WebcController {
-    constructor(element, history) {
-        super(element, history);
+    constructor(...props) {
+        super(...props);
 
         this.model = {};
         this.logService = new LogService(this.DSUStorage);
@@ -17,13 +17,28 @@ export default class AuditController extends WebcController {
         }, 'logs');
 
         this.onTagClick('show-audit-entry', (model, target, event) => {
-            const logData = model.allInfo;
-            this.createWebcModal({
-                template: 'show-audit-entry',
-                disableExpanding: true,
-                modalTitle: "Audit Entry",
-                model: logData
-            });
+
+            const formattedJSON = JSON.stringify(JSON.parse(model.allInfo.all), null, 4);
+            this.model.actionModalModel = {
+                title: "Audit Entry",
+                messageData: formattedJSON,
+                denyButtonText: 'Close',
+                acceptButtonText: "Download"
+            }
+
+            this.showModalFromTemplate('show-audit-entry',
+                () => {
+                    let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(formattedJSON);
+                    let downloadAnchorNode = document.createElement('a');
+                    downloadAnchorNode.setAttribute("href", dataStr);
+                    downloadAnchorNode.setAttribute("download", model.action +".json");
+                    document.body.appendChild(downloadAnchorNode); // required for firefox
+                    downloadAnchorNode.click();
+                    downloadAnchorNode.remove();
+                }, () => {
+
+                }, {model: this.model});
+
         });
 
         this.logService.getLogs((err, logs) => {
