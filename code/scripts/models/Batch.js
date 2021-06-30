@@ -24,6 +24,9 @@ export default class Batch {
   snDecomReset = false;
   snValidReset = false;
   snRecalledReset = false;
+  acfBatchCheckURL = false;
+  flagEnableACFBatchCheck = false;
+
   constructor(batch) {
     if (typeof batch !== undefined) {
       for (let prop in batch) {

@@ -250,39 +250,33 @@ export default class addBatchController extends WebcController {
     this.showModalFromTemplate('update-batch-serial-numbers', () => {
       switch (type) {
         case "update-valid-serial":
-          this.model.serialNumbers = this.model.actionModalModel.serialNumbers;
           serialNumbersLog.action = "Updated valid serial numbers list";
           serialNumbersLog.creationTime = new Date().toUTCString();
           if (this.model.actionModalModel.resetAll) {
-            /*            serialNumbersLog.action = "Reset valid serial numbers list";
-                        this.model.batch.serialNumbers = '';
-                        this.model.batch.defaultSerialNumber = '';
-                        this.model.batch.bloomFilterSerialisations = [];*/
             this.model.batch.snValidReset = true;
+          }else{
+            this.model.serialNumbers = this.model.actionModalModel.serialNumbers;
           }
           break
         case "update-recalled-serial":
-          this.model.recalledSerialNumbers = this.model.actionModalModel.serialNumbers;
           serialNumbersLog.creationTime = new Date().toUTCString();
           serialNumbersLog.action = "Updated recalled serial numbers list";
           if (this.model.actionModalModel.resetAll) {
-            /*       serialNumbersLog.action = "Reset recalled serial numbers list";
-                   this.model.batch.bloomFilterRecalledSerialisations = [];*/
             this.model.batch.snRecalledReset = true;
+          }else{
+            this.model.recalledSerialNumbers = this.model.actionModalModel.serialNumbers;
           }
           break
         case "update-decommissioned-serial":
           serialNumbersLog.action = "Updated decommissioned serial numbers list";
           serialNumbersLog.creationTime = new Date().toUTCString();
           if (this.model.actionModalModel.resetAll) {
-            /* serialNumbersLog.action = "Reset decommissioned serial numbers list";
-             this.model.batch.bloomFilterDecommissionedSerialisations = [];*/
             this.model.batch.snDecomReset = true;
+          }else{
+            this.model.decommissionedSerialNumbers = this.model.actionModalModel.serialNumbers;
+            this.model.batch.decommissionReason = this.model.actionModalModel.reason.value;
           }
-          this.model.decommissionedSerialNumbers = this.model.actionModalModel.serialNumbers;
-          this.model.batch.decommissionReason = this.model.actionModalModel.reason.value;
           break
-
       }
       this.model.serial_update_options.value = "Select an option";
       this.serialNumbersLogService.insertRecord(this.model.batch.batchNumber, serialNumbersLog.creationTime, serialNumbersLog, () => {
