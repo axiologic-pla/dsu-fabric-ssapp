@@ -127,6 +127,7 @@ export default class addBatchController extends WebcController {
           });
 
           let message = {
+            senderId: this.model.username,
             batch:{}
           }
 

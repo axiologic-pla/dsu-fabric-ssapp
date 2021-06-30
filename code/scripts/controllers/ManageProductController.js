@@ -117,6 +117,7 @@ export default class ManageProductController extends WebcController {
 
       let message = {
         messageType:"Product",
+        senderId: this.model.username,
         product:{}
       };
 
@@ -156,6 +157,7 @@ export default class ManageProductController extends WebcController {
                 productCode: message.product.productCode,
                 language: card.language.value,
                 messageType: card.type.value,
+                senderId: this.model.username,
                 xmlFileContent: await $$.promisify(this.getXMLFileContent.bind(this))(card.files),
                 otherFilesContent: await $$.promisify(this.getOtherCardFiles.bind(this))(card.files)
               }

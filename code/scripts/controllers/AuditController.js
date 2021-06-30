@@ -47,7 +47,7 @@ export default class AuditController extends WebcController {
                 return {
                     action:item.action,
                     username:item.username,
-                    creationTime:item.creationTime,
+                    creationTime:item.creationTime || new Date(item.timestamp).toLocaleString(),
                     allInfo: {
                         keySSI:item.keySSI,
                         all:JSON.stringify(item),
@@ -55,12 +55,17 @@ export default class AuditController extends WebcController {
                     };
             }
 
+            function attachmentLogProcessing(item){
+                let attachmentLog = basicLogProcessing(item);
+                attachmentLog.action = `${attachmentLog.action} [${item.metadata.attachedTo} - ${item.metadata.itemCode}]`;
+                return attachmentLog;
+            }
+
             function productLogProcessing(item){
                 let le = basicLogProcessing(item);
 
                 le.action = `${item.action} ${item.logInfo.name} [${item.logInfo.gtin}] `;
-                le.creationTime = item.logInfo.creationTime;
-                le.keySSI = item.logInfo.keySSI;
+                le.keySSI = item.logInfo.keySSI ;
 
                 return le;
             }
@@ -84,6 +89,10 @@ export default class AuditController extends WebcController {
                             break;
                         case "BATCH_LOG":
                             viewLog = batchLogProcessing(item);
+                            break;
+                        case "PRODUCT_PHOTO_LOG":
+                        case "LEAFLET_LOG":
+                            viewLog = attachmentLogProcessing(item);
                             break;
                         default:
                             viewLog = basicLogProcessing(item);

@@ -3,18 +3,17 @@
         <div data-if="@logListLoaded">
             <div slot="true">
                 <div data-if="@listHeader">
-                    <psk-layout slot="true" class="audit-header" template-columns="1fr 1fr 1fr 1fr ">
+                    <psk-layout slot="true" class="audit-header" template-columns="3fr 1fr 1fr 1fr">
 
                         <psk-label label="Action"></psk-label>
                         <psk-label label="User"></psk-label>
-
                         <psk-label label="Creation Time"></psk-label>
                         <psk-label label="Data"></psk-label>
                     </psk-layout>
                 </div>
                 <hr>
                 <div data-for="@logs">
-                    <psk-layout class="audit-line" template-columns="1fr 1fr 1fr 1fr ">
+                    <psk-layout class="audit-line" template-columns="3fr 1fr 1fr 1fr">
                         <psk-label>{{@action}}</psk-label>
                         <psk-label>{{@username}}</psk-label>
                         <psk-label>{{@creationTime}}</psk-label>
