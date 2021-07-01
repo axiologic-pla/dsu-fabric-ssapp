@@ -7,13 +7,13 @@
                     <div class="col p-0">
                         <div data-if="@editMode">
                             <div class="read-only-container col mb-3 mt-2 pl-3" slot="true">
-                                <div class="form-label">BatchID</div>
+                                <div class="form-label">Batch</div>
                                 <input class="form-control" placeholder="-" readonly type="text"
                                        value="@batch.batchNumber"/>
                             </div>
                             <i class="fa fa-pencil-square-o editable-icon" slot="false"></i>
-                            <div class="background-container col pl-3 mb-3 pl-3" slot="false">
-                                <div class="form-label">BatchID</div>
+                            <div class="background-container col mb-3 pl-3" slot="false">
+                                <div class="form-label">Batch</div>
                                 <input class="form-control" placeholder="Add batch id" type="text"
                                        value="@batch.batchNumber"/>
                             </div>
@@ -21,7 +21,7 @@
                     </div>
                     <div class="col p-0">
                         <i class="fa fa-pencil-square-o editable-icon" slot="false"></i>
-                        <div class="background-container col pl-3 mb-3 pl-3" slot="false">
+                        <div class="background-container col mb-3 pl-3" slot="false">
                             <div class="form-label">Packaging site name</div>
                             <input class="form-control" placeholder="Add site name" type="text"
                                    value="@batch.packagingSiteName"/>
@@ -30,7 +30,7 @@
                     <div class="d-flex flex-lg-row flex-sm-column justify-content-start">
                         <div class="p-0 col-sm-12 col-lg-6">
                             <i class="fa fa-pencil-square-o editable-icon"></i>
-                            <div class="form-label">Expiry date</div>
+                            <div class="form-label pl-3">Expiry date</div>
                             <div class="background-container col mb-3" data-if="@batch.enableExpiryDay">
 
                                 <psk-date-input slot="true" data-format="DD MM YYYY" placeholder="dd/mm/yyyy" required
@@ -111,12 +111,12 @@
 
                     </div>
                     <div class="read-only-container col mb-3 mt-2 pl-3">
-                        <div class="form-label">Product Name</div>
+                        <div class="form-label">Brand / invented name</div>
                         <input class="form-control" placeholder="-" readonly type="text"
                                value="@batch.productName"/>
                     </div>
                     <div class="read-only-container col mb-3 mt-2 pl-3">
-                        <div class="form-label">Product description</div>
+                        <div class="form-label">Name of Medicinal Product</div>
                         <textarea class="w-100 mt-2" placeholder="-" readonly required
                                   rows="3" value="@productDescription"></textarea>
                     </div>
