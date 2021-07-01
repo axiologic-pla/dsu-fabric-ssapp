@@ -6,7 +6,7 @@
 
         <hr/>
         <psk-button data-tag="import"  disabled="@importIsDisabled" label="Import"></psk-button>
-        <psk-button data-tag="retry-failed" label="Retry failed messages"></psk-button>
+        <psk-button style="float:right" data-tag="retry-failed" disabled="@retryBtnIsDisabled" label="Retry failed messages"></psk-button>
 
         <h3>Import Logs</h3>
         <psk-tab-navigator selected="@selectedTab" id="orange-tab-navigator">

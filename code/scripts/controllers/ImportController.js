@@ -16,6 +16,7 @@ const model = {
     "list-files": true
   },
   importIsDisabled: true,
+  retryBtnIsDisabled:true,
   successfullyImportedLogs: [],
   failedImportedLogs: [],
   retryAll: false,
@@ -88,6 +89,10 @@ export default class importController extends WebcController {
       }
     })
     this.getImportLogs();
+
+    this.model.onChange("failedImportedLogs",()=>{
+      this.model.retryBtnIsDisabled = !this.model.failedImportedLogs.some(failedLog=> failedLog.retry === true)
+    })
   }
 
   async getMessagesFromFiles(files) {
