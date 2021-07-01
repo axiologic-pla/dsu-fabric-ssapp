@@ -64,7 +64,7 @@ export default class AuditController extends WebcController {
             function productLogProcessing(item){
                 let le = basicLogProcessing(item);
 
-                le.action = `${item.action} ${item.logInfo.name} [${item.logInfo.gtin}] `;
+                le.action = `${item.action} ${item.logInfo.name} [${item.logInfo.gtin}] v. ${item.logInfo.version} `;
                 le.keySSI = item.logInfo.keySSI ;
 
                 return le;
@@ -72,7 +72,7 @@ export default class AuditController extends WebcController {
 
             function batchLogProcessing(item){
                 let le = productLogProcessing(item);
-                le.action = `${item.action} ${item.logInfo.batchNumber} [${item.logInfo.gtin}] version ${item.logInfo.version}`;
+                le.action = `${item.action} ${item.logInfo.batchNumber} [${item.logInfo.gtin}] v. ${item.logInfo.version}`;
                 return le;
             }
 
