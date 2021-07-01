@@ -6,6 +6,7 @@
 
         <hr/>
         <psk-button data-tag="import"  disabled="@importIsDisabled" label="Import"></psk-button>
+        <psk-button data-tag="retry-failed" label="Retry failed messages"></psk-button>
 
         <h3>Import Logs</h3>
         <psk-tab-navigator selected="@selectedTab" id="orange-tab-navigator">
@@ -47,6 +48,9 @@
                         <th scope="col">Status</th>
                         <th scope="col">Command</th>
                         <th scope="col">Action</th>
+                        <th scope="col">
+                            <input type="checkbox" name="retryAllCheckbox" id="retry-all-checkbox" data-tag="retry-all-click" value="@retryAll">
+                        </th>
                     </tr>
                     </thead>
                     <tbody data-for="@failedImportedLogs">
@@ -58,6 +62,9 @@
                         <td>{{@action}}</td>
                         <td>
                             <button class="btn btn-link p-0 col align-self-center text-left" data-tag="view-message">View Message</button>
+                        </td>
+                        <td>
+                            <input type="checkbox" name="@itemId" data-tag="retry-item-click" class="failed-message" value="@retry">
                         </td>
                     </tr>
                     </tbody>
