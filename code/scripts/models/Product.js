@@ -29,6 +29,7 @@ export default class Product {
   strength = "";
   internalMaterialCode = "";
   imagePath;
+  markets = [];
 
   constructor(product) {
     if (typeof product !== undefined) {
@@ -61,6 +62,19 @@ export default class Product {
 
   clone(){
     return new Product(JSON.parse(JSON.stringify(this)));
+  }
+
+  addMarket(market){
+    this.markets.push(market);
+  }
+
+  removeMarket(marketId) {
+    for (let i = 0; i < this.markets.length; i++) {
+      if (this.markets[i].marketId === marketId) {
+        this.markets.splice(i, 1);
+        break;
+      }
+    }
   }
 
   hasPhoto(){

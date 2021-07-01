@@ -17,7 +17,7 @@
 </main>
 <footer class="modal-action-menu" slot="footer">
     <psk-button class="marketplace-manager-button" data-close>{{@modalData.denyButtonText}}</psk-button>
-    <psk-button class="marketplace-manager-button" data-confirm>{{@modalData.acceptButtonText}}</psk-button>
+    <psk-button class="marketplace-manager-button" disabled="@modalData.filesWereNotSelected" data-confirm>{{@modalData.acceptButtonText}}</psk-button>
 </footer>
 
 <style>

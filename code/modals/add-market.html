@@ -1,0 +1,25 @@
+<div class="custom-modal-header header-color" slot="header">
+    <h5>Markets Management</h5>
+</div>
+<main>
+
+    <psk-select required value="@marketModel.countriesCodes.value" view-model="@marketModel.countriesCodes"></psk-select>
+    <psk-input required isValid="@marketModel.nationalCode.isValid" value="@marketModel.nationalCode.value" view-model="@marketModel.nationalCode"></psk-input>
+    <psk-input required isValid="@marketModel.mahName.isValid" value="@marketModel.mahName.value" view-model="@marketModel.mahName"></psk-input>
+    <psk-input required isValid="@marketModel.legalEntityName.isValid" value="@marketModel.legalEntityName.value" view-model="@marketModel.legalEntityName"></psk-input>
+
+    <div data-if="@marketModel.validationFailed">
+        <psk-highlight title="All fields are required" type-of-highlight="issue"></psk-highlight>
+    </div>
+
+</main>
+<footer class="modal-action-menu" slot="footer">
+    <psk-button class="marketplace-manager-button" data-close>Close</psk-button>
+    <psk-button class="marketplace-manager-button" data-tag="submit-market">Add Market</psk-button>
+</footer>
+
+<style>
+    psk-card .card.psk-card {
+        width: 100%;
+    }
+</style>

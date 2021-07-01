@@ -6,11 +6,13 @@ import constants from '../constants.js';
 import getSharedStorage from '../services/SharedDBStorageService.js';
 import UploadTypes from "../models/UploadTypes.js";
 import utils from "../utils.js";
+import Countries from "../models/Countries.js";
 const arrayBufferToBase64 = require("epi-utils").getMappingsUtils().arrayBufferToBase64;
 
 export default class ManageProductController extends WebcController {
   constructor(...props) {
     super(...props);
+    this.controllerElement = props[0];
     this.setModel({});
 
     const mappings = require("epi-utils").loadApi("mappings");
@@ -36,13 +38,25 @@ export default class ManageProductController extends WebcController {
     })
 
     this.onTagClick("delete-language-leaflet", (model, target, event) => {
-      let eventDdata = target.firstElementChild.innerText.split('/');
-      this.model.languageTypeCards = this.model.languageTypeCards.filter(lf => !(lf.type.value === eventDdata[1] && lf.language.value === eventDdata[0]));
+      let eventData = target.firstElementChild.innerText.split('/');
+      this.model.languageTypeCards = this.model.languageTypeCards.filter(lf => !(lf.type.value === eventData[1] && lf.language.value === eventData[0]));
     });
 
     this.onTagClick("add-language-leaflet", (event) => {
       this.addLanguageTypeFilesListener(event)
     });
+
+    this.onTagClick("add-market",(event)=>{
+      this.addMarket(event);
+    })
+    this.onTagClick("submit-market",(event)=>{
+      this.validateAndAddMarket();
+    })
+
+
+    this.onTagClick("remove-market",(model, event)=>{
+      this.model.product.removeMarket(model.marketId);
+    })
 
     const ensureHolderCredential = () => {
       const holderService = HolderService.getHolderService();
@@ -261,11 +275,15 @@ export default class ManageProductController extends WebcController {
         accept: "directory",
         "event-name": "uploadLeaflet",
         label: "Upload files",
-        "list-files": true
-      }
+        "list-files": true,
+      },
+      filesWereNotSelected:true,
     }
     this.on("uploadLeaflet", (event) => {
       this.model.modalData.files = event.data;
+      if(this.model.modalData.files.length>0){
+        this.model.modalData.filesWereNotSelected = false;
+      }
     });
     this.showModalFromTemplate('select-language-and-type-modal', () => {
       if (this.typeAndLanguageExist(this.model.modalData.product.language, this.model.modalData.product.type)) {
@@ -370,4 +388,82 @@ export default class ManageProductController extends WebcController {
     return card;
   }
 
+  addMarket() {
+    if(!this.model.product.markets){
+      this.model.product.markets = [];
+    }
+    let existingCountryMarketIds = this.model.product.markets.map(market=>market.marketId);
+    let countriesList = Countries.getList()
+        .filter(country => !existingCountryMarketIds
+        .includes(country.code)).map(country => {
+      return {
+        label: country.name,
+        value: country.code
+      }
+    });
+    this.model.marketModel = {
+      validationFailed:false,
+      countriesCodes:{
+        options:countriesList,
+        value:countriesList[0].value,
+        label:"Select Country"
+      },
+      nationalCode:{
+        value:"",
+        placeholder:"Enter national code",
+        label:"National Code",
+        required:true,
+        isValid:true
+      },
+      mahName:{
+        value:"",
+        placeholder:"Enter manufacture name",
+        label:"Manufacture Name",
+        required:true,
+        isValid:true
+      },
+      legalEntityName:{
+        value:"",
+        placeholder:"Enter legal entity name",
+        label:"Legal Entity Name",
+        required:true,
+        isValid:true
+      }
+    }
+
+
+    this.showModalFromTemplate('add-market', () => {
+    }, () => {
+    }, {model: this.model});
+  }
+
+  validateAndAddMarket() {
+
+    let market = {
+      marketId: this.model.marketModel.countriesCodes.value,
+      nationalCode: this.model.marketModel.nationalCode.value,
+      mahName: this.model.marketModel.mahName.value,
+      legalEntityName: this.model.marketModel.legalEntityName.value,
+    }
+    let validationFailed = false;
+    for (let prop in market) {
+      if (market[prop].replace(/\s/g, "").length === 0) {
+        validationFailed = true;
+        this.model.marketModel[prop].isValid = false;
+      } else {
+        if (this.model.marketModel[prop]) {
+          this.model.marketModel[prop].isValid = true;
+        }
+      }
+    }
+
+    if (validationFailed) {
+      this.model.marketModel.validationFailed = true;
+    } else {
+      this.model.marketModel.validationFailed = false;
+      this.model.product.addMarket(market);
+      this.hideModal();
+    }
+  }
 }
+
