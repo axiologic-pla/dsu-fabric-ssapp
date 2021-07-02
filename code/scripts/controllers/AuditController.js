@@ -57,14 +57,13 @@ export default class AuditController extends WebcController {
 
             function attachmentLogProcessing(item){
                 let attachmentLog = basicLogProcessing(item);
-                attachmentLog.action = `${attachmentLog.action} [${item.metadata.attachedTo} - ${item.metadata.itemCode}]`;
+                attachmentLog.target = `${item.metadata.attachedTo} - ${item.metadata.itemCode}`;
                 return attachmentLog;
             }
 
             function productLogProcessing(item){
                 let le = basicLogProcessing(item);
-
-                le.action = `${item.action} ${item.logInfo.name} [${item.logInfo.gtin}] v. ${item.logInfo.version} `;
+                le.target = `${item.logInfo.name} [${item.logInfo.gtin}] v. ${item.logInfo.version}`
                 le.keySSI = item.logInfo.keySSI ;
 
                 return le;
@@ -72,7 +71,7 @@ export default class AuditController extends WebcController {
 
             function batchLogProcessing(item){
                 let le = productLogProcessing(item);
-                le.action = `${item.action} ${item.logInfo.batchNumber} [${item.logInfo.gtin}] v. ${item.logInfo.version}`;
+                le.target = `${item.logInfo.batchNumber} [${item.logInfo.gtin}] v. ${item.logInfo.version}`
                 return le;
             }
 
