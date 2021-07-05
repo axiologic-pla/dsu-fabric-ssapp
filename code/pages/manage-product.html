@@ -187,12 +187,15 @@
                         <psk-tab title="Markets Management">
                             <div class="d-flex flex-column">
                                 <ul data-for="@product.markets">
-                                    <li class="d-flex flex-row overflow-auto">
-                                        <div class="epi-card d-flex flex-row p-3 mr-3 mb-2">
-
-                                            <div class="form-label pr-3">{{@marketId}} - {{@mahName}}</div>
-
-                                            <button class="delete-market" data-tag="remove-market">&times;
+                                    <li class="epi-card-container d-flex mb-2">
+                                        <div class="epi-card w-100 d-flex flex-row"
+                                             data-market="@marketId">
+                                            <div class="w-100 text-left mr-3 mb-2 p-3 overflow-auto"
+                                                 data-tag="edit-market" title="Press to edit">
+                                                <div class="form-label pr-3">{{@marketId}} - {{@mahName}}</div>
+                                            </div>
+                                            <button class="delete-market" data-tag="remove-market"
+                                                    title="Remove market">&times;
                                                 <div hidden="hidden">{{@marketId}}</div>
                                             </button>
                                         </div>
@@ -311,10 +314,9 @@
     }
 
     .epi-card .delete-language,
-    .epi-card .delete-market {
+    .delete-market {
         top: 0;
         position: relative;
-        right: -7px;
         background: none;
         border: none;
         padding: 0;
@@ -324,18 +326,27 @@
 
     }
 
+    .epi-card .delete-language {
+        right: -7px;
+    }
+
+    .epi-card-container .delete-market {
+        right: 7px;
+    }
+
     .epi-card .delete-language:focus,
-    .epi-card .delete-market:focus {
+    .delete-market:focus {
         outline: none;
     }
 
     .epi-card .delete-language:hover,
-    .epi-card .delete-market:hover {
+    .delete-market:hover {
         color: #000
     }
 
-    psk-input[isvalid="false"] input{
-        border-color:red
+    psk-input[isvalid="false"] input {
+        border-color: red
     }
+
 
 </style>

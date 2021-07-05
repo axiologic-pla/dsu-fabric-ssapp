@@ -7,6 +7,7 @@ import getSharedStorage from '../services/SharedDBStorageService.js';
 import UploadTypes from "../models/UploadTypes.js";
 import utils from "../utils.js";
 import Countries from "../models/Countries.js";
+
 const arrayBufferToBase64 = require("epi-utils").getMappingsUtils().arrayBufferToBase64;
 
 export default class ManageProductController extends WebcController {
@@ -46,15 +47,38 @@ export default class ManageProductController extends WebcController {
       this.addLanguageTypeFilesListener(event)
     });
 
-    this.onTagClick("add-market",(event)=>{
-      this.addMarket(event);
-    })
-    this.onTagClick("submit-market",(event)=>{
-      this.validateAndAddMarket();
+    this.onTagClick("add-market", (event) => {
+      this.model.actionModalModel = {
+        acceptButtonText: 'Add Market',
+        action: "submit-add-market"
+      }
+      this.editMarket(event);
     })
 
+    this.onTagClick("edit-market", (event) => {
+      this.model.actionModalModel = {
+        acceptButtonText: 'Update Market',
+        action: "submit-update-market",
+        marketId: event.marketId
+      }
+      this.editMarket(event);
+    });
 
-    this.onTagClick("remove-market",(model, event)=>{
+    this.onTagClick("submit-add-market", (event) => {
+      this.validateMarket();
+      if (!this.model.marketModel.validationFailed) {
+        this.model.product.addMarket(this.model.selectedMarket);
+      }
+    })
+
+    this.onTagClick("submit-update-market", (event) => {
+      this.validateMarket();
+      if (!this.model.marketModel.validationFailed) {
+        this.model.product.updateMarket(this.model.actionModalModel.marketId, this.model.selectedMarket);
+      }
+    })
+
+    this.onTagClick("remove-market", (model, event) => {
       this.model.product.removeMarket(model.marketId);
     })
 
@@ -90,7 +114,7 @@ export default class ManageProductController extends WebcController {
             this.showErrorModalAndRedirect("Failed to get inherited cards", "products");
           }
           this.model.languageTypeCards = attachments.languageTypeCards;
-          if(attachments.productPhoto){
+          if (attachments.productPhoto) {
             this.model.product.photo = attachments.productPhoto;
           }
         });
@@ -130,17 +154,17 @@ export default class ManageProductController extends WebcController {
       });
 
       let message = {
-        messageType:"Product",
+        messageType: "Product",
         senderId: this.model.username,
-        product:{}
+        product: {}
       };
 
       epiUtils.transformToMessage(product, message.product, epiUtils.productDataSourceMapping);
 
-      try{
+      try {
         let undigestedMessages = await this.mappingEngine.digestMessages([message]);
         console.log(undigestedMessages);
-        if(undigestedMessages.length === 0){
+        if (undigestedMessages.length === 0) {
 
           //process photo
 
@@ -150,7 +174,7 @@ export default class ManageProductController extends WebcController {
               messageType: "ProductPhoto",
               productCode: message.product.productCode,
               senderId: this.model.username,
-              imageData : arrayBufferToBase64(this.productPhoto)
+              imageData: arrayBufferToBase64(this.productPhoto)
             }
 
             undigestedMessages = await this.mappingEngine.digestMessages([addPhotoMessage])
@@ -180,18 +204,16 @@ export default class ManageProductController extends WebcController {
 
 
           }
-          if(cardMessages.length>0){
+          if (cardMessages.length > 0) {
             let undigestedLeafletMessages = await this.mappingEngine.digestMessages(cardMessages);
             console.log(undigestedLeafletMessages);
           }
 
-        }
-        else{
+        } else {
           //TODO show an error?
         }
 
-      }
-      catch (e){
+      } catch (e) {
         console.log(e);
       }
       this.hideModal();
@@ -200,31 +222,31 @@ export default class ManageProductController extends WebcController {
     });
   }
 
-  getXMLFileContent(files, callback){
+  getXMLFileContent(files, callback) {
     let xmlFiles = files.filter((file) => file.name.endsWith('.xml'));
 
     if (xmlFiles.length === 0) {
       return callback(new Error("No xml files found."))
     }
-    this.getBase64FileContent(xmlFiles[0],callback)
+    this.getBase64FileContent(xmlFiles[0], callback)
   }
 
-  async getOtherCardFiles(files, callback){
+  async getOtherCardFiles(files, callback) {
     let anyOtherFiles = files.filter((file) => !file.name.endsWith('.xml'))
 
     let filesContent = [];
-    for(let i = 0; i<anyOtherFiles.length; i++){
+    for (let i = 0; i < anyOtherFiles.length; i++) {
       let file = anyOtherFiles[i];
       filesContent.push({
-        filename:file.name,
+        filename: file.name,
         fileContent: await $$.promisify(this.getBase64FileContent)(file)
       })
     }
-    callback(undefined,filesContent);
+    callback(undefined, filesContent);
   }
 
 
-  getBase64FileContent(file, callback){
+  getBase64FileContent(file, callback) {
     let fileReader = new FileReader();
 
     fileReader.onload = function (evt) {
@@ -277,11 +299,11 @@ export default class ManageProductController extends WebcController {
         label: "Upload files",
         "list-files": true,
       },
-      filesWereNotSelected:true,
+      filesWereNotSelected: true,
     }
     this.on("uploadLeaflet", (event) => {
       this.model.modalData.files = event.data;
-      if(this.model.modalData.files.length>0){
+      if (this.model.modalData.files.length > 0) {
         this.model.modalData.filesWereNotSelected = false;
       }
     });
@@ -327,7 +349,7 @@ export default class ManageProductController extends WebcController {
     return true;
   }
 
-  getProductAttachments(product, callback){
+  getProductAttachments(product, callback) {
     const resolver = require("opendsu").loadAPI("resolver");
     resolver.loadDSU(product.keySSI, (err, productDSU) => {
       if (err) {
@@ -377,7 +399,7 @@ export default class ManageProductController extends WebcController {
     });
   }
 
-  generateCard(inherited, type, code){
+  generateCard(inherited, type, code) {
     let card = {
       inherited: inherited,
       type: {value: type},
@@ -388,46 +410,52 @@ export default class ManageProductController extends WebcController {
     return card;
   }
 
-  addMarket() {
-    if(!this.model.product.markets){
+  editMarket(event) {
+    if (!this.model.product.markets) {
       this.model.product.markets = [];
     }
-    let existingCountryMarketIds = this.model.product.markets.map(market=>market.marketId);
-    let countriesList = Countries.getList()
-        .filter(country => !existingCountryMarketIds
+    let existingCountryMarketIds = this.model.product.markets.map(market => market.marketId);
+    let countriesList = event.marketId ? Countries.getList().map(country => {
+        return {
+          label: country.name,
+          value: country.code
+        }
+      }) :
+      Countries.getList().filter(country => !existingCountryMarketIds
         .includes(country.code)).map(country => {
-      return {
-        label: country.name,
-        value: country.code
-      }
-    });
+        return {
+          label: country.name,
+          value: country.code
+        }
+      });
+
     this.model.marketModel = {
-      validationFailed:false,
-      countriesCodes:{
-        options:countriesList,
-        value:countriesList[0].value,
-        label:"Select Country"
+      validationFailed: false,
+      countriesCodes: {
+        options: countriesList,
+        value: event.marketId || countriesList[0].value,
+        label: "Select Country"
       },
-      nationalCode:{
-        value:"",
-        placeholder:"Enter national code",
-        label:"National Code",
-        required:true,
-        isValid:true
+      nationalCode: {
+        value: event.nationalCode || "",
+        placeholder: "Enter national code",
+        label: "National Code",
+        required: true,
+        isValid: true
       },
-      mahName:{
-        value:"",
-        placeholder:"Enter manufacture name",
-        label:"Manufacture Name",
-        required:true,
-        isValid:true
+      mahName: {
+        value: event.mahName || "",
+        placeholder: "Enter manufacture name",
+        label: "Manufacture Name",
+        required: true,
+        isValid: true
       },
-      legalEntityName:{
-        value:"",
-        placeholder:"Enter legal entity name",
-        label:"Legal Entity Name",
-        required:true,
-        isValid:true
+      legalEntityName: {
+        value: event.legalEntityName || "",
+        placeholder: "Enter legal entity name",
+        label: "Legal Entity Name",
+        required: true,
+        isValid: true
       }
     }
 
@@ -437,13 +465,13 @@ export default class ManageProductController extends WebcController {
     }, {model: this.model});
   }
 
-  validateAndAddMarket() {
+  validateMarket() {
 
     let market = {
       marketId: this.model.marketModel.countriesCodes.value,
       nationalCode: this.model.marketModel.nationalCode.value,
       mahName: this.model.marketModel.mahName.value,
-      legalEntityName: this.model.marketModel.legalEntityName.value,
+      legalEntityName: this.model.marketModel.legalEntityName.value
     }
     let validationFailed = false;
     for (let prop in market) {
@@ -461,7 +489,7 @@ export default class ManageProductController extends WebcController {
       this.model.marketModel.validationFailed = true;
     } else {
       this.model.marketModel.validationFailed = false;
-      this.model.product.addMarket(market);
+      this.model.selectedMarket = market;
       this.hideModal();
     }
   }

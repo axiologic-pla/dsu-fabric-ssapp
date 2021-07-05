@@ -60,12 +60,24 @@ export default class Product {
     return {label: this.name, value: this.gtin}
   }
 
-  clone(){
+  clone() {
     return new Product(JSON.parse(JSON.stringify(this)));
   }
 
-  addMarket(market){
+  addMarket(market) {
     this.markets.push(market);
+  }
+
+  getMarket(marketId) {
+    const market = this.markets.find(elem => elem.marketId === marketId);
+    return market;
+  }
+
+  updateMarket(elementId, value) {
+    const index = this.markets.findIndex(elem => elem.marketId === elementId);
+    if (index !== -1) {
+      this.markets[index] = value;
+    }
   }
 
   removeMarket(marketId) {
@@ -77,7 +89,7 @@ export default class Product {
     }
   }
 
-  hasPhoto(){
+  hasPhoto() {
     return typeof this.photo !== "undefined" && this.photo !== defaultPhoto;
   }
 }
