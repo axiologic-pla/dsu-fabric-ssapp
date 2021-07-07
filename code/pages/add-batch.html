@@ -33,9 +33,10 @@
                             <div class="form-label pl-3">Expiry date</div>
                             <div class="background-container col mb-3" data-if="@batch.enableExpiryDay">
 
-                                <psk-date-input slot="true" data-format="DD MM YYYY" placeholder="dd/mm/yyyy" required
+                                <psk-date-input data-format="DD MM YYYY" placeholder="dd/mm/yyyy" required slot="true"
                                                 value="@batch.expiryForDisplay"></psk-date-input>
-                                <psk-date-input slot="false" type="month" data-format="MM YYYY" placeholder="mm/yyyy" required
+                                <psk-date-input data-format="MM YYYY" placeholder="mm/yyyy" required slot="false"
+                                                type="month"
                                                 value="@batch.expiryForDisplay"></psk-date-input>
                             </div>
                         </div>
@@ -85,7 +86,6 @@
                     </div>
 
 
-
                     <div class="d-flex flex-row mt-5">
                         <psk-button data-tag="cancel" label="Cancel"></psk-button>
                         <div data-if="@editMode">
@@ -120,12 +120,6 @@
                         <textarea class="w-100 mt-2" placeholder="-" readonly required
                                   rows="3" value="@productDescription"></textarea>
                     </div>
-<!--                    <div class="background-container col pl-3 mb-3 pl-3">-->
-<!--                        <div class="form-label">Product version</div>-->
-<!--                        <i class="fa fa-pencil-square-o editable-icon" slot="false"></i>-->
-<!--                        <psk-select class="default-select" required view-model="@versions"></psk-select>-->
-<!--                    </div>-->
-
                     <psk-checkbox checkbox-label="Enable Serial Number Verification" checked="@batch.serialCheck"
                                   name="serialCheck" value="@batch.serialCheck"></psk-checkbox>
                     <div class="d-flex flex-row">
@@ -135,6 +129,7 @@
                             <psk-select required value="" view-model="@serial_update_options"></psk-select>
                         </div>
                     </div>
+                    <dsu-leaflet data-view-model="@"></dsu-leaflet>
                 </div>
             </div>
 
@@ -161,9 +156,10 @@
         color: #E75222;
     }
 
-    psk-checkbox .form-check-inline{
+    psk-checkbox .form-check-inline {
         margin-right: 0px;
     }
+
     .read-only-container {
         background: #f3f3f3;
     }
@@ -178,8 +174,8 @@
     .background-container textarea,
     .read-only-container textarea,
     .background-container textarea:focus,
-    psk-select .form-control,
-    psk-select .form-control:focus,
+    .background-container psk-select .form-control,
+    .background-container psk-select .form-control:focus,
     psk-date-input .form-control[readonly],
     .read-only-container .form-control[readonly] {
         border: none;
@@ -189,6 +185,17 @@
         outline: none;
         resize: none;
         overflow: auto;
+    }
+
+    psk-select .form-control,
+    psk-select .form-control:focus {
+        background: none;
+        box-shadow: none;
+        padding: 0px;
+        outline: none;
+        resize: none;
+        overflow: auto;
+        border-color: black;
     }
 
     .background-container input::placeholder,

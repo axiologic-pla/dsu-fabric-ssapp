@@ -149,40 +149,10 @@
                                           value="@product.showEPIOnUnknownBatchNumber"></psk-checkbox>
                         </div>
                     </div>
-
                     <psk-tab-navigator default="0" id="orange-tab-navigator">
                         <psk-tab title="Leaflets Management">
-                            <div class="d-flex flex-column">
-                                <ul data-for="@languageTypeCards">
-                                    <li class="d-flex flex-row overflow-auto">
-                                        <div class="epi-card d-flex flex-row p-3 mr-3 mb-2">
-                                            <div class="form-label pr-3">{{@language.label}} {{@type.label}}</div>
-                                            <div data-if="@inherited">
-                                                <div class="pr-3" slot="false">
-                                                    {{@files.length}} files
-                                                </div>
-                                                <div slot="true">
-                                                    inherited
-                                                </div>
-                                            </div>
-
-                                            <button class="delete-language" data-tag="delete-language-leaflet">&times;
-                                                <div hidden="hidden">{{@language.value}}/{{@type.value}}</div>
-                                            </button>
-                                        </div>
-                                    </li>
-                                    <li slot="no-data" style="list-style: none">
-                                        <i>No leaflets added yet</i>
-                                    </li>
-                                </ul>
-
-                                <div class="mt-3">
-                                    <button class="form-button" data-tag="add-language-leaflet">+ Add ePI</button>
-                                </div>
-
-                            </div>
+                            <dsu-leaflet data-view-model="@"></dsu-leaflet>
                         </psk-tab>
-
 
                         <psk-tab title="Markets Management">
                             <div class="d-flex flex-column">
@@ -332,6 +302,10 @@
 
     .epi-card-container .delete-market {
         right: 7px;
+    }
+
+    .epi-card-container:hover {
+        cursor: pointer;
     }
 
     .epi-card .delete-language:focus,

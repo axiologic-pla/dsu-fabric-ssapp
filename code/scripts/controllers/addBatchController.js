@@ -5,7 +5,7 @@ import getSharedStorage from '../services/SharedDBStorageService.js';
 import utils from "../utils.js";
 import LogService from "../services/LogService.js";
 import HolderService from "../services/HolderService.js";
-
+import LeafletService from "../services/LeafletService.js";
 const holderService = HolderService.getHolderService();
 
 export default class addBatchController extends WebcController {
@@ -22,6 +22,7 @@ export default class addBatchController extends WebcController {
     this.logService = new LogService(this.DSUStorage);
     this.serialNumbersLogService = getSharedStorage(this.DSUStorage);
     this.versionOffset = 1;
+    this.model.languageTypeCards = [];
     holderService.ensureHolderInfo((err, holderInfo) => {
       if (!err) {
 
@@ -57,7 +58,12 @@ export default class addBatchController extends WebcController {
     if (editMode) {
       this.gtin = this.model.batch.gtin;
       this.model.batch.version++;
-
+      this.getBatchAttachments(this.model.batch, (err, attachments) => {
+        if (err) {
+          this.showErrorModalAndRedirect("Failed to get inherited cards", "patch");
+        }
+        this.model.languageTypeCards = attachments.languageTypeCards;
+      });
       this.model.batch.enableExpiryDay = this.model.batch.expiry.slice(-2) !== "00";
 
       this.getProductFromGtin(this.gtin, (err, product) => {
@@ -138,6 +144,22 @@ export default class addBatchController extends WebcController {
             console.log(message);
             let undigestedMessages = await this.mappingEngine.digestMessages([message]);
             console.log(undigestedMessages);
+            if(undigestedMessages.length === 0){
+
+              //process leaflet & cards smpc
+
+              let cardMessages = await LeafletService.createEpiMessages({
+                cards: this.model.languageTypeCards,
+                type: "batch",
+                username: this.model.username,
+                code: message.batch.batch
+              })
+
+              if (cardMessages.length > 0) {
+                let undigestedLeafletMessages = await this.mappingEngine.digestMessages(cardMessages);
+                console.log(undigestedLeafletMessages);
+              }
+            }
           }
           catch (e) {
             console.log(e);
@@ -200,6 +222,41 @@ export default class addBatchController extends WebcController {
     return result;
   }
 
+  getBatchAttachments(batch, callback) {
+    const resolver = require("opendsu").loadAPI("resolver");
+    resolver.loadDSU(batch.keySSI, (err, batchDSU) => {
+      if (err) {
+        return callback(err);
+      }
+
+      let languageTypeCards = [];
+      //used temporarily to avoid the usage of dsu cached instances which are not up to date
+      batchDSU.load(err => {
+        if (err) {
+          return callback(err);
+        }
+
+        batchDSU.listFolders("/leaflet", (err, leaflets) => {
+          if (err) {
+            return callback(err);
+          }
+
+          batchDSU.listFolders("/smpc", (err, smpcs) => {
+            if (err) {
+              return callback(err);
+            }
+            leaflets.forEach(leafletLanguageCode => {
+              languageTypeCards.push(LeafletService.generateCard(true, "leaflet", leafletLanguageCode));
+            })
+            smpcs.forEach(smpcLanguageCode => {
+              languageTypeCards.push(LeafletService.generateCard(true, "smpc", smpcLanguageCode));
+            });
+            callback(undefined, {languageTypeCards: languageTypeCards});
+          });
+        });
+      });
+    });
+  }
   //TODO move it to utils
   stringToArray(string){
     if(typeof string ==="undefined"){

@@ -6,6 +6,7 @@ import constants from '../constants.js';
 import getSharedStorage from '../services/SharedDBStorageService.js';
 import UploadTypes from "../models/UploadTypes.js";
 import utils from "../utils.js";
+import LeafletService from "../services/LeafletService.js";
 import Countries from "../models/Countries.js";
 
 const arrayBufferToBase64 = require("epi-utils").getMappingsUtils().arrayBufferToBase64;
@@ -37,15 +38,6 @@ export default class ManageProductController extends WebcController {
     this.onTagClick("cancel", () => {
       this.navigateToPageTag("products");
     })
-
-    this.onTagClick("delete-language-leaflet", (model, target, event) => {
-      let eventData = target.firstElementChild.innerText.split('/');
-      this.model.languageTypeCards = this.model.languageTypeCards.filter(lf => !(lf.type.value === eventData[1] && lf.language.value === eventData[0]));
-    });
-
-    this.onTagClick("add-language-leaflet", (event) => {
-      this.addLanguageTypeFilesListener(event)
-    });
 
     this.onTagClick("add-market", (event) => {
       this.model.actionModalModel = {
@@ -183,27 +175,13 @@ export default class ManageProductController extends WebcController {
 
           //process leaflet & cards smpc
 
-          let cardMessages = [];
+          let cardMessages = await LeafletService.createEpiMessages({
+            cards: this.model.languageTypeCards,
+            type: "product",
+            username: this.model.username,
+            code: message.product.productCode
+          })
 
-          for (let i = 0; i < this.model.languageTypeCards.length; i++) {
-            let card = this.model.languageTypeCards[i];
-
-            if (!card.inherited) {
-
-              let cardMessage = {
-                inherited: card.inherited,
-                productCode: message.product.productCode,
-                language: card.language.value,
-                messageType: card.type.value,
-                senderId: this.model.username,
-                xmlFileContent: await $$.promisify(this.getXMLFileContent.bind(this))(card.files),
-                otherFilesContent: await $$.promisify(this.getOtherCardFiles.bind(this))(card.files)
-              }
-              cardMessages.push(cardMessage);
-            }
-
-
-          }
           if (cardMessages.length > 0) {
             let undigestedLeafletMessages = await this.mappingEngine.digestMessages(cardMessages);
             console.log(undigestedLeafletMessages);
@@ -222,43 +200,6 @@ export default class ManageProductController extends WebcController {
     });
   }
 
-  getXMLFileContent(files, callback) {
-    let xmlFiles = files.filter((file) => file.name.endsWith('.xml'));
-
-    if (xmlFiles.length === 0) {
-      return callback(new Error("No xml files found."))
-    }
-    this.getBase64FileContent(xmlFiles[0], callback)
-  }
-
-  async getOtherCardFiles(files, callback) {
-    let anyOtherFiles = files.filter((file) => !file.name.endsWith('.xml'))
-
-    let filesContent = [];
-    for (let i = 0; i < anyOtherFiles.length; i++) {
-      let file = anyOtherFiles[i];
-      filesContent.push({
-        filename: file.name,
-        fileContent: await $$.promisify(this.getBase64FileContent)(file)
-      })
-    }
-    callback(undefined, filesContent);
-  }
-
-
-  getBase64FileContent(file, callback) {
-    let fileReader = new FileReader();
-
-    fileReader.onload = function (evt) {
-      let arrayBuffer = fileReader.result;
-      let base64FileContent = arrayBufferToBase64(arrayBuffer);
-      callback(undefined, base64FileContent);
-    }
-
-    fileReader.readAsArrayBuffer(file);
-  }
-
-
   getImageAsBase64(imageData) {
     if (typeof imageData === "string") {
       return imageData;
@@ -269,60 +210,6 @@ export default class ManageProductController extends WebcController {
     let base64Image = utils.bytesToBase64(imageData);
     base64Image = `data:image/png;base64, ${base64Image}`;
     return base64Image;
-  }
-
-
-  addLanguageTypeFilesListener(event) {
-    const languages = {
-      label: "Language",
-      placeholder: "Select a language",
-      options: Languages.getListAsVM()
-    };
-    const types = {
-      label: "Type",
-      placeholder: "Select a type",
-      options: UploadTypes.getListAsVM()
-    };
-    this.model.modalData = {
-      title: "Choose language and type of upload",
-      acceptButtonText: 'Accept',
-      denyButtonText: 'Cancel',
-      languages: languages,
-      types: types,
-      product: {
-        language: "en",
-        type: "leaflet"
-      },
-      fileChooser: {
-        accept: "directory",
-        "event-name": "uploadLeaflet",
-        label: "Upload files",
-        "list-files": true,
-      },
-      filesWereNotSelected: true,
-    }
-    this.on("uploadLeaflet", (event) => {
-      this.model.modalData.files = event.data;
-      if (this.model.modalData.files.length > 0) {
-        this.model.modalData.filesWereNotSelected = false;
-      }
-    });
-    this.showModalFromTemplate('select-language-and-type-modal', () => {
-      if (this.typeAndLanguageExist(this.model.modalData.product.language, this.model.modalData.product.type)) {
-        return alert('This language and type combo already exist.');
-      }
-      let selectedLanguage = Languages.getListAsVM().find(lang => lang.value === this.model.modalData.product.language);
-      let selectedType = UploadTypes.getListAsVM().find(type => type.value === this.model.modalData.product.type);
-      let card = this.generateCard(false, selectedType.value, selectedLanguage.value);
-      card.files = this.model.modalData.files;
-      this.model.languageTypeCards.push(card);
-    }, () => {
-      return
-    }, {model: this.model});
-  }
-
-  typeAndLanguageExist(language, type) {
-    return this.model.languageTypeCards.findIndex(lf => lf.type.value === type && lf.language.value === language) !== -1;
   }
 
   filesWereProvided() {
@@ -373,10 +260,10 @@ export default class ManageProductController extends WebcController {
               return callback(err);
             }
             leaflets.forEach(leafletLanguageCode => {
-              languageTypeCards.push(this.generateCard(true, "leaflet", leafletLanguageCode));
+              languageTypeCards.push(LeafletService.generateCard(true, "leaflet", leafletLanguageCode));
             })
             smpcs.forEach(smpcLanguageCode => {
-              languageTypeCards.push(this.generateCard(true, "smpc", smpcLanguageCode));
+              languageTypeCards.push(LeafletService.generateCard(true, "smpc", smpcLanguageCode));
             });
 
             productDSU.stat(constants.PRODUCT_IMAGE_FILE, (err, stat) => {
@@ -397,17 +284,6 @@ export default class ManageProductController extends WebcController {
         });
       });
     });
-  }
-
-  generateCard(inherited, type, code) {
-    let card = {
-      inherited: inherited,
-      type: {value: type},
-      language: {value: code}
-    };
-    card.type.label = UploadTypes.getLanguage(type);
-    card.language.label = Languages.getLanguage(code);
-    return card;
   }
 
   editMarket(event) {
