@@ -1,10 +1,10 @@
 const {WebcController} = WebCardinal.controllers;
 import Product from '../models/Product.js';
 import HolderService from '../services/HolderService.js';
+import MessagesService from '../services/MessagesService.js';
 import Languages from "../models/Languages.js";
 import constants from '../constants.js';
 import getSharedStorage from '../services/SharedDBStorageService.js';
-import UploadTypes from "../models/UploadTypes.js";
 import utils from "../utils.js";
 import LeafletService from "../services/LeafletService.js";
 import Countries from "../models/Countries.js";
@@ -81,12 +81,6 @@ export default class ManageProductController extends WebcController {
         if (!err && holderInfo) {
           this.model.product.manufName = holderInfo.userDetails.company;
           this.model.username = holderInfo.userDetails.username;
-
-          this.mappingEngine = mappings.getEPIMappingEngine(this.DSUStorage, {
-            holderInfo: holderInfo,
-            logService: logService
-          });
-
         } else {
           printOpenDSUError(createOpenDSUErrorWrapper("Invalid configuration detected!", err));
           this.showErrorModalAndRedirect("Invalid configuration detected! Configure your wallet properly in the Holder section!", "products");
@@ -154,10 +148,10 @@ export default class ManageProductController extends WebcController {
       epiUtils.transformToMessage(product, message.product, epiUtils.productDataSourceMapping);
 
       try {
-        let undigestedMessages = await this.mappingEngine.digestMessages([message]);
-        console.log(undigestedMessages);
-        if (undigestedMessages.length === 0) {
 
+        let undigestedMessages = await MessagesService.processMessages([message]);
+        if (undigestedMessages.length === 0) {
+          let photoMessages = [];
           //process photo
 
           let newPhoto = typeof this.productPhoto !== "undefined";
@@ -169,24 +163,19 @@ export default class ManageProductController extends WebcController {
               imageData: arrayBufferToBase64(this.productPhoto)
             }
 
-            undigestedMessages = await this.mappingEngine.digestMessages([addPhotoMessage])
-            console.log("Photo undigested messages", undigestedMessages);
+            photoMessages.push(addPhotoMessage);
           }
 
-          //process leaflet & cards smpc
+          //process leaflet & smpc cards
 
           let cardMessages = await LeafletService.createEpiMessages({
-            cards: this.model.languageTypeCards,
+            cards: [...this.model.languageTypeCards, ...this.model.deletedLanguageTypeCards],
             type: "product",
             username: this.model.username,
             code: message.product.productCode
           })
 
-          if (cardMessages.length > 0) {
-            let undigestedLeafletMessages = await this.mappingEngine.digestMessages(cardMessages);
-            console.log(undigestedLeafletMessages);
-          }
-
+          await MessagesService.processMessages([...photoMessages, ...cardMessages]);
         } else {
           //TODO show an error?
         }
@@ -238,51 +227,38 @@ export default class ManageProductController extends WebcController {
 
   getProductAttachments(product, callback) {
     const resolver = require("opendsu").loadAPI("resolver");
-    resolver.loadDSU(product.keySSI, (err, productDSU) => {
+    resolver.loadDSU(product.keySSI, async (err, productDSU) => {
       if (err) {
         return callback(err);
       }
 
       let languageTypeCards = [];
       //used temporarily to avoid the usage of dsu cached instances which are not up to date
-      productDSU.load(err => {
-        if (err) {
-          return callback(err);
+
+      try {
+        await $$.promisify(productDSU.load)();
+        let leaflets = await $$.promisify(productDSU.listFolders)("/leaflet");
+        let smpcs = await $$.promisify(productDSU.listFolders)("/smpc");
+        for (const leafletLanguageCode of leaflets) {
+          let leafletFiles = await $$.promisify(productDSU.listFiles)("/leaflet/" + leafletLanguageCode);
+          languageTypeCards.push(LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.EXISTS, "leaflet", leafletLanguageCode, leafletFiles));
         }
+        for (const smpcLanguageCode of smpcs) {
+          let smpcFiles = await $$.promisify(productDSU.listFiles)("/smpc/" + smpcLanguageCode);
+          languageTypeCards.push(LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.EXISTS, "smpc", smpcLanguageCode, smpcFiles));
+        }
+        let stat = await $$.promisify(productDSU.stat)(constants.PRODUCT_IMAGE_FILE)
+        if (stat.type === "file") {
+          let data = await $$.promisify(productDSU.readFile)(constants.PRODUCT_IMAGE_FILE);
+          let productPhoto = this.getImageAsBase64(data);
+          callback(undefined, {languageTypeCards: languageTypeCards, productPhoto: productPhoto});
+        } else {
+          callback(undefined, {languageTypeCards: languageTypeCards});
+        }
+      } catch (e) {
+        return callback(e);
+      }
 
-        productDSU.listFolders("/leaflet", (err, leaflets) => {
-          if (err) {
-            return callback(err);
-          }
-
-          productDSU.listFolders("/smpc", (err, smpcs) => {
-            if (err) {
-              return callback(err);
-            }
-            leaflets.forEach(leafletLanguageCode => {
-              languageTypeCards.push(LeafletService.generateCard(true, "leaflet", leafletLanguageCode));
-            })
-            smpcs.forEach(smpcLanguageCode => {
-              languageTypeCards.push(LeafletService.generateCard(true, "smpc", smpcLanguageCode));
-            });
-
-            productDSU.stat(constants.PRODUCT_IMAGE_FILE, (err, stat) => {
-              if (stat.type === "file") {
-                productDSU.readFile(constants.PRODUCT_IMAGE_FILE, (err, data) => {
-                  if (err) {
-                    return callback(err);
-                  }
-                  let productPhoto = this.getImageAsBase64(data);
-                  callback(undefined, {languageTypeCards: languageTypeCards, productPhoto: productPhoto});
-                })
-              } else {
-                callback(undefined, {languageTypeCards: languageTypeCards});
-              }
-            });
-
-          });
-        });
-      });
     });
   }
 

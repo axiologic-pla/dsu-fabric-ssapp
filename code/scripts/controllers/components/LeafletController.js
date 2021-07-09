@@ -8,18 +8,32 @@ class LeafletController extends WebcController {
 
   constructor(...props) {
     super(...props);
+    this.model.deletedLanguageTypeCards = [];
   }
 
-  onReady(){
+  onReady() {
     this.onTagClick("add-language-leaflet", (event) => {
       this.addLanguageTypeFilesListener(event)
     });
 
     this.onTagClick("delete-language-leaflet", (model, target, event) => {
       let eventData = target.firstElementChild.innerText.split('/');
-      this.model.languageTypeCards = this.model.languageTypeCards.filter(lf => !(lf.type.value === eventData[1] && lf.language.value === eventData[0]));
+      this.model.languageTypeCards = this.model.languageTypeCards.filter(lf => {
+        if (!(lf.type.value === eventData[1] && lf.language.value === eventData[0])) {
+          return true
+        }
+
+        if (lf.status === LeafletService.LEAFLET_CARD_STATUS.EXISTS) {
+          lf.status = LeafletService.LEAFLET_CARD_STATUS.DELETE;
+          this.model.deletedLanguageTypeCards.push(lf)
+        }
+
+        return false
+
+      });
     });
   }
+
   addLanguageTypeFilesListener(event) {
     const languages = {
       label: "Language",
@@ -62,8 +76,7 @@ class LeafletController extends WebcController {
       }
       let selectedLanguage = Languages.getListAsVM().find(lang => lang.value === this.model.modalData.product.language);
       let selectedType = UploadTypes.getListAsVM().find(type => type.value === this.model.modalData.product.type);
-      let card = LeafletService.generateCard(false, selectedType.value, selectedLanguage.value);
-      card.files = this.model.modalData.files;
+      let card = LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.NEW, selectedType.value, selectedLanguage.value, this.model.modalData.files);
       this.model.languageTypeCards.push(card);
     }, () => {
       return
@@ -75,4 +88,5 @@ class LeafletController extends WebcController {
   }
 
 }
+
 export default LeafletController;

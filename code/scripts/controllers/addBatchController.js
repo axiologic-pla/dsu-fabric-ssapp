@@ -3,9 +3,11 @@ import constants from "../constants.js";
 import Batch from "../models/Batch.js";
 import getSharedStorage from '../services/SharedDBStorageService.js';
 import utils from "../utils.js";
+import MessagesService from "../services/MessagesService.js";
 import LogService from "../services/LogService.js";
 import HolderService from "../services/HolderService.js";
 import LeafletService from "../services/LeafletService.js";
+
 const holderService = HolderService.getHolderService();
 
 export default class addBatchController extends WebcController {
@@ -25,12 +27,6 @@ export default class addBatchController extends WebcController {
     this.model.languageTypeCards = [];
     holderService.ensureHolderInfo((err, holderInfo) => {
       if (!err) {
-
-        this.mappingEngine = mappings.getEPIMappingEngine(this.DSUStorage, {
-          holderInfo: holderInfo,
-          logService: this.logService
-        });
-
         this.model.username = holderInfo.userDetails.username;
       } else {
         this.showErrorModalAndRedirect("Invalid configuration detected! Configure your wallet properly in the Holder section!", "batches");
@@ -115,58 +111,52 @@ export default class addBatchController extends WebcController {
       }
       // manage ignore date if day is not used we save it as last day of the month
       if (!batch.enableExpiryDay) {
-          batch.expiryForDisplay = utils.getIgnoreDayDate(batch.expiryForDisplay)
+        batch.expiryForDisplay = utils.getIgnoreDayDate(batch.expiryForDisplay)
       }
       batch.expiry = utils.convertDateToGS1Format(batch.expiryForDisplay, batch.enableExpiryDay);
 
-        let error = batch.validate();
-        if (error) {
-          printOpenDSUError(createOpenDSUErrorWrapper("Invalid batch info", err));
-          return this.showErrorModalAndRedirect("Invalid batch info" + err.message, "batches");
+      let error = batch.validate();
+      if (error) {
+        printOpenDSUError(createOpenDSUErrorWrapper("Invalid batch info", err));
+        return this.showErrorModalAndRedirect("Invalid batch info" + err.message, "batches");
+      }
+      this.createWebcModal({
+        disableExpanding: true,
+        disableClosing: true,
+        disableFooter: true,
+        modalTitle: "Info",
+        modalContent: "Saving batch..."
+      });
+
+      let message = {
+        senderId: this.model.username,
+        batch: {}
+      }
+
+      epiUtils.transformToMessage(batch, message.batch, epiUtils.batchDataSourceMapping);
+      message.messageType = "Batch";
+
+      try {
+        let undigestedMessages = await MessagesService.processMessages([message]);
+        if (undigestedMessages.length === 0) {
+
+          //process leaflet & smpc cards
+
+          let cardMessages = await LeafletService.createEpiMessages({
+            cards: [...this.model.languageTypeCards, ...this.model.deletedLanguageTypeCards],
+            type: "batch",
+            username: this.model.username,
+            code: message.batch.batch
+          })
+
+          await MessagesService.processMessages(cardMessages);
         }
-          this.createWebcModal({
-            disableExpanding: true,
-            disableClosing: true,
-            disableFooter: true,
-            modalTitle: "Info",
-            modalContent: "Saving batch..."
-          });
+      } catch (e) {
+        console.log(e);
+      }
 
-          let message = {
-            senderId: this.model.username,
-            batch:{}
-          }
-
-          epiUtils.transformToMessage(batch, message.batch, epiUtils.batchDataSourceMapping);
-          message.messageType ="Batch";
-
-          try{
-            console.log(message);
-            let undigestedMessages = await this.mappingEngine.digestMessages([message]);
-            console.log(undigestedMessages);
-            if(undigestedMessages.length === 0){
-
-              //process leaflet & cards smpc
-
-              let cardMessages = await LeafletService.createEpiMessages({
-                cards: this.model.languageTypeCards,
-                type: "batch",
-                username: this.model.username,
-                code: message.batch.batch
-              })
-
-              if (cardMessages.length > 0) {
-                let undigestedLeafletMessages = await this.mappingEngine.digestMessages(cardMessages);
-                console.log(undigestedLeafletMessages);
-              }
-            }
-          }
-          catch (e) {
-            console.log(e);
-          }
-
-          this.hideModal();
-          this.navigateToPageTag("batches");
+      this.hideModal();
+      this.navigateToPageTag("batches");
     };
 
     this.onTagClick("update-batch", addOrUpdateBatch)
@@ -183,8 +173,8 @@ export default class addBatchController extends WebcController {
 
     this.model.onChange("products.value", async (event) => {
       this.model.batch.gtin = this.model.products.value;
-      this.getProductFromGtin(this.model.batch.gtin,(err, product)=>{
-        if(err){
+      this.getProductFromGtin(this.model.batch.gtin, (err, product) => {
+        if (err) {
           printOpenDSUError(createOpenDSUErrorWrapper("Failed to get a valid product", err));
           return this.showErrorModalAndRedirect("Failed to get a valid product", "batches");
         }
@@ -200,17 +190,17 @@ export default class addBatchController extends WebcController {
     });
   }
 
-  getProductFromGtin (gtin, callback){
+  getProductFromGtin(gtin, callback) {
     this.storageService.filter(constants.PRODUCTS_TABLE, `gtin == ${gtin}`, (err, products) => {
-      if(err){
+      if (err) {
         printOpenDSUError(createOpenDSUErrorWrapper("Failed to get a valid product", err));
         return this.showErrorModalAndRedirect("Failed to get a valid product", "batches");
       }
       let product = products[0];
-      if(!product){
-        return  callback(new Error(`No product found for gtin ${gtin}`));
+      if (!product) {
+        return callback(new Error(`No product found for gtin ${gtin}`));
       }
-      callback(undefined,product);
+      callback(undefined, product);
     });
   }
 
@@ -224,42 +214,36 @@ export default class addBatchController extends WebcController {
 
   getBatchAttachments(batch, callback) {
     const resolver = require("opendsu").loadAPI("resolver");
-    resolver.loadDSU(batch.keySSI, (err, batchDSU) => {
+    resolver.loadDSU(batch.keySSI, async (err, batchDSU) => {
       if (err) {
         return callback(err);
       }
 
       let languageTypeCards = [];
       //used temporarily to avoid the usage of dsu cached instances which are not up to date
-      batchDSU.load(err => {
-        if (err) {
-          return callback(err);
+
+      try {
+        await $$.promisify(batchDSU.load)();
+        let leaflets = await $$.promisify(batchDSU.listFolders)("/leaflet");
+        let smpcs = await $$.promisify(batchDSU.listFolders)("/smpc");
+        for (const leafletLanguageCode of leaflets) {
+          let leafletFiles = await $$.promisify(batchDSU.listFiles)("/leaflet/" + leafletLanguageCode);
+          languageTypeCards.push(LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.EXISTS, "leaflet", leafletLanguageCode, leafletFiles));
         }
-
-        batchDSU.listFolders("/leaflet", (err, leaflets) => {
-          if (err) {
-            return callback(err);
-          }
-
-          batchDSU.listFolders("/smpc", (err, smpcs) => {
-            if (err) {
-              return callback(err);
-            }
-            leaflets.forEach(leafletLanguageCode => {
-              languageTypeCards.push(LeafletService.generateCard(true, "leaflet", leafletLanguageCode));
-            })
-            smpcs.forEach(smpcLanguageCode => {
-              languageTypeCards.push(LeafletService.generateCard(true, "smpc", smpcLanguageCode));
-            });
-            callback(undefined, {languageTypeCards: languageTypeCards});
-          });
-        });
-      });
+        for (const smpcLanguageCode of smpcs) {
+          let smpcFiles = await $$.promisify(batchDSU.listFiles)("/smpc/" + smpcLanguageCode);
+          languageTypeCards.push(LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.EXISTS, "smpc", smpcLanguageCode, smpcFiles));
+        }
+        callback(undefined, {languageTypeCards: languageTypeCards});
+      } catch (e) {
+        return callback(e);
+      }
     });
   }
+
   //TODO move it to utils
-  stringToArray(string){
-    if(typeof string ==="undefined"){
+  stringToArray(string) {
+    if (typeof string === "undefined") {
       return [];
     }
     return string.split(/[ ,]+/).filter(v => v !== '')
@@ -312,7 +296,7 @@ export default class addBatchController extends WebcController {
           serialNumbersLog.creationTime = new Date().toUTCString();
           if (this.model.actionModalModel.resetAll) {
             this.model.batch.snValidReset = true;
-          }else{
+          } else {
             this.model.serialNumbers = this.model.actionModalModel.serialNumbers;
           }
           break
@@ -321,7 +305,7 @@ export default class addBatchController extends WebcController {
           serialNumbersLog.action = "Updated recalled serial numbers list";
           if (this.model.actionModalModel.resetAll) {
             this.model.batch.snRecalledReset = true;
-          }else{
+          } else {
             this.model.recalledSerialNumbers = this.model.actionModalModel.serialNumbers;
           }
           break
@@ -330,7 +314,7 @@ export default class addBatchController extends WebcController {
           serialNumbersLog.creationTime = new Date().toUTCString();
           if (this.model.actionModalModel.resetAll) {
             this.model.batch.snDecomReset = true;
-          }else{
+          } else {
             this.model.decommissionedSerialNumbers = this.model.actionModalModel.serialNumbers;
             this.model.batch.decommissionReason = this.model.actionModalModel.reason.value;
           }

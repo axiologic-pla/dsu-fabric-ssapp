@@ -1,9 +1,7 @@
 import utils from "../utils.js";
 import getSharedStorage from "../services/SharedDBStorageService.js";
-import HolderService from "../services/HolderService.js";
+import MessagesService from "../services/MessagesService.js";
 
-const mappings = require("epi-utils").loadApi("mappings");
-const MessagesPipe = require("epi-utils").getMessagesPipe();
 const {WebcController} = WebCardinal.controllers;
 const model = {
   selectedTab: 0,
@@ -16,12 +14,13 @@ const model = {
     "list-files": true
   },
   importIsDisabled: true,
-  retryBtnIsDisabled:true,
+  retryBtnIsDisabled: true,
   successfullyImportedLogs: [],
   failedImportedLogs: [],
   retryAll: false,
 }
 export default class importController extends WebcController {
+
   constructor(...props) {
 
     super(...props);
@@ -38,7 +37,9 @@ export default class importController extends WebcController {
         return;
       }
       let messages = await this.getMessagesFromFiles(this.filesArray);
-      await this.processMessages(messages);
+      window.WebCardinal.loader.hidden = false;
+      let undigestedMessages = await MessagesService.processMessages(messages);
+      this.manageProcessedMessages(undigestedMessages);
     });
 
     this.onTagClick("view-message", (model, target, event) => {
@@ -83,15 +84,18 @@ export default class importController extends WebcController {
       });
       if (messages.length > 0) {
         this.model.selectedTab = 1;
-        await this.processMessages(messages);
+        window.WebCardinal.loader.hidden = false;
+        let undigestedMessages = await MessagesService.processMessages(messages);
+        this.manageProcessedMessages(undigestedMessages)
         this.model.retryAll = false;
         this.querySelector("#retry-all-checkbox").checked = false;
       }
     })
+
     this.getImportLogs();
 
-    this.model.onChange("failedImportedLogs",()=>{
-      this.model.retryBtnIsDisabled = !this.model.failedImportedLogs.some(failedLog=> failedLog.retry === true)
+    this.model.onChange("failedImportedLogs", () => {
+      this.model.retryBtnIsDisabled = !this.model.failedImportedLogs.some(failedLog => failedLog.retry === true)
     })
   }
 
@@ -134,48 +138,14 @@ export default class importController extends WebcController {
     })
   }
 
-  async processMessages(messages) {
-    const LogService = require("epi-utils").loadApi("services").LogService
-    let logService = new LogService(this.DSUStorage);
+  manageProcessedMessages(undigestedMessages) {
+    window.WebCardinal.loader.hidden = true;
+    this.getImportLogs();
 
-    let mappingEngine;
-    try {
-      const holderService = HolderService.getHolderService();
-      const holderInfo = await $$.promisify(holderService.ensureHolderInfo.bind(holderService.ensureHolderInfo))();
-      mappingEngine = mappings.getEPIMappingEngine(this.DSUStorage, {
-        holderInfo: holderInfo,
-        logService: logService
-      });
-    } catch (e) {
-      printOpenDSUError(createOpenDSUErrorWrapper("Invalid configuration detected!", e));
-      this.showErrorModalAndRedirect("Invalid configuration detected! Configure your wallet properly in the Holder section!", "import");
-    }
-
-    try {
-
-      window.WebCardinal.loader.hidden = false;
-
-      const MessageQueuingService = require("epi-utils").loadApi("services").getMessageQueuingServiceInstance();
-      let messagesPipe = new MessagesPipe(30, 2 * 1000, MessageQueuingService.getNextMessagesBlock);
-
-      messagesPipe.onNewGroup(async (groupMessages) => {
-        let undigestedMessages = await mappingEngine.digestMessages(groupMessages);
-
-        console.log(undigestedMessages);
-        window.WebCardinal.loader.hidden = true;
-        this.getImportLogs();
-
-        if (undigestedMessages.length === 0) {
-          this.model.setChainValue("selectedTab", 0);
-        } else {
-          this.model.setChainValue("selectedTab", 1)
-        }
-      })
-
-      messagesPipe.addInQueue(messages);
-
-    } catch (err) {
-      console.log("Error on digestMessages", err);
+    if (undigestedMessages.length === 0) {
+      this.model.setChainValue("selectedTab", 0);
+    } else {
+      this.model.setChainValue("selectedTab", 1)
     }
   }
 
@@ -184,6 +154,7 @@ export default class importController extends WebcController {
     let failedImportedLogs = [];
     const storageService = getSharedStorage(this.DSUStorage);
     const getMappingLogs = require("epi-utils").loadApi("mappings").getMappingLogs(storageService);
+    window.WebCardinal.loader.hidden = false;
     getMappingLogs((err, importLogs) => {
       if (err) {
         console.log(err);
@@ -205,6 +176,7 @@ export default class importController extends WebcController {
 
       this.model.successfullyImportedLogs = successfullyImportedLogs.reverse();
       this.model.failedImportedLogs = failedImportedLogs.reverse();
+      window.WebCardinal.loader.hidden = true;
     });
   }
 }
