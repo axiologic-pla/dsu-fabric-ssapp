@@ -296,28 +296,26 @@ export default class addBatchController extends WebcController {
           serialNumbersLog.creationTime = new Date().toUTCString();
           if (this.model.actionModalModel.resetAll) {
             this.model.batch.snValidReset = true;
-          } else {
-            this.model.serialNumbers = this.model.actionModalModel.serialNumbers;
           }
+          this.model.serialNumbers = this.model.actionModalModel.serialNumbers;
+
           break
         case "update-recalled-serial":
           serialNumbersLog.creationTime = new Date().toUTCString();
           serialNumbersLog.action = "Updated recalled serial numbers list";
           if (this.model.actionModalModel.resetAll) {
             this.model.batch.snRecalledReset = true;
-          } else {
-            this.model.recalledSerialNumbers = this.model.actionModalModel.serialNumbers;
           }
+          this.model.recalledSerialNumbers = this.model.actionModalModel.serialNumbers;
           break
         case "update-decommissioned-serial":
           serialNumbersLog.action = "Updated decommissioned serial numbers list";
           serialNumbersLog.creationTime = new Date().toUTCString();
           if (this.model.actionModalModel.resetAll) {
             this.model.batch.snDecomReset = true;
-          } else {
-            this.model.decommissionedSerialNumbers = this.model.actionModalModel.serialNumbers;
-            this.model.batch.decommissionReason = this.model.actionModalModel.reason.value;
           }
+          this.model.decommissionedSerialNumbers = this.model.actionModalModel.serialNumbers;
+          this.model.batch.decommissionReason = this.model.actionModalModel.reason.value;
           break
       }
       this.model.serial_update_options.value = "Select an option";
