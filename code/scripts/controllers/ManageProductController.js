@@ -292,21 +292,21 @@ export default class ManageProductController extends WebcController {
         value: event.nationalCode || "",
         placeholder: "Enter national code",
         label: "National Code",
-        required: true,
+
         isValid: true
       },
       mahName: {
         value: event.mahName || "",
         placeholder: "Enter manufacture name",
         label: "Manufacture Name",
-        required: true,
+
         isValid: true
       },
       legalEntityName: {
         value: event.legalEntityName || "",
         placeholder: "Enter legal entity name",
         label: "Legal Entity Name",
-        required: true,
+
         isValid: true
       }
     }
@@ -327,13 +327,11 @@ export default class ManageProductController extends WebcController {
     }
     let validationFailed = false;
     for (let prop in market) {
-      if (market[prop].replace(/\s/g, "").length === 0) {
-        validationFailed = true;
-        this.model.marketModel[prop].isValid = false;
-      } else {
-        if (this.model.marketModel[prop]) {
-          this.model.marketModel[prop].isValid = true;
+      if (this.model.marketModel[prop]) {
+        if (this.model.marketModel[prop].required && market[prop].replace(/\s/g, "").length === 0) {
+          validationFailed = true;
         }
+        this.model.marketModel[prop].isValid = !validationFailed;
       }
     }
 
