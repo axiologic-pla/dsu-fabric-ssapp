@@ -137,26 +137,20 @@ export default class addBatchController extends WebcController {
       message.messageType = "Batch";
 
       try {
-        let undigestedMessages = await MessagesService.processMessages([message]);
-        if (undigestedMessages.length === 0) {
+        //process batch, leaflet & smpc cards
 
-          //process leaflet & smpc cards
+        let cardMessages = await LeafletService.createEpiMessages({
+          cards: [...this.model.deletedLanguageTypeCards, ...this.model.languageTypeCards],
+          type: "batch",
+          username: this.model.username,
+          code: message.batch.batch
+        })
 
-          let cardMessages = await LeafletService.createEpiMessages({
-            cards: [...this.model.languageTypeCards, ...this.model.deletedLanguageTypeCards],
-            type: "batch",
-            username: this.model.username,
-            code: message.batch.batch
-          })
+        await MessagesService.processMessages([message, ...cardMessages], this.showMessageError.bind(this));
 
-          await MessagesService.processMessages(cardMessages);
-        }
       } catch (e) {
-        console.log(e);
+        this.showErrorModal(e.message);
       }
-
-      this.hideModal();
-      this.navigateToPageTag("batches");
     };
 
     this.onTagClick("update-batch", addOrUpdateBatch)
@@ -188,6 +182,27 @@ export default class addBatchController extends WebcController {
     this.on('openFeedback', (e) => {
       this.feedbackEmitter = e.detail;
     });
+  }
+
+  showMessageError(undigestedMessages) {
+    let errors = [];
+    if (undigestedMessages.length > 0) {
+      undigestedMessages.forEach(msg => {
+        if (errors.findIndex((elem) => elem.message === msg.reason.originalMessage) < 0) {
+          errors.push({message: msg.reason.originalMessage});
+        }
+      })
+
+      this.showModalFromTemplate("digest-messages-error-modal", () => {
+        this.hideModal();
+        this.navigateToPageTag("batches");
+      }, () => {
+      }, {model: {errors: errors}});
+    } else {
+
+      this.hideModal();
+      this.navigateToPageTag("batches");
+    }
   }
 
   getProductFromGtin(gtin, callback) {

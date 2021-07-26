@@ -149,44 +149,57 @@ export default class ManageProductController extends WebcController {
 
       try {
 
-        let undigestedMessages = await MessagesService.processMessages([message]);
-        if (undigestedMessages.length === 0) {
-          let photoMessages = [];
-          //process photo
+        let photoMessages = [];
+        //process photo
 
-          let newPhoto = typeof this.productPhoto !== "undefined";
-          if (newPhoto) {
-            let addPhotoMessage = {
-              messageType: "ProductPhoto",
-              productCode: message.product.productCode,
-              senderId: this.model.username,
-              imageData: arrayBufferToBase64(this.productPhoto)
-            }
-
-            photoMessages.push(addPhotoMessage);
+        let newPhoto = typeof this.productPhoto !== "undefined";
+        if (newPhoto) {
+          let addPhotoMessage = {
+            messageType: "ProductPhoto",
+            productCode: message.product.productCode,
+            senderId: this.model.username,
+            imageData: arrayBufferToBase64(this.productPhoto)
           }
 
-          //process leaflet & smpc cards
-
-          let cardMessages = await LeafletService.createEpiMessages({
-            cards: [...this.model.languageTypeCards, ...this.model.deletedLanguageTypeCards],
-            type: "product",
-            username: this.model.username,
-            code: message.product.productCode
-          })
-
-          await MessagesService.processMessages([...photoMessages, ...cardMessages]);
-        } else {
-          //TODO show an error?
+          photoMessages.push(addPhotoMessage);
         }
 
+        //process leaflet & smpc cards
+
+        let cardMessages = await LeafletService.createEpiMessages({
+          cards: [...this.model.deletedLanguageTypeCards, ...this.model.languageTypeCards],
+          type: "product",
+          username: this.model.username,
+          code: message.product.productCode
+        })
+
+        await MessagesService.processMessages([message, ...photoMessages, ...cardMessages], this.showMessageError.bind(this));
+
       } catch (e) {
-        console.log(e);
+        this.showErrorModal(e.message);
       }
-      this.hideModal();
-      this.navigateToPageTag("products");
 
     });
+  }
+
+  showMessageError(undigestedMessages) {
+    let errors = [];
+    if (undigestedMessages.length > 0) {
+      undigestedMessages.forEach(msg => {
+        if (errors.findIndex((elem) => elem.message === msg.reason.originalMessage) < 0) {
+          errors.push({message: msg.reason.originalMessage});
+        }
+      })
+
+      this.showModalFromTemplate("digest-messages-error-modal", () => {
+        this.hideModal();
+        this.navigateToPageTag("products");
+      }, () => {
+      }, {model: {errors: errors}});
+    } else {
+      this.hideModal();
+      this.navigateToPageTag("products");
+    }
   }
 
   getImageAsBase64(imageData) {

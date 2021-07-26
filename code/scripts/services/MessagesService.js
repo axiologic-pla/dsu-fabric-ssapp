@@ -3,7 +3,7 @@ import HolderService from "./HolderService.js";
 const mappings = require("epi-utils").loadApi("mappings");
 const MessagesPipe = require("epi-utils").getMessagesPipe();
 
-async function processMessages(messages) {
+async function processMessages(messages, callback) {
   if (!messages || messages.length === 0) {
     return;
   }
@@ -34,7 +34,7 @@ async function processMessages(messages) {
         digestedMessagesCounter += groupMessages.length;
         if (digestedMessagesCounter >= messages.length) {
           console.log("undigested messages ", undigestedMessages);
-          resolve(undigestedMessages);
+          resolve(callback(undigestedMessages));
         }
       })
 
