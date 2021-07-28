@@ -1,5 +1,4 @@
 const securityContext = require("opendsu").loadApi("sc");
-const mainDSU = securityContext.getMainDSU();
 
 function cloneFolder(srcPath, destPath, callback) {
     if (srcPath.endsWith("/")) {
@@ -8,24 +7,24 @@ function cloneFolder(srcPath, destPath, callback) {
     if (destPath.endsWith("/")) {
         destPath = destPath.slice(0, -1);
     }
-    mainDSU.cloneFolder(srcPath, destPath, {ignoreMounts: false}, callback);
+    securityContext.getMainDSU((err, mainDSU) => {
+        if (err) {
+            return callback(err);
+        }
+        mainDSU.cloneFolder(srcPath, destPath, {ignoreMounts: false}, callback);
+    })
 }
 
 function mountDSU(path, keySSI, callback) {
-    mainDSU.mount(path, keySSI, callback);
+    securityContext.getMainDSU((err, mainDSU) => {
+        if (err) {
+            return callback(err);
+        }
+        mainDSU.mount(path, keySSI, callback);
+    });
 }
 
 module.exports = {
     cloneFolder,
     mountDSU
 }
-
-/*
-this.DSUStorage.call("cloneFolder", previousPath, currentPath (err) => {
-                if (err) {
-                    return callback(err);
-                }
-
-                callback();
-            })
- */
