@@ -42,13 +42,23 @@ export default class importController extends WebcController {
     });
 
     this.onTagClick("view-message", (model, target, event) => {
-      const formattedJSON = JSON.stringify(model.message, null, 4);
+      let secondMessage;
       this.model.actionModalModel = {
         title: "Message",
-        messageData: formattedJSON,
         denyButtonText: 'Close',
-        acceptButtonText: "Download"
+        acceptButtonText: "Download message"
       }
+      if (model.message.invalidFields) {
+        secondMessage = model.message.invalidFields;
+        delete model.message.invalidFields
+        this.model.actionModalModel.secondMessageData = secondMessage;
+        this.model.actionModalModel.showSecondMessage = true;
+      }
+
+      const formattedJSON = JSON.stringify(model.message, null, 4);
+
+      this.model.actionModalModel.messageData = formattedJSON;
+
 
       this.showModalFromTemplate('view-message-modal',
         () => {

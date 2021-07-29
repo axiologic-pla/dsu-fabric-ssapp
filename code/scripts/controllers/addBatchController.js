@@ -197,6 +197,7 @@ export default class addBatchController extends WebcController {
         this.hideModal();
         this.navigateToPageTag("batches");
       }, () => {
+        this.hideModal();
       }, {model: {errors: errors}});
     } else {
 

@@ -2,11 +2,32 @@
     <h5>{{@actionModalModel.title}}</h5>
 </div>
 <main>
-    <div class="code-container">
-        <psk-code id="view-json" language="json">
-            {{@actionModalModel.messageData}}
-        </psk-code>
+
+    <div data-if="@actionModalModel.showSecondMessage">
+        <div slot="true">
+            <psk-accordion id="orange-tab-navigator" selected="0">
+                <psk-accordion-item title="Invalid fields info">
+                    <ul data-for="@actionModalModel.secondMessageData">
+                        <li> <h6 class="pl-4 mb-2 text-primary"><small><i class="fa fa-asterisk"></i></small> {{@field}} - {{@message}} </h6></li>
+                    </ul>
+                </psk-accordion-item>
+                <psk-accordion-item opened="true" title="Message">
+                    <psk-code id="view-json" language="json">
+                        {{@actionModalModel.messageData}}
+                    </psk-code>
+                </psk-accordion-item>
+
+            </psk-accordion>
+        </div>
+
+        <div class="code-container" slot="false">
+            <psk-code id="view-json" language="json">
+                {{@actionModalModel.messageData}}
+            </psk-code>
+        </div>
     </div>
+
+
 </main>
 <footer class="modal-action-menu" slot="footer">
     <psk-button class="marketplace-manager-button" data-close label="@actionModalModel.denyButtonText"></psk-button>

@@ -195,6 +195,7 @@ export default class ManageProductController extends WebcController {
         this.hideModal();
         this.navigateToPageTag("products");
       }, () => {
+        this.hideModal();
       }, {model: {errors: errors}});
     } else {
       this.hideModal();
