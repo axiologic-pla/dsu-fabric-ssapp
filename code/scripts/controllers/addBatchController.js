@@ -22,7 +22,7 @@ export default class addBatchController extends WebcController {
     this.setModel({});
     this.storageService = getSharedStorage(this.DSUStorage);
     this.logService = new LogService(this.DSUStorage);
-    this.serialNumbersLogService = getSharedStorage(this.DSUStorage);
+
     this.versionOffset = 1;
     this.model.languageTypeCards = [];
     holderService.ensureHolderInfo((err, holderInfo) => {
@@ -68,7 +68,7 @@ export default class addBatchController extends WebcController {
       });
     }
 
-    this.serialNumbersLogService.filter(this.model.batch.batchNumber, "__timestamp > 0", (err, logs) => {
+    this.storageService.filter(this.model.batch.batchNumber, "__timestamp > 0", (err, logs) => {
       if (err || typeof logs === "undefined") {
         logs = [];
       }
@@ -89,7 +89,7 @@ export default class addBatchController extends WebcController {
     });
 
     this.model.onChange("batch.batchNumber", (event) => {
-      this.serialNumbersLogService.filter(this.model.batch.batchNumber, "__timestamp > 0", (err, logs) => {
+      this.storageService.filter(this.model.batch.batchNumber, "__timestamp > 0", (err, logs) => {
         if (err || typeof logs === "undefined") {
           logs = [];
         }
@@ -145,8 +145,13 @@ export default class addBatchController extends WebcController {
           username: this.model.username,
           code: message.batch.batch
         })
-
-        await MessagesService.processMessages([message, ...cardMessages], this.showMessageError.bind(this));
+        if (!this.DSUStorage.directAccessEnabled) {
+          this.DSUStorage.enableDirectAccess(async () => {
+            await MessagesService.processMessages([message, ...cardMessages], this.DSUStorage, this.showMessageError.bind(this));
+          })
+        } else {
+          await MessagesService.processMessages([message, ...cardMessages], this.DSUStorage, this.showMessageError.bind(this));
+        }
 
       } catch (e) {
         this.showErrorModal(e.message);
@@ -335,7 +340,7 @@ export default class addBatchController extends WebcController {
           break
       }
       this.model.serial_update_options.value = "Select an option";
-      this.serialNumbersLogService.insertRecord(this.model.batch.batchNumber, serialNumbersLog.creationTime, serialNumbersLog, () => {
+      this.storageService.insertRecord(this.model.batch.batchNumber, serialNumbersLog.creationTime, serialNumbersLog, () => {
       })
     }, () => {
       this.model.serial_update_options.value = "Select an option";

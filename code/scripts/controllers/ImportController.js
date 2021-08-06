@@ -38,7 +38,14 @@ export default class importController extends WebcController {
       }
       let messages = await this.getMessagesFromFiles(this.filesArray);
       window.WebCardinal.loader.hidden = false;
-      await MessagesService.processMessages(messages, this.manageProcessedMessages.bind(this));
+      if (!this.DSUStorage.directAccessEnabled) {
+        this.DSUStorage.enableDirectAccess(async () => {
+          await MessagesService.processMessages(messages, this.DSUStorage, this.manageProcessedMessages.bind(this));
+        })
+      } else {
+        await MessagesService.processMessages(messages, this.DSUStorage, this.manageProcessedMessages.bind(this));
+      }
+
     });
 
     this.onTagClick("view-message", (model, target, event) => {
@@ -94,7 +101,13 @@ export default class importController extends WebcController {
       if (messages.length > 0) {
         this.model.selectedTab = 1;
         window.WebCardinal.loader.hidden = false;
-        await MessagesService.processMessages(messages, this.manageProcessedMessages.bind(this));
+        if (!this.DSUStorage.directAccessEnabled) {
+          this.DSUStorage.enableDirectAccess(async () => {
+            await MessagesService.processMessages(messages, this.DSUStorage, this.manageProcessedMessages.bind(this));
+          })
+        } else {
+          await MessagesService.processMessages(messages, this.DSUStorage, this.manageProcessedMessages.bind(this));
+        }
         this.model.retryAll = false;
         this.querySelector("#retry-all-checkbox").checked = false;
       }

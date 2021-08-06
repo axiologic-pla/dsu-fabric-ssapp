@@ -3,18 +3,18 @@ import HolderService from "./HolderService.js";
 const mappings = require("epi-utils").loadApi("mappings");
 const MessagesPipe = require("epi-utils").getMessagesPipe();
 
-async function processMessages(messages, callback) {
+async function processMessages(messages, dsuStorage, callback) {
   if (!messages || messages.length === 0) {
     return;
   }
   const LogService = require("epi-utils").loadApi("services").LogService
-  let logService = new LogService(this.DSUStorage);
+  let logService = new LogService(dsuStorage);
 
   let mappingEngine;
   try {
     const holderService = HolderService.getHolderService();
     const holderInfo = await $$.promisify(holderService.ensureHolderInfo.bind(holderService.ensureHolderInfo))();
-    mappingEngine = mappings.getEPIMappingEngine(this.DSUStorage, {
+    mappingEngine = mappings.getEPIMappingEngine(dsuStorage, {
       holderInfo: holderInfo,
       logService: logService
     });

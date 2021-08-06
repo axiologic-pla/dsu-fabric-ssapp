@@ -16,11 +16,9 @@ export default class ManageProductController extends WebcController {
     super(...props);
     this.controllerElement = props[0];
     this.setModel({});
-
     const mappings = require("epi-utils").loadApi("mappings");
     const epiUtils = require("epi-utils").getMappingsUtils();
     const LogService = require("epi-utils").loadApi("services").LogService
-    let logService = new LogService(this.DSUStorage);
 
     this.storageService = getSharedStorage(this.DSUStorage);
     this.logService = new LogService(this.DSUStorage);
@@ -172,8 +170,14 @@ export default class ManageProductController extends WebcController {
           username: this.model.username,
           code: message.product.productCode
         })
+        if (!this.DSUStorage.directAccessEnabled) {
+          this.DSUStorage.enableDirectAccess(async () => {
+            await MessagesService.processMessages([message, ...photoMessages, ...cardMessages], this.DSUStorage, this.showMessageError.bind(this));
+          })
+        } else {
+          await MessagesService.processMessages([message, ...photoMessages, ...cardMessages], this.DSUStorage, this.showMessageError.bind(this));
+        }
 
-        await MessagesService.processMessages([message, ...photoMessages, ...cardMessages], this.showMessageError.bind(this));
 
       } catch (e) {
         this.showErrorModal(e.message);
