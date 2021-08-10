@@ -1,6 +1,7 @@
 import utils from "../utils.js";
 import getSharedStorage from "../services/SharedDBStorageService.js";
 import MessagesService from "../services/MessagesService.js";
+import HolderService from "../services/HolderService.js";
 
 const {WebcController} = WebCardinal.controllers;
 const model = {
@@ -26,6 +27,16 @@ export default class importController extends WebcController {
     super(...props);
     this.filesArray = [];
     this.model = model;
+    const holderService = HolderService.getHolderService();
+    holderService.ensureHolderInfo((err, holderInfo) => {
+
+      if (!err && holderInfo) {
+        this.domain = holderInfo.domain;
+        this.subdomain = holderInfo.subdomain;
+      } else {
+        this.showErrorModalAndRedirect("Invalid configuration detected! Configure your wallet properly in the Holder section!", "home");
+      }
+    });
 
     this.on('uploadProducts', (event) => {
       this.filesArray = event.data || [];
@@ -47,6 +58,10 @@ export default class importController extends WebcController {
       }
 
     });
+
+    this.onTagClick("view-all", async () => {
+      window.open(`${window.location.origin}/mappingEngine/${this.domain}/logs`, '_blank');
+    })
 
     this.onTagClick("view-message", (model, target, event) => {
       let secondMessage;
