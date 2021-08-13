@@ -114,22 +114,13 @@ export default class ManageProductController extends WebcController {
       this.productPhoto = event.data;
     });
 
-    this.on('openFeedback', (e) => {
-      this.feedbackEmitter = e.detail;
-    });
-
-    this.model.onChange("product.gtin", (event) => {
-
-    })
-
-    this.onTagClick("add-product", async (event) => {
-      let product = this.model.product.clone();
-
-      if (!this.isValid(product)) {
+    let self = this;
+    let saveProduct = async function (product) {
+      if (!self.isValid(product)) {
         return;
       }
 
-      this.createWebcModal({
+      self.createWebcModal({
         disableExpanding: true,
         disableClosing: true,
         disableFooter: true,
@@ -139,7 +130,7 @@ export default class ManageProductController extends WebcController {
 
       let message = {
         messageType: "Product",
-        senderId: this.model.username,
+        senderId: self.model.username,
         product: {}
       };
 
@@ -150,13 +141,13 @@ export default class ManageProductController extends WebcController {
         let photoMessages = [];
         //process photo
 
-        let newPhoto = typeof this.productPhoto !== "undefined";
+        let newPhoto = typeof self.productPhoto !== "undefined";
         if (newPhoto) {
           let addPhotoMessage = {
             messageType: "ProductPhoto",
             productCode: message.product.productCode,
-            senderId: this.model.username,
-            imageData: arrayBufferToBase64(this.productPhoto)
+            senderId: self.model.username,
+            imageData: arrayBufferToBase64(self.productPhoto)
           }
 
           photoMessages.push(addPhotoMessage);
@@ -165,24 +156,40 @@ export default class ManageProductController extends WebcController {
         //process leaflet & smpc cards
 
         let cardMessages = await LeafletService.createEpiMessages({
-          cards: [...this.model.deletedLanguageTypeCards, ...this.model.languageTypeCards],
+          cards: [...self.model.deletedLanguageTypeCards, ...self.model.languageTypeCards],
           type: "product",
-          username: this.model.username,
+          username: self.model.username,
           code: message.product.productCode
         })
-        if (!this.DSUStorage.directAccessEnabled) {
-          this.DSUStorage.enableDirectAccess(async () => {
-            await MessagesService.processMessages([message, ...photoMessages, ...cardMessages], this.DSUStorage, this.showMessageError.bind(this));
+        if (!self.DSUStorage.directAccessEnabled) {
+          self.DSUStorage.enableDirectAccess(async () => {
+            await MessagesService.processMessages([message, ...photoMessages, ...cardMessages], self.DSUStorage, self.showMessageError.bind(self));
           })
         } else {
-          await MessagesService.processMessages([message, ...photoMessages, ...cardMessages], this.DSUStorage, this.showMessageError.bind(this));
+          await MessagesService.processMessages([message, ...photoMessages, ...cardMessages], self.DSUStorage, self.showMessageError.bind(self));
         }
 
 
       } catch (e) {
-        this.showErrorModal(e.message);
+        self.showErrorModal(e.message);
       }
+    }
+    this.on('openFeedback', (e) => {
+      this.feedbackEmitter = e.detail;
+    });
 
+    this.onTagClick("add-product", async (event) => {
+      let product = this.model.product.clone();
+      if (this.model.product.isCodeEditable) {
+        this.storageService.getRecord(constants.PRODUCTS_TABLE, product.gtin, async (err, productInDB) => {
+          if (productInDB) {
+            this.showErrorModal("Cannot save the product because provided product code is already used.");
+            return;
+          }
+          await saveProduct(product);
+        })
+
+      }
     });
   }
 
