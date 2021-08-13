@@ -188,7 +188,8 @@ export default class ManageProductController extends WebcController {
           }
           await saveProduct(product);
         })
-
+      } else {
+        await saveProduct(product);
       }
     });
   }
