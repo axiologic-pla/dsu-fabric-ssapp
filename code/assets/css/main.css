@@ -36,6 +36,18 @@ header {
   background: #7aa354;
 }
 
+webc-app-menu[mode=vertical]  {
+  background: #e9510e!important;
+}
+
+/*.main-container{*/
+/*  height: 100% !important;*/
+/*}*/
+
+.main-layout {
+  height: 100%;
+}
+
 @media only screen and (max-width: 960px) {
   .cardinal-logo {
     position: absolute;

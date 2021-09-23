@@ -12,6 +12,7 @@
   },
   "pages": [
     {
+      "path": "/",
       "name": "Generate DID",
       "tag": "generate-did",
       "indexed": false

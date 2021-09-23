@@ -2,30 +2,36 @@
 <html lang="en">
 
 <head>
-	<title>Production Plant App</title>
-	PLACEHOLDER_THAT_WILL_BE_REPLACED_BY_SW_OR_SERVER_WITH_BASE_TAG
-	<meta charset="UTF-8">
-	<link rel="icon" type="image/png" sizes="96x96" href="favicon.png">
-	<link href="assets/css/main.css" rel="stylesheet" type="text/css">
-	<script type="module" src="webcardinal/webcardinal.js"></script>
-	<link rel="stylesheet" href="webcardinal/webcardinal.css">
+    <title>Production Plant App</title>
+    PLACEHOLDER_THAT_WILL_BE_REPLACED_BY_SW_OR_SERVER_WITH_BASE_TAG
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" sizes="96x96" href="favicon.png">
+    <link href="assets/css/main.css" rel="stylesheet" type="text/css">
+    <script type="module" src="webcardinal/webcardinal.js"></script>
+    <link rel="stylesheet" href="webcardinal/webcardinal.css">
 
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0">
-	<meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
 </head>
 
 <body>
 <webc-app-root preload="scripts/config.js">
-	<webc-app-container>
-		<webc-app-router></webc-app-router>
-	</webc-app-container>
+    <psk-layout class="main-layout" template-columns="1fr 3fr">
+        <webc-app-menu mode="vertical">
+        </webc-app-menu>
+
+        <webc-app-container>
+            <webc-app-router></webc-app-router>
+        </webc-app-container>
+    </psk-layout>
+
 </webc-app-root>
 
-	<script src="scripts/bundles/iframeBoot.js"></script>
-	<script src="scripts/bundles/webshims.js"></script>
-	<script src="scripts/bundles/pskruntime.js"></script>
-	<script src="scripts/bundles/gtinResolver.js"></script>
-	<script src="scripts/bundles/epiUtils.js"></script>
+<script src="scripts/bundles/iframeBoot.js"></script>
+<script src="scripts/bundles/webshims.js"></script>
+<script src="scripts/bundles/pskruntime.js"></script>
+<script src="scripts/bundles/gtinResolver.js"></script>
+<script src="scripts/bundles/epiUtils.js"></script>
 
 </body>
 

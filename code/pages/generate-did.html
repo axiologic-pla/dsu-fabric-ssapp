@@ -1,5 +1,5 @@
 <psk-page title="DSU Fabric Wallet">
-    <psk-form controller-name="GenerateDIDController">
+    <webc-container controller="GenerateDIDController">
         <psk-layout row-gap="1em">
             <psk-card title="User Identity"></psk-card>
 
@@ -18,21 +18,10 @@
             <psk-label class="authorization" label="Waiting for administrator to approve the user's DID">
             </psk-label>
 
-            <!--            <div id="readableContainer">-->
-            <!--                <psk-card title="Human readable User Identity">-->
-            <!--                    <p>-->
-            <!--                        <psk-label label="@readableHolderSSI"></psk-label>-->
-            <!--                    </p>-->
-            <!--                </psk-card>-->
-            <!--                <psk-condition condition="@isInvalidCredential">-->
-            <!--                    <p><strong>Invalid credential specified</strong></p>-->
-            <!--                </psk-condition>-->
-            <!--            </div>-->
-
         </psk-layout>
 
         <psk-list-feedbacks></psk-list-feedbacks>
-    </psk-form>
+    </webc-container>
 </psk-page>
 <style>
     .card.psk-card {
