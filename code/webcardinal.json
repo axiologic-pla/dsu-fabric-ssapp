@@ -12,6 +12,19 @@
   },
   "pages": [
     {
+      "name": "Generate DID",
+      "tag": "generate-did",
+      "indexed": false
+    },
+    {
+      "name": "Home",
+      "tag": "home"
+    },
+    {
+      "name": "User as Holder",
+      "tag": "user-as-holder"
+    },
+    {
       "name": "Products",
       "tag": "products"
     },

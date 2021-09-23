@@ -1,0 +1,29 @@
+<psk-page title="My Credentials">
+    <psk-form controller-name="HolderController">
+        <psk-layout row-gap="1em">
+            <psk-label label="User Identity"></psk-label>
+
+            <psk-layout template-columns="auto auto" align-items="flex-start">
+                <psk-label label="@did"></psk-label>
+                <psk-button button-class="btn btn-success" event-name="copy-text" event-data="@did">
+                    <psk-icon icon="copy" color="rgb(255, 255, 255)"></psk-icon>
+                </psk-button>
+            </psk-layout>
+
+            <div id="readableContainer">
+                <psk-condition condition="@isInvalidCredential">
+                    <p><strong>Invalid credential specified</strong></p>
+                </psk-condition>
+            </div>
+
+                <div slot="condition-false">
+                    <p>Everything is fine. Start creating products and batches</p>
+                    <p>To configure the import API please use the following Wallet Identifier in your API-Hub config:</p>
+                    <h5><psk-label label="@walletKeySSI"></psk-label></h5>
+                </div>
+            </psk-condition>
+        </psk-layout>
+
+        <psk-list-feedbacks></psk-list-feedbacks>
+    </psk-form>
+</psk-page>

@@ -102,12 +102,12 @@ export default class ManageProductController extends WebcController {
             this.model.product.photo = attachments.productPhoto;
           }
         });
-        ensureHolderCredential();
+        // ensureHolderCredential();
       });
     } else {
       this.model.submitLabel = "Save Product";
       this.model.product = new Product();
-      ensureHolderCredential();
+      // ensureHolderCredential();
     }
 
     this.on("product-photo-selected", (event) => {
