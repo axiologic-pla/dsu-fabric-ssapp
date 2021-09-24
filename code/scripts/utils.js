@@ -191,6 +191,15 @@ function timeAgo(time) {
     return time;
 }
 
+async function getUserDetails() {
+    try {
+        const response = await fetch("/api-standard/user-details");
+        return await response.json();
+    } catch (err) {
+        console.error(`Failed to get user's details`, err);
+        return {};
+    }
+}
 
 export default {
     convertDateFromISOToGS1Format,
@@ -203,5 +212,6 @@ export default {
     sortByProperty,
     bytesToBase64,
     sanitizeCode,
-    timeAgo
+    timeAgo,
+    getUserDetails
 }

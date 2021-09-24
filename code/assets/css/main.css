@@ -37,15 +37,65 @@ header {
 }
 
 webc-app-menu[mode=vertical]  {
-  background: #e9510e!important;
+  background: #f9b123!important;
 }
 
-/*.main-container{*/
-/*  height: 100% !important;*/
-/*}*/
+.main-container{
+  height: 100% !important;
+}
 
 .main-layout {
   height: 100%;
+}
+
+
+aside {
+  height: 100%;
+  background-color: #f9b123;
+  background-image: linear-gradient(180deg, #f9b123 30%, #d2931a 100%);
+  color: white;
+  align-items: center;
+  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+  order: 1;
+  flex: 1;
+  max-width: fit-content;
+  min-width: 320px;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  scrollbar-color: #f9b123 #E5E5E5;
+  scrollbar-width: thin;
+  position: relative;
+}
+
+aside::-webkit-scrollbar,
+section::-webkit-scrollbar {
+  background-color: #fff;
+  width: 8px;
+}
+
+
+/* background of the scrollbar except button or resizer */
+
+aside::-webkit-scrollbar-track,
+section::-webkit-scrollbar-track {
+  background-color: #E5E5E5;
+}
+
+
+/* scrollbar itself */
+
+aside::-webkit-scrollbar-thumb {
+  background-color: #f9b123;
+  border-radius: 8px;
+  border: 2px solid #FFF;
+}
+
+
+/* set button(top and bottom of the scrollbar) */
+
+aside::-webkit-scrollbar-button {
+  display: none
 }
 
 @media only screen and (max-width: 960px) {
