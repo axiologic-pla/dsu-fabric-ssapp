@@ -15,37 +15,47 @@ export default class GenerateDIDController extends WebcController {
     const w3cDID = openDSU.loadAPI("w3cdid");
     const scAPI = openDSU.loadAPI("sc");
     const crypto = openDSU.loadAPI("crypto");
-
+    this.hideMenu();
+    debugger
     setTimeout(async () => {
-      const userDetails = await getUserDetails();
-      const vaultDomain = await $$.promisify(scAPI.getVaultDomain)();
-      const identity = await $$.promisify(w3cDID.createIdentity)(
-        "name",
-        vaultDomain,
-        userDetails.username
-      );
-      this.model.identity = identity.getIdentifier();
-      this.hideMenu();
       let did;
       try {
         did = await $$.promisify(
           this.DSUStorage.getObject.bind(this.DSUStorage)
         )(constants.WALLET_DID_PATH);
       } catch (e) {}
-
       if (!did) {
+        const userDetails = await getUserDetails();
+        const vaultDomain = await $$.promisify(scAPI.getVaultDomain)();
+        did = await $$.promisify(w3cDID.createIdentity)(
+          "name",
+          vaultDomain,
+          userDetails.username
+        );
+        this.model.identity = did.getIdentifier();
+      } else {
+        did = await $$.promisify(w3cDID.resolveDID)(did.did);
+      }
+
+      const credential = await $$.promisify(
+        this.DSUStorage.getObject.bind(this.DSUStorage)
+      )(constants.WALLET_CREDENTIAL_FILE_PATH);
+
+      debugger
+      if (!credential) {
         await $$.promisify(
           this.DSUStorage.setObject.bind(this.DSUStorage)
-        )(constants.WALLET_DID_PATH, { did: this.model.identity });
+        )(constants.WALLET_DID_PATH, { did: did.getIdentifier() });
 
-        identity.readMessage(async (err, message) => {
+        did.readMessage(async (err, message) => {
           console.log("message ", crypto.decodeBase58(message).toString());
           message = JSON.parse(crypto.decodeBase58(message).toString());
-          await $$.promisify(
-            this.DSUStorage.setObject.bind(this.DSUStorage)
-          )(constants.WALLET_CREDENTIAL_FILE_PATH, {
-            credential: message.credential,
-          });
+          await $$.promisify(this.DSUStorage.setObject.bind(this.DSUStorage))(
+            constants.WALLET_CREDENTIAL_FILE_PATH,
+            {
+              credential: message.credential,
+            }
+          );
           const mainDSU = await $$.promisify(scAPI.getMainDSU)();
           let env = await $$.promisify(mainDSU.readFile)("/environment.json");
           env = JSON.parse(env.toString());

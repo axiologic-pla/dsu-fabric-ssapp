@@ -1,10 +1,10 @@
 <psk-page title="My Credentials">
     <psk-form controller-name="HolderController">
         <psk-layout row-gap="1em">
-            <psk-label label="User Identity"></psk-label>
+            <psk-card title="User Identity"></psk-card>
 
             <psk-layout template-columns="auto auto" align-items="flex-start">
-                <psk-label label="@did"></psk-label>
+                <psk-label class="standard-label" label="@did"></psk-label>
                 <psk-button button-class="btn btn-success" event-name="copy-text" event-data="@did">
                     <psk-icon icon="copy" color="rgb(255, 255, 255)"></psk-icon>
                 </psk-button>

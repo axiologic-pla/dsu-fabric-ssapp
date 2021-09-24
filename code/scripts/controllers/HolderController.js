@@ -1,11 +1,11 @@
-import ContainerController from "../../cardinal/controllers/base-controllers/ContainerController.js";
+const { WebcController } = WebCardinal.controllers;
 import constants from "./constants.js";
 import {copyToClipboard} from "../helpers/document-utils.js";
 
 let crypto = require("opendsu").loadApi("crypto");
 
 
-export default class HolderController extends ContainerController {
+export default class HolderController extends WebcController {
     constructor(element, history) {
         super(element, history);
 
