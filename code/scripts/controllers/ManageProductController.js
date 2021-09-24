@@ -72,20 +72,6 @@ export default class ManageProductController extends WebcController {
       this.model.product.removeMarket(model.marketId);
     })
 
-    const ensureHolderCredential = () => {
-      const holderService = HolderService.getHolderService();
-      holderService.ensureHolderInfo((err, holderInfo) => {
-
-        if (!err && holderInfo) {
-          this.model.product.manufName = holderInfo.userDetails.company;
-          this.model.username = holderInfo.userDetails.username;
-        } else {
-          printOpenDSUError(createOpenDSUErrorWrapper("Invalid configuration detected!", err));
-          this.showErrorModalAndRedirect("Invalid configuration detected! Configure your wallet properly in the Holder section!", "products");
-        }
-      })
-    };
-
     if (typeof this.gtin !== "undefined") {
       this.storageService.getRecord(constants.PRODUCTS_TABLE, this.gtin, (err, product) => {
         this.model.submitLabel = "Update Product";

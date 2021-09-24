@@ -25,13 +25,6 @@ export default class addBatchController extends WebcController {
 
     this.versionOffset = 1;
     this.model.languageTypeCards = [];
-    holderService.ensureHolderInfo((err, holderInfo) => {
-      if (!err) {
-        this.model.username = holderInfo.userDetails.username;
-      } else {
-        this.showErrorModalAndRedirect("Invalid configuration detected! Configure your wallet properly in the Holder section!", "batches");
-      }
-    })
 
     this.model.batch = batch;
     this.model.batch.productName = "";

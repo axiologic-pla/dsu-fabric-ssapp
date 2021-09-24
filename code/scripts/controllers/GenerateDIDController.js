@@ -16,7 +16,6 @@ export default class GenerateDIDController extends WebcController {
     const scAPI = openDSU.loadAPI("sc");
     const crypto = openDSU.loadAPI("crypto");
     this.hideMenu();
-    debugger
     setTimeout(async () => {
       let did;
       try {
@@ -41,7 +40,6 @@ export default class GenerateDIDController extends WebcController {
         this.DSUStorage.getObject.bind(this.DSUStorage)
       )(constants.WALLET_CREDENTIAL_FILE_PATH);
 
-      debugger
       if (!credential) {
         await $$.promisify(
           this.DSUStorage.setObject.bind(this.DSUStorage)

@@ -4,21 +4,10 @@ const SHARED_DB = "sharedDB";
 class SharedStorage {
   constructor(dsuStorage) {
     const dbAPI = require("opendsu").loadAPI("db");
-    // this.DSUStorage = dsuStorage;
-    // this.DSUStorage.enableDirectAccess(() => {
-    //     this.mydb = "initialising";
-    //     this.getSharedSSI((err, sharedSSI) => {
-    //         if (!err && sharedSSI) {
-    //             let opendsu = require("opendsu");
-    //             let db = opendsu.loadAPI("db");
-    //             this.mydb = db.getWalletDB(sharedSSI, SHARED_DB);
-    //         } else {
-    //             alert("Wrong configuration as user/holder:" + err);
-    //         }
-    //     })
-    // });
-    debugger
     dbAPI.getMainEnclaveDB((err, enclaveDB) => {
+      if (err) {
+        return console.log(err);
+      }
       this.mydb = enclaveDB;
       this.DSUStorage = dsuStorage;
     });

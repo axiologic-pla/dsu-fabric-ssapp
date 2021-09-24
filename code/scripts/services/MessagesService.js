@@ -1,5 +1,3 @@
-import HolderService from "./HolderService.js";
-
 const mappings = require("epi-utils").loadApi("mappings");
 const MessagesPipe = require("epi-utils").getMessagesPipe();
 
@@ -10,21 +8,15 @@ async function processMessages(messages, dsuStorage, callback) {
   const LogService = require("epi-utils").loadApi("services").LogService
   let logService = new LogService(dsuStorage);
   const scAPI = require("opendsu").loadAPI("sc");
-  const vaultDomain = await $$.promisify(scAPI.getVaultDomain)();
+  const domain = await $$.promisify(scAPI.getVaultDomain)();
+  const subdomain = await $$.promisify(scAPI.getSubdomain)();
   const mainDSU = await $$.promisify(scAPI.getMainDSU)();
   await $$.promisify(mainDSU.refresh)()
-  let env = await $$.promisify(mainDSU.readFile)("/environment.json");
-  env = JSON.parse(env.toString());
-  console.log("=========================================================================================================")
-  console.log(env);
-  console.log("=========================================================================================================")
   let mappingEngine;
   try {
-    // const holderService = HolderService.getHolderService();
-    // const holderInfo = await $$.promisify(holderService.ensureHolderInfo.bind(holderService.ensureHolderInfo))();
     const holderInfo = {
-      domain: vaultDomain,
-      subdomain: vaultDomain
+      domain,
+      subdomain
     }
     mappingEngine = mappings.getEPIMappingEngine(dsuStorage, {
       holderInfo: holderInfo,
