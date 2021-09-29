@@ -33,6 +33,7 @@ export default class GenerateDIDController extends WebcController {
         );
         this.model.identity = did.getIdentifier();
       } else {
+        this.model.identity = did.did;
         did = await $$.promisify(w3cDID.resolveDID)(did.did);
       }
 
