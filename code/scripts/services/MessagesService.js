@@ -7,11 +7,11 @@ async function processMessages(messages, dsuStorage, callback) {
   }
   const LogService = require("epi-utils").loadApi("services").LogService
   let logService = new LogService(dsuStorage);
-  const scAPI = require("opendsu").loadAPI("sc");
-  const domain = await $$.promisify(scAPI.getVaultDomain)();
-  const subdomain = await $$.promisify(scAPI.getSubdomain)();
-  const mainDSU = await $$.promisify(scAPI.getMainDSU)();
-  await $$.promisify(mainDSU.refresh)()
+  const openDSU = require("opendsu");
+  const config = openDSU.loadAPI("config");
+  const domain = await $$.promisify(config.getEnv)("epiDomain");
+  const subdomain = await $$.promisify(config.getEnv)("epiSubdomain")
+
   let mappingEngine;
   try {
     const holderInfo = {
