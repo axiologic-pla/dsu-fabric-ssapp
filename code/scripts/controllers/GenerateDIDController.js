@@ -46,8 +46,8 @@ export default class GenerateDIDController extends WebcController {
         )(constants.WALLET_DID_PATH, { did: did.getIdentifier() });
 
         did.readMessage(async (err, message) => {
-          console.log("message ", crypto.decodeBase58(message).toString());
-          message = JSON.parse(crypto.decodeBase58(message).toString());
+          console.log("message ", message);
+          message = JSON.parse(message);
           await $$.promisify(this.DSUStorage.setObject.bind(this.DSUStorage))(
             constants.WALLET_CREDENTIAL_FILE_PATH,
             {
