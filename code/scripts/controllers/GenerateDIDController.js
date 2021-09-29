@@ -32,6 +32,9 @@ export default class GenerateDIDController extends WebcController {
           userDetails.username
         );
         this.model.identity = did.getIdentifier();
+        await $$.promisify(
+            this.DSUStorage.setObject.bind(this.DSUStorage)
+        )(constants.WALLET_DID_PATH, { did: did.getIdentifier() });
       } else {
         this.model.identity = did.did;
         did = await $$.promisify(w3cDID.resolveDID)(did.did);
@@ -42,10 +45,6 @@ export default class GenerateDIDController extends WebcController {
       )(constants.WALLET_CREDENTIAL_FILE_PATH);
 
       if (!credential) {
-        await $$.promisify(
-          this.DSUStorage.setObject.bind(this.DSUStorage)
-        )(constants.WALLET_DID_PATH, { did: did.getIdentifier() });
-
         did.readMessage(async (err, message) => {
           console.log("message ", message);
           message = JSON.parse(message);
