@@ -40,6 +40,10 @@ webc-app-menu[mode=vertical]  {
   background: #f9b123!important;
 }
 
+webc-app-menu[mode=mobile]  {
+  background: #f9b123!important;
+}
+
 .main-container{
   height: 100% !important;
 }
