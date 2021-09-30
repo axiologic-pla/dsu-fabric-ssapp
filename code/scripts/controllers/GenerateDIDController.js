@@ -46,7 +46,6 @@ export default class GenerateDIDController extends WebcController {
 
       if (!credential) {
         did.readMessage(async (err, message) => {
-          console.log("message ", message);
           message = JSON.parse(message);
           await $$.promisify(this.DSUStorage.setObject.bind(this.DSUStorage))(
             constants.WALLET_CREDENTIAL_FILE_PATH,
@@ -66,7 +65,6 @@ export default class GenerateDIDController extends WebcController {
             JSON.stringify(env)
           );
           scAPI.refreshSecurityContext();
-          console.log(message.credential);
           this.showMenu();
           this.navigateToPageTag("home");
         });
