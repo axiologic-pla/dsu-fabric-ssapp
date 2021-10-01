@@ -1,27 +1,44 @@
-<psk-page title="My Credentials">
+<style>
+    .standard-label.did,
+    .walletKeySSI {
+        background: rgba(43, 166, 73, 0.07);
+        border-radius: 8px;
+    }
+
+    .user-label {
+        font-size: 22px;
+    }
+</style>
+<psk-page title="User Info">
     <psk-form controller-name="HolderController">
         <psk-layout row-gap="1em">
-            <psk-card title="User Identity"></psk-card>
+            <div class="d-flex">
+                <psk-label class="user-label ml-3" label="User Identity:"></psk-label>
+                <div class="d-flex align-items-center">
+                    <psk-label class="standard-label pl-3 pr-3 mr-3 ml-3 token string did" label="@did"></psk-label>
+                    <psk-button button-class="btn btn-success" event-data="@did" event-name="copy-text">
+                        <psk-icon color="rgb(255, 255, 255)" icon="copy"></psk-icon>
+                    </psk-button>
+                </div>
+            </div>
 
-            <psk-layout template-columns="auto auto" align-items="flex-start">
-                <psk-label class="standard-label" label="@did"></psk-label>
-                <psk-button button-class="btn btn-success" event-name="copy-text" event-data="@did">
-                    <psk-icon icon="copy" color="rgb(255, 255, 255)"></psk-icon>
-                </psk-button>
-            </psk-layout>
 
-            <div id="readableContainer">
+            <div class="pl-3" id="readableContainer">
                 <psk-condition condition="@isInvalidCredential">
                     <p><strong>Invalid credential specified</strong></p>
                 </psk-condition>
             </div>
 
             <div class="wallet-ssi">
-                <p>Everything is fine. Start creating products and batches</p>
-                <p>To configure the import API please use the following Wallet Identifier in your API-Hub config:</p>
-                <h5>
-                    <psk-label label="@walletKeySSI"></psk-label>
-                </h5>
+                <p class="ml-3">To configure the import API please use the following Wallet Identifier in your API-Hub
+                    config:</p>
+                <div class="d-flex">
+                    <psk-label class="standard-label token string walletKeySSI pr-3 pl-3 mr-3 text-wrap"
+                               label="@walletKeySSI"></psk-label>
+                    <psk-button button-class="btn btn-success" event-data="@walletKeySSI" event-name="copy-text">
+                        <psk-icon color="rgb(255, 255, 255)" icon="copy"></psk-icon>
+                    </psk-button>
+                </div>
             </div>
             </psk-condition>
         </psk-layout>

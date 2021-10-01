@@ -1,24 +1,32 @@
-<psk-page title="DSU Fabric Wallet">
+<style>
+    .standard-label.did {
+        background: rgba(43, 166, 73, 0.07);
+        border-radius: 8px;
+    }
+
+    .user-label {
+        font-size: 22px;
+    }
+</style>
+<psk-page title="Action Required">
     <webc-container controller="GenerateDIDController">
-        <psk-layout row-gap="1em">
-            <psk-card title="User Identity"></psk-card>
 
-            <psk-layout template-columns="auto auto" align-items="flex-start">
-                <p>
-                    <psk-label id="did" class="standard-label" label="@identity"></psk-label>
-                </p>
-                <style>
 
-                </style>
-                <psk-button button-class="btn btn-success" event-name="copy-text" event-data="@identity">
-                    <psk-icon icon="copy" color="rgb(255, 255, 255)"></psk-icon>
+        <div class="d-flex">
+            <psk-label class="user-label ml-3" label="User Identity:"></psk-label>
+            <div class="d-flex align-items-center">
+                <psk-label class="standard-label pl-3 pr-3 mr-3 ml-3 token string did" id="did"
+                           label="@identity"></psk-label>
+                <psk-button button-class="btn btn-success" event-data="@did" event-name="copy-text">
+                    <psk-icon color="rgb(255, 255, 255)" icon="copy"></psk-icon>
                 </psk-button>
-            </psk-layout>
+            </div>
+        </div>
 
-            <psk-label class="authorization" label="Waiting for administrator to approve the user's DID">
-            </psk-label>
+        <psk-label class="user-label ml-3"
+                   label="Share this identity with an user that has admin privileges in order to gain access">
+        </psk-label>
 
-        </psk-layout>
 
         <psk-list-feedbacks></psk-list-feedbacks>
     </webc-container>

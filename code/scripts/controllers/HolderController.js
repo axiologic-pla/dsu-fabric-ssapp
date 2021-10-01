@@ -34,7 +34,6 @@ export default class HolderController extends WebcController {
 
                 readableCredentialElement = document.createElement('psk-code');
                 readableCredentialElement.id = "readableCredential";
-                readableCredentialElement.title = "Human readable Credential";
                 readableCredentialElement.language = "json";
                 readableCredentialElement.innerHTML = this.model.readableCredential;
                 readableContainer.appendChild(readableCredentialElement);
