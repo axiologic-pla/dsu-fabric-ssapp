@@ -1,12 +1,33 @@
-/*webc-app-root { --mode: none; }*/
 webc-app-container {
+    --background: transparent;
     position: relative;
 }
+
+webc-app-menu[mode=vertical] {
+    --background: #f9b123;
+    --min-width: 240px;
+}
+
+webc-app-menu[mode=mobile] {
+    --background: #f9b123;
+}
+
+webc-modal {
+    --header-button-background: none !important;
+}
+webc-modal .header-color {
+    color: #565656 !important;
+}
+
+psk-page::part(page-main) {
+    height: 100%;
+}
+
 .standard-label {
     font-size: 20px;
 }
 
-.wallet-ssi{
+.wallet-ssi {
     font-size: 20px;
 }
 .authorization {

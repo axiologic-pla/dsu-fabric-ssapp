@@ -1,77 +1,79 @@
-<webc-container controller="ImportController">
-    <div class="m-5">
-        <p>Select your files</p>
-        <psk-files-chooser id="import-files" data-view-model="@filesChooser">
-        </psk-files-chooser>
+<psk-page>
+    <webc-container controller="ImportController">
+        <div class="m-5">
+            <p>Select your files</p>
+            <psk-files-chooser id="import-files" data-view-model="@filesChooser">
+            </psk-files-chooser>
 
-        <hr/>
-        <psk-button data-tag="import"  disabled="@importIsDisabled" label="Import"></psk-button>
-        <psk-button data-tag="view-all" label="View responses"></psk-button>
-        <psk-button style="float:right" data-tag="retry-failed" disabled="@retryBtnIsDisabled" label="Retry failed messages"></psk-button>
+            <hr/>
+            <psk-button data-tag="import"  disabled="@importIsDisabled" label="Import"></psk-button>
+            <psk-button data-tag="view-all" label="View responses"></psk-button>
+            <psk-button style="float:right" data-tag="retry-failed" disabled="@retryBtnIsDisabled" label="Retry failed messages"></psk-button>
 
-        <h3>Import Logs</h3>
-        <psk-tab-navigator selected="@selectedTab" id="orange-tab-navigator">
-            <psk-tab title="Successfully Imported Logs">
+            <h3>Import Logs</h3>
+            <psk-tab-navigator selected="@selectedTab" id="orange-tab-navigator">
+                <psk-tab title="Successfully Imported Logs">
 
-                <table class="import-success-table table">
-                    <thead>
-                    <tr>
-                        <th scope="col">Item Code</th>
-                        <th scope="col">Type</th>
-                        <th scope="col">Date</th>
-                        <th scope="col">Status</th>
-                        <th scope="col">Command</th>
-                        <th scope="col">Action</th>
-                    </tr>
-                    </thead>
-                    <tbody data-for="@successfullyImportedLogs">
-                    <tr is-fresh="@isFresh">
-                        <td>{{@itemCode}}</td>
-                        <td>{{@itemType}}</td>
-                        <td>{{@timeAgo}}</td>
-                        <td>{{@status}}</td>
-                        <td>{{@action}}</td>
-                        <td>
-                            <button class="btn btn-link p-0 col align-self-center text-left" data-tag="view-message">View Message</button>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
+                    <table class="import-success-table table">
+                        <thead>
+                        <tr>
+                            <th scope="col">Item Code</th>
+                            <th scope="col">Type</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Command</th>
+                            <th scope="col">Action</th>
+                        </tr>
+                        </thead>
+                        <tbody data-for="@successfullyImportedLogs">
+                        <tr is-fresh="@isFresh">
+                            <td>{{@itemCode}}</td>
+                            <td>{{@itemType}}</td>
+                            <td>{{@timeAgo}}</td>
+                            <td>{{@status}}</td>
+                            <td>{{@action}}</td>
+                            <td>
+                                <button class="btn btn-link p-0 col align-self-center text-left" data-tag="view-message">View Message</button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
 
-            </psk-tab>
-            <psk-tab title="Failed Imported Logs">
-                <table class="import-failed-table table">
-                    <thead>
-                    <tr>
-                        <th scope="col">Item Code</th>
-                        <th scope="col">Type</th>
-                        <th scope="col">Date</th>
-                        <th scope="col">Status</th>
-                        <th scope="col">Command</th>
-                        <th scope="col">Action</th>
-                        <th scope="col">
-                            <input type="checkbox" name="retryAllCheckbox" id="retry-all-checkbox" data-tag="retry-all-click" value="@retryAll">
-                        </th>
-                    </tr>
-                    </thead>
-                    <tbody data-for="@failedImportedLogs">
-                    <tr is-fresh="@isFresh">
-                        <td>{{@itemCode}}</td>
-                        <td>{{@itemType}}</td>
-                        <td>{{@timeAgo}}</td>
-                        <td>{{@status}}</td>
-                        <td>{{@action}}</td>
-                        <td>
-                            <button class="btn btn-link p-0 col align-self-center text-left" data-tag="view-message">View Message</button>
-                        </td>
-                        <td>
-                            <input type="checkbox" name="@itemId" data-tag="retry-item-click" class="failed-message" value="@retry">
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </psk-tab>
-        </psk-tab-navigator>
-    </div>
-</webc-container>
+                </psk-tab>
+                <psk-tab title="Failed Imported Logs">
+                    <table class="import-failed-table table">
+                        <thead>
+                        <tr>
+                            <th scope="col">Item Code</th>
+                            <th scope="col">Type</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Command</th>
+                            <th scope="col">Action</th>
+                            <th scope="col">
+                                <input type="checkbox" name="retryAllCheckbox" id="retry-all-checkbox" data-tag="retry-all-click" value="@retryAll">
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody data-for="@failedImportedLogs">
+                        <tr is-fresh="@isFresh">
+                            <td>{{@itemCode}}</td>
+                            <td>{{@itemType}}</td>
+                            <td>{{@timeAgo}}</td>
+                            <td>{{@status}}</td>
+                            <td>{{@action}}</td>
+                            <td>
+                                <button class="btn btn-link p-0 col align-self-center text-left" data-tag="view-message">View Message</button>
+                            </td>
+                            <td>
+                                <input type="checkbox" name="@itemId" data-tag="retry-item-click" class="failed-message" value="@retry">
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </psk-tab>
+            </psk-tab-navigator>
+        </div>
+    </webc-container>
+</psk-page>
 

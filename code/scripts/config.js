@@ -1,12 +1,13 @@
-const { define } = WebCardinal.components;
-
-const { setConfig, getConfig} = WebCardinal.preload;
 import utils from "./utils.js";
+
+const { define } = WebCardinal.components;
+const { setConfig, getConfig, addHook } = WebCardinal.preload;
+
 async function initializeWebCardinalConfig() {
     const config = getConfig();
     const userDetails = await utils.getUserDetails();
     config.identity = {
-        avatar:"assets/images/user.png",
+        avatar: "assets/images/user.png",
         name: userDetails.username,
         email: userDetails.company
     }
@@ -14,7 +15,10 @@ async function initializeWebCardinalConfig() {
 }
 
 const config = await initializeWebCardinalConfig();
-console.log(config);
 setConfig(config);
+
+addHook('beforePageLoads', 'generate-did', () => {
+    WebCardinal.root.disableHeader = true;
+});
 
 define('dsu-leaflet', 'leaflet-component/dsu-leaflet');

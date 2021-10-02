@@ -1,8 +1,8 @@
-// import ContainerController from "../../cardinal/controllers/base-controllers/ContainerController.js";
-const { WebcController } = WebCardinal.controllers;
 import constants from "./constants.js";
 import { copyToClipboard } from "../helpers/document-utils.js";
 import utils from "../utils.js";
+
+const { WebcController } = WebCardinal.controllers;
 
 const getUserDetails = utils.getUserDetails;
 
@@ -10,12 +10,14 @@ export default class GenerateDIDController extends WebcController {
   constructor(...props) {
     super(...props);
 
+    this.showSpinner();
+
     this.model = {};
+
     const openDSU = require("opendsu");
     const w3cDID = openDSU.loadAPI("w3cdid");
     const scAPI = openDSU.loadAPI("sc");
-    const crypto = openDSU.loadAPI("crypto");
-    this.hideMenu();
+
     setTimeout(async () => {
       let did;
       try {
@@ -45,6 +47,7 @@ export default class GenerateDIDController extends WebcController {
       )(constants.WALLET_CREDENTIAL_FILE_PATH);
 
       if (!credential) {
+        this.authorizationStillInProgress();
         did.readMessage(async (err, message) => {
           message = JSON.parse(message);
           await $$.promisify(this.DSUStorage.setObject.bind(this.DSUStorage))(
@@ -65,14 +68,13 @@ export default class GenerateDIDController extends WebcController {
             JSON.stringify(env)
           );
           scAPI.refreshSecurityContext();
-          this.showMenu();
-          this.navigateToPageTag("home");
+
+          this.authorizationIsDone()
         });
         return;
       }
 
-      this.showMenu();
-      this.navigateToPageTag("home");
+      this.authorizationIsDone();
     });
 
     this.on("copy-text", (event) => {
@@ -80,14 +82,25 @@ export default class GenerateDIDController extends WebcController {
     });
   }
 
-  hideMenu() {
-    WebCardinal.root.querySelector("webc-app-menu").style.display = "none";
-    WebCardinal.root.setAttribute("layout", "none");
+  showSpinner() {
+    WebCardinal.loader.hidden = false;
   }
 
-  showMenu() {
-    WebCardinal.root.querySelector("webc-app-menu").style.display = "grid";
-    // WebCardinal.root.layout = "vertical";
-    WebCardinal.root.setAttribute("layout", "vertical");
+  hideSpinner() {
+    WebCardinal.loader.hidden = true;
+  }
+
+  authorizationIsDone() {
+    WebCardinal.root.hidden = false;
+    WebCardinal.root.disableHeader = false;
+    this.hideSpinner();
+    this.navigateToPageTag("home");
+  }
+
+  authorizationStillInProgress() {
+    WebCardinal.root.hidden = false;
+    WebCardinal.root.disableHeader = true;
+    this.element.parentElement.hidden = false;
+    this.hideSpinner();
   }
 }
