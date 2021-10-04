@@ -21,4 +21,8 @@ addHook('beforePageLoads', 'generate-did', () => {
     WebCardinal.root.disableHeader = true;
 });
 
+addHook('whenPageClose', 'generate-did', () => {
+    WebCardinal.root.disableHeader = false;
+});
+
 define('dsu-leaflet', 'leaflet-component/dsu-leaflet');

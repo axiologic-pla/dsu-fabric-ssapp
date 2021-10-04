@@ -10,8 +10,6 @@ export default class GenerateDIDController extends WebcController {
   constructor(...props) {
     super(...props);
 
-    this.showSpinner();
-
     this.model = {};
 
     const openDSU = require("opendsu");
@@ -91,15 +89,13 @@ export default class GenerateDIDController extends WebcController {
   }
 
   authorizationIsDone() {
-    WebCardinal.root.hidden = false;
-    WebCardinal.root.disableHeader = false;
     this.hideSpinner();
+    WebCardinal.root.hidden = false;
     this.navigateToPageTag("home");
   }
 
   authorizationStillInProgress() {
     WebCardinal.root.hidden = false;
-    WebCardinal.root.disableHeader = true;
     this.element.parentElement.hidden = false;
     this.hideSpinner();
   }
