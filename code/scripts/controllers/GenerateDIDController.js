@@ -57,10 +57,10 @@ export default class GenerateDIDController extends WebcController {
           const mainDSU = await $$.promisify(scAPI.getMainDSU)();
           let env = await $$.promisify(mainDSU.readFile)("/environment.json");
           env = JSON.parse(env.toString());
-          env[openDSU.constants.ENCLAVE_TYPE] = message.enclave.enclaveType;
-          env[openDSU.constants.ENCLAVE_DID] = message.enclave.enclaveDID;
-          env[openDSU.constants.ENCLAVE_KEY_SSI] =
-            message.enclave.enclaveKeySSI;
+          env[openDSU.constants.MAIN_ENCLAVE.TYPE] = message.enclave.enclaveType;
+          env[openDSU.constants.MAIN_ENCLAVE.DID] = message.enclave.enclaveDID;
+          env[openDSU.constants.MAIN_ENCLAVE.KEY_SSI] = message.enclave.enclaveKeySSI;
+          await $$.promisify(mainDSU.refresh)();
           await $$.promisify(mainDSU.writeFile)(
             "/environment.json",
             JSON.stringify(env)
