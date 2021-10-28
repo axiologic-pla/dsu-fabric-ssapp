@@ -1,10 +1,8 @@
 const CREDENTIAL_FILE_PATH = "/myKeys/credential.json";
-const SHARED_DB = "sharedDB";
-
 class SharedStorage {
   constructor(dsuStorage) {
     const dbAPI = require("opendsu").loadAPI("db");
-    dbAPI.getMainEnclaveDB((err, enclaveDB) => {
+    dbAPI.getSharedEnclaveDB((err, enclaveDB) => {
       if (err) {
         return console.log(err);
       }

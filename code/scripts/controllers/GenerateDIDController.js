@@ -47,6 +47,9 @@ export default class GenerateDIDController extends WebcController {
       if (!credential) {
         this.authorizationStillInProgress();
         did.readMessage(async (err, message) => {
+          if (err) {
+            throw err;
+          }
           message = JSON.parse(message);
           await $$.promisify(this.DSUStorage.setObject.bind(this.DSUStorage))(
             constants.WALLET_CREDENTIAL_FILE_PATH,
@@ -57,9 +60,9 @@ export default class GenerateDIDController extends WebcController {
           const mainDSU = await $$.promisify(scAPI.getMainDSU)();
           let env = await $$.promisify(mainDSU.readFile)("/environment.json");
           env = JSON.parse(env.toString());
-          env[openDSU.constants.MAIN_ENCLAVE.TYPE] = message.enclave.enclaveType;
-          env[openDSU.constants.MAIN_ENCLAVE.DID] = message.enclave.enclaveDID;
-          env[openDSU.constants.MAIN_ENCLAVE.KEY_SSI] = message.enclave.enclaveKeySSI;
+          env[openDSU.constants.SHARED_ENCLAVE.TYPE] = message.enclave.enclaveType;
+          env[openDSU.constants.SHARED_ENCLAVE.DID] = message.enclave.enclaveDID;
+          env[openDSU.constants.SHARED_ENCLAVE.KEY_SSI] = message.enclave.enclaveKeySSI;
           await $$.promisify(mainDSU.refresh)();
           await $$.promisify(mainDSU.writeFile)(
             "/environment.json",
