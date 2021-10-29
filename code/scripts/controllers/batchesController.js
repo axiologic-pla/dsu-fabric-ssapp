@@ -15,7 +15,9 @@ export default class batchesController extends WebcController {
       if (err) {
         return console.log(err);
       }
+
       await $$.promisify(mainDSU.refresh)();
+      await $$.promisify(this.storageService.refresh.bind(this.storageService))();
       const batches = await $$.promisify(
         this.storageService.filter.bind(this.storageService)
       )(constants.BATCHES_STORAGE_TABLE);

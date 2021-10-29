@@ -1,4 +1,3 @@
-const CREDENTIAL_FILE_PATH = "/myKeys/credential.json";
 class SharedStorage {
   constructor(dsuStorage) {
     const dbAPI = require("opendsu").loadAPI("db");
@@ -9,7 +8,6 @@ class SharedStorage {
       this.mydb = enclaveDB;
       this.DSUStorage = dsuStorage;
     });
-
   }
 
   waitForDb(func, args) {
@@ -92,31 +90,25 @@ class SharedStorage {
     }
   }
 
-  getSharedSSI(callback) {
-    this.DSUStorage.getObject(CREDENTIAL_FILE_PATH, (err, credential) => {
-      console.log("Got:", err, credential);
-      if (err || !credential) {
-        return callback(createOpenDSUErrorWrapper("Invalid credentials", err));
-      } else {
-        const crypto = require("opendsu").loadApi("crypto");
-        const keyssi = require("opendsu").loadApi("keyssi");
-        crypto.parseJWTSegments(
-          credential.credential,
-          (parseError, jwtContent) => {
-            if (parseError) {
-              return callback(
-                createOpenDSUErrorWrapper(
-                  "Error parsing user credential:",
-                  parseError
-                )
-              );
-            }
-            console.log("Parsed credential", jwtContent);
-            callback(undefined, keyssi.parse(jwtContent.body.iss));
+  refresh(callback) {
+    if (this.dbReady()) {
+      this.getKeySSI((err, keySSI) => {
+        if (err) {
+          return callback(err);
+        }
+
+        const resolver = require("opendsu").loadAPI("resolver");
+        resolver.loadDSU(keySSI, (err, dsuInstance) => {
+          if (err) {
+            return callback(err);
           }
-        );
-      }
-    });
+
+          dsuInstance.refresh(callback);
+        });
+      });
+    } else {
+      this.waitForDb(this.getKeySSI, [callback]);
+    }
   }
 }
 
