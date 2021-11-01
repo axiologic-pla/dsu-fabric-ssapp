@@ -37,7 +37,14 @@ export default class importController extends WebcController {
       if (this.filesArray.length === 0) {
         return;
       }
-      let messages = await this.getMessagesFromFiles(this.filesArray);
+      let messages
+      try {
+        messages = await this.getMessagesFromFiles(this.filesArray);
+      } catch (err) {
+        this.showErrorModal(`Could not import file. ${err.message}`, "Error");
+        return;
+      }
+
       window.WebCardinal.loader.hidden = false;
       if (!this.DSUStorage.directAccessEnabled) {
         this.DSUStorage.enableDirectAccess(async () => {
@@ -141,7 +148,7 @@ export default class importController extends WebcController {
           try {
             message = JSON.parse(evt.target.result);
           } catch (e) {
-            throw new Error("Message should be an object: " + e.message);
+            reject(e);
           }
           //TODO discuss if files can contain more than one message/product
           if (Array.isArray(message)) {
