@@ -309,8 +309,8 @@ export default class ManageProductController extends WebcController {
       },
       mahName: {
         value: event.mahName || "",
-        placeholder: "Enter manufacture name",
-        label: "Manufacture Name",
+        placeholder: "Enter MAH name",
+        label: "MAH Name",
 
         isValid: true
       },
