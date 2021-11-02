@@ -1,8 +1,8 @@
 import constants from "./constants.js";
-import { copyToClipboard } from "../helpers/document-utils.js";
+import {copyToClipboard} from "../helpers/document-utils.js";
 import utils from "../utils.js";
 
-const { WebcController } = WebCardinal.controllers;
+const {WebcController} = WebCardinal.controllers;
 
 const getUserDetails = utils.getUserDetails;
 
@@ -22,7 +22,9 @@ export default class GenerateDIDController extends WebcController {
         did = await $$.promisify(
           this.DSUStorage.getObject.bind(this.DSUStorage)
         )(constants.WALLET_DID_PATH);
-      } catch (e) {}
+      } catch (e) {
+        console.log('Failed to read DID ', e);
+      }
       if (!did) {
         const userDetails = await getUserDetails();
         const vaultDomain = await $$.promisify(scAPI.getVaultDomain)();
@@ -33,8 +35,8 @@ export default class GenerateDIDController extends WebcController {
         );
         this.model.identity = did.getIdentifier();
         await $$.promisify(
-            this.DSUStorage.setObject.bind(this.DSUStorage)
-        )(constants.WALLET_DID_PATH, { did: did.getIdentifier() });
+          this.DSUStorage.setObject.bind(this.DSUStorage)
+        )(constants.WALLET_DID_PATH, {did: did.getIdentifier()});
       } else {
         this.model.identity = did.did;
         did = await $$.promisify(w3cDID.resolveDID)(did.did);

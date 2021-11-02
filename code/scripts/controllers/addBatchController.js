@@ -121,10 +121,8 @@ export default class addBatchController extends WebcController {
         modalContent: "Saving batch..."
       });
 
-      let message = {
-        senderId: this.model.username,
-        batch: {}
-      }
+      let message = await utils.initMessage("Batch");
+      message.batch = {};
 
       epiUtils.transformToMessage(batch, message.batch, epiUtils.batchDataSourceMapping);
       message.messageType = "Batch";

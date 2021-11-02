@@ -106,6 +106,7 @@ export default class ManageProductController extends WebcController {
         return;
       }
 
+
       self.createWebcModal({
         disableExpanding: true,
         disableClosing: true,
@@ -114,11 +115,8 @@ export default class ManageProductController extends WebcController {
         modalContent: "Saving product..."
       });
 
-      let message = {
-        messageType: "Product",
-        senderId: self.model.username,
-        product: {}
-      };
+      let message = await utils.initMessage("Product");
+      message.product = {};
 
       epiUtils.transformToMessage(product, message.product, epiUtils.productDataSourceMapping);
 
