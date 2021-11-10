@@ -28,6 +28,12 @@ export default class GenerateDIDController extends WebcController {
       if (!did) {
         const userDetails = await getUserDetails();
         const vaultDomain = await $$.promisify(scAPI.getVaultDomain)();
+        try{
+          did = await $$.promisify(w3cDID.resolveDID)(`did:ssi:name:${vaultDomain}:${userDetails.username}`);
+        }catch (e) {}
+        if (did) {
+          throw Error(`The identity did:ssi:name:${vaultDomain}:${userDetails.username} was already created`);
+        }
         did = await $$.promisify(w3cDID.createIdentity)(
           "name",
           vaultDomain,
