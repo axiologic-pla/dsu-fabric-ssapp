@@ -35,7 +35,7 @@ export default class GenerateDIDController extends WebcController {
           throw Error(`The identity did:ssi:name:${vaultDomain}:${userDetails.username} was already created`);
         }
         did = await $$.promisify(w3cDID.createIdentity)(
-          "name",
+          "ssi:name",
           vaultDomain,
           userDetails.username
         );
