@@ -15,7 +15,6 @@ export default class GenerateDIDController extends WebcController {
     const openDSU = require("opendsu");
     const w3cDID = openDSU.loadAPI("w3cdid");
     const scAPI = openDSU.loadAPI("sc");
-
     setTimeout(async () => {
       let did;
       try {
@@ -25,6 +24,46 @@ export default class GenerateDIDController extends WebcController {
       } catch (e) {
         console.log('Failed to read DID ', e);
       }
+
+      const __waitForAuthorization = async ()=>{
+        const credential = await $$.promisify(
+            this.DSUStorage.getObject.bind(this.DSUStorage)
+        )(constants.WALLET_CREDENTIAL_FILE_PATH);
+
+        if (!credential) {
+          this.authorizationStillInProgress();
+          did.readMessage(async (err, message) => {
+            if (err) {
+              throw err;
+            }
+            message = JSON.parse(message);
+            await $$.promisify(this.DSUStorage.setObject.bind(this.DSUStorage))(
+                constants.WALLET_CREDENTIAL_FILE_PATH,
+                {
+                  credential: message.credential,
+                }
+            );
+            const mainDSU = await $$.promisify(scAPI.getMainDSU)();
+            let env = await $$.promisify(mainDSU.readFile)("/environment.json");
+            env = JSON.parse(env.toString());
+            env[openDSU.constants.SHARED_ENCLAVE.TYPE] = message.enclave.enclaveType;
+            env[openDSU.constants.SHARED_ENCLAVE.DID] = message.enclave.enclaveDID;
+            env[openDSU.constants.SHARED_ENCLAVE.KEY_SSI] = message.enclave.enclaveKeySSI;
+            await $$.promisify(mainDSU.refresh)();
+            await $$.promisify(mainDSU.writeFile)(
+                "/environment.json",
+                JSON.stringify(env)
+            );
+            scAPI.refreshSecurityContext();
+
+            this.authorizationIsDone()
+          });
+          return;
+        }
+
+        this.authorizationIsDone();
+      }
+
       if (!did) {
         const userDetails = await getUserDetails();
         const vaultDomain = await $$.promisify(scAPI.getVaultDomain)();
@@ -34,56 +73,25 @@ export default class GenerateDIDController extends WebcController {
         if (did) {
           throw Error(`The identity did:ssi:name:${vaultDomain}:${userDetails.username} was already created`);
         }
-        did = await $$.promisify(w3cDID.createIdentity)(
-          "ssi:name",
-          vaultDomain,
-          userDetails.username
-        );
-        this.model.identity = did.getIdentifier();
-        await $$.promisify(
-          this.DSUStorage.setObject.bind(this.DSUStorage)
-        )(constants.WALLET_DID_PATH, {did: did.getIdentifier()});
+        debugger
+        const sc = scAPI.getSecurityContext();
+        sc.on("initialised", async ()=>{
+          did = await $$.promisify(w3cDID.createIdentity)(
+              "ssi:name",
+              vaultDomain,
+              userDetails.username
+          );
+          this.model.identity = did.getIdentifier();
+          await $$.promisify(
+              this.DSUStorage.setObject.bind(this.DSUStorage)
+          )(constants.WALLET_DID_PATH, {did: did.getIdentifier()});
+          await __waitForAuthorization()
+        })
       } else {
         this.model.identity = did.did;
         did = await $$.promisify(w3cDID.resolveDID)(did.did);
+        await __waitForAuthorization();
       }
-
-      const credential = await $$.promisify(
-        this.DSUStorage.getObject.bind(this.DSUStorage)
-      )(constants.WALLET_CREDENTIAL_FILE_PATH);
-
-      if (!credential) {
-        this.authorizationStillInProgress();
-        did.readMessage(async (err, message) => {
-          if (err) {
-            throw err;
-          }
-          message = JSON.parse(message);
-          await $$.promisify(this.DSUStorage.setObject.bind(this.DSUStorage))(
-            constants.WALLET_CREDENTIAL_FILE_PATH,
-            {
-              credential: message.credential,
-            }
-          );
-          const mainDSU = await $$.promisify(scAPI.getMainDSU)();
-          let env = await $$.promisify(mainDSU.readFile)("/environment.json");
-          env = JSON.parse(env.toString());
-          env[openDSU.constants.SHARED_ENCLAVE.TYPE] = message.enclave.enclaveType;
-          env[openDSU.constants.SHARED_ENCLAVE.DID] = message.enclave.enclaveDID;
-          env[openDSU.constants.SHARED_ENCLAVE.KEY_SSI] = message.enclave.enclaveKeySSI;
-          await $$.promisify(mainDSU.refresh)();
-          await $$.promisify(mainDSU.writeFile)(
-            "/environment.json",
-            JSON.stringify(env)
-          );
-          scAPI.refreshSecurityContext();
-
-          this.authorizationIsDone()
-        });
-        return;
-      }
-
-      this.authorizationIsDone();
     });
 
     this.on("copy-text", (event) => {
