@@ -73,7 +73,6 @@ export default class GenerateDIDController extends WebcController {
         if (did) {
           throw Error(`The identity did:ssi:name:${vaultDomain}:${userDetails.username} was already created`);
         }
-        debugger
         const sc = scAPI.getSecurityContext();
         sc.on("initialised", async ()=>{
           did = await $$.promisify(w3cDID.createIdentity)(
