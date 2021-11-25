@@ -162,6 +162,9 @@ export default class addBatchController extends WebcController {
     });
 
     this.model.onChange("products.value", async (event) => {
+      if (!this.model.products.value) {
+        return
+      }
       this.model.batch.gtin = this.model.products.value;
       this.getProductFromGtin(this.model.batch.gtin, (err, product) => {
         if (err) {
