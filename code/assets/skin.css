@@ -15,6 +15,7 @@ webc-app-menu[mode=mobile] {
 webc-modal {
     --header-button-background: none !important;
 }
+
 webc-modal .header-color {
     color: #565656 !important;
 }
@@ -30,6 +31,28 @@ psk-page::part(page-main) {
 .wallet-ssi {
     font-size: 20px;
 }
+
 .authorization {
     font-size: 30px;
 }
+
+.webc-datatable--header {
+    font-size: 110%;
+    font-weight: bold;
+}
+.success-messages-tab .webc-datatable--container {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+}
+
+.failed-messages-tab .webc-datatable--container {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr) 20px;
+}
+
+.webc-datatable--header,
+.data-item {
+    border-top: 1px solid #dee2e6;
+    padding: 0.75rem;
+}
+

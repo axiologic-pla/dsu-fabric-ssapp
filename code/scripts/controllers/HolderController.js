@@ -10,7 +10,7 @@ export default class HolderController extends WebcController {
         super(element, history);
 
 
-        this.setModel({displayCredentialArea: true, isInvalidCredential: false});
+        this.model = {displayCredentialArea: true, isInvalidCredential: false};
         this.model.domain = "epi";
 
         const setCredential = credential => {

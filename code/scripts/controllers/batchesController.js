@@ -6,7 +6,7 @@ import utils from "../utils.js";
 export default class batchesController extends WebcController {
   constructor(element, history) {
     super(element, history);
-    this.setModel({});
+    this.model = {};
     this.model.batches = [];
     this.storageService = getSharedStorage(this.DSUStorage);
     const openDSU = require("opendsu");

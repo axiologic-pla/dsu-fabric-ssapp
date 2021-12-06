@@ -9,7 +9,7 @@ export default class ProductsController extends WebcController {
   constructor(element, history) {
     super(element, history);
 
-    this.setModel({});
+    this.model = {};
     this.storageService = getSharedStorage(this.DSUStorage);
     this.logService = new LogService(this.DSUStorage);
 

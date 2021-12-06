@@ -19,7 +19,7 @@ export default class addBatchController extends WebcController {
     const editMode = state != null && state.batchData != null;
     const editData = editMode ? JSON.parse(state.batchData) : undefined;
     let batch = new Batch(editData);
-    this.setModel({});
+    this.model = {};
     this.storageService = getSharedStorage(this.DSUStorage);
     this.logService = new LogService(this.DSUStorage);
 

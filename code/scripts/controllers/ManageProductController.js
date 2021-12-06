@@ -15,7 +15,7 @@ export default class ManageProductController extends WebcController {
   constructor(...props) {
     super(...props);
     this.controllerElement = props[0];
-    this.setModel({});
+    this.model= {};
     const mappings = require("epi-utils").loadApi("mappings");
     const epiUtils = require("epi-utils").getMappingsUtils();
     const LogService = require("epi-utils").loadApi("services").LogService
