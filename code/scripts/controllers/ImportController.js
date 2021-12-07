@@ -14,14 +14,22 @@ class SuccessLogDataSource extends DataSource {
     this.setPageSize(this.itemsOnPage);
     this.enclaveDB = enclvDB;
     this.importLogs = [];
+    this.hasMoreLogs = false;
+    this.filterResult = [];
   }
 
   async getPageDataAsync(startOffset, dataLengthForCurrentPage) {
     window.WebCardinal.loader.hidden = false;
+
+    if (this.filterResult.length > 0) {
+      window.WebCardinal.loader.hidden = true;
+      return this.filterResult
+    }
+
     let importLogs = [];
     try {
       if (this.importLogs.length > 0) {
-        let moreItems = await $$.promisify(this.enclaveDB.filter)('import-logs', [`__timestamp < ${this.importLogs[this.importLogs.length - 1].__timestamp}`, 'status == success'], "dsc", this.itemsOnPage);
+        let moreItems = await $$.promisify(this.enclaveDB.filter)('import-logs', [`__timestamp > ${this.importLogs[0].__timestamp}`, 'status == success'], "dsc", this.itemsOnPage);
         if (moreItems && moreItems.length > 0 && moreItems[moreItems.length - 1].pk !== this.importLogs[this.importLogs.length - 1].pk) {
           this.importLogs = [...this.importLogs, ...moreItems];
         }
@@ -30,6 +38,7 @@ class SuccessLogDataSource extends DataSource {
       }
 
       importLogs = this.importLogs.slice(startOffset, startOffset + dataLengthForCurrentPage);
+      this.hasMoreLogs = this.importLogs.length > startOffset + dataLengthForCurrentPage + 1;
       let now = Date.now();
       importLogs = importLogs.map(log => {
         if (log.message) {
@@ -54,14 +63,22 @@ class FailedLogDataSource extends DataSource {
     this.setPageSize(this.itemsOnPage);
     this.enclaveDB = enclvDB;
     this.importLogs = [];
+    this.hasMoreLogs = false;
+    this.filterResult = [];
   }
 
   async getPageDataAsync(startOffset, dataLengthForCurrentPage) {
     window.WebCardinal.loader.hidden = false;
+
+    if (this.filterResult.length > 0) {
+      window.WebCardinal.loader.hidden = true;
+      return this.filterResult
+    }
+
     let importLogs = [];
     try {
       if (this.importLogs.length > 0) {
-        let moreItems = await $$.promisify(this.enclaveDB.filter)('import-logs', [`_timestamp < ${this.importLogs[this.importLogs.length - 1].__timestamp}`, 'status != success'], "dsc", this.itemsOnPage);
+        let moreItems = await $$.promisify(this.enclaveDB.filter)('import-logs', [`_timestamp > ${this.importLogs[0].__timestamp}`, 'status != success'], "dsc", this.itemsOnPage);
         if (moreItems && moreItems.length > 0 && moreItems[moreItems.length - 1].pk !== this.importLogs[this.importLogs.length - 1].pk) {
           this.importLogs = [...this.importLogs, ...moreItems];
         }
@@ -69,6 +86,8 @@ class FailedLogDataSource extends DataSource {
         this.importLogs = await $$.promisify(this.enclaveDB.filter)('import-logs', ['__timestamp > 0', 'status != success'], "dsc", this.itemsOnPage * 2);
       }
       importLogs = this.importLogs.slice(startOffset, startOffset + dataLengthForCurrentPage);
+      this.hasMoreLogs = this.importLogs.length > startOffset + dataLengthForCurrentPage + 1;
+
       let now = Date.now();
       importLogs = importLogs.map(log => {
         if (log.message) {
@@ -100,6 +119,7 @@ export default class importController extends WebcController {
       if (err) {
         return console.log(err);
       }
+      this.enclaveDB = enclaveDB;
 
       this.model = {
         selectedTab: 0,
@@ -152,12 +172,72 @@ export default class importController extends WebcController {
         window.open(`${window.location.origin}/mappingEngine/${this.domain}/logs`, '_blank');
       })
 
-      this.onTagClick("prev-page", () => this.model.datasource.goToPreviousPage());
 
-      this.onTagClick("next-page", () => this.model.datasource.goToNextPage());
-      this.onTagClick("search-by-code", (model, target, event) => {
-        console.log("----------->>>> ", model, target, event)
+      this.onTagClick("prev-page", (model, target, event) => {
+        let dataSource;
+        if (target.getAttribute("msgType") === "success") {
+          dataSource = this.model.successDataSource;
+        } else {
+          dataSource = this.model.failedDataSource;
+        }
+        target.parentElement.querySelector(".next-page-btn").disabled = false;
+        if (dataSource.getCurrentPageIndex() > 0) {
+          target.disabled = false;
+          dataSource.goToPreviousPage();
+        } else {
+          target.disabled = true;
+          return;
+        }
+
       })
+      this.onTagClick("next-page", (model, target, event) => {
+        let dataSource;
+        if (target.getAttribute("msgType") === "success") {
+          dataSource = this.model.successDataSource;
+        } else {
+          dataSource = this.model.failedDataSource;
+        }
+        target.parentElement.querySelector(".prev-page-btn").disabled = false;
+        if (dataSource.hasMoreLogs) {
+          dataSource.goToNextPage();
+        }
+
+        if (!dataSource.hasMoreLogs) {
+          target.disabled = true;
+        }
+
+      })
+
+      let searchInput = this.querySelector("#code-search");
+      let foundIcon = this.querySelector(".fa-check");
+      let notFoundIcon = this.querySelector(".fa-ban");
+      if (searchInput) {
+        searchInput.addEventListener("search", async (event) => {
+          if (event.target.value) {
+            let result = await $$.promisify(this.enclaveDB.filter)('import-logs', `itemCode == ${event.target.value}`);
+            if (result && result.length > 0) {
+              foundIcon.style.display = "inline";
+              let dataSource;
+              if (result[0].status === "success") {
+                dataSource = this.model.successDataSource;
+                this.model.selectedTab = 0;
+              } else {
+                dataSource = this.model.failedDataSource;
+                this.model.selectedTab = 1;
+              }
+              dataSource.filterResult = result;
+              dataSource.goToPageByIndex(0);
+            } else {
+              notFoundIcon.style.display = "inline";
+            }
+          } else {
+            notFoundIcon.style.display = "none";
+            foundIcon.style.display = "none";
+            this.model.successDataSource.goToPageByIndex(0);
+            this.model.failedDataSource.goToPageByIndex(0);
+          }
+        })
+      }
 
       this.onTagClick("view-message", (model, target, event) => {
         let secondMessage;
@@ -192,15 +272,36 @@ export default class importController extends WebcController {
           }, {model: this.model});
       })
 
-      this.model.onChange("retryAll", (event) => {
+      this.onTagEvent("retry-all-click", "change", (model, target, evt) => {
         this.querySelectorAll(".failed-message").forEach((elem) => {
-          elem.checked = this.model.retryAll
+          elem.checked = target.checked;
+          elem.value = target.checked;
         });
 
-        this.model.failedImportedLogs.forEach(elem => {
-          elem.retry = this.model.retryAll;
-        });
-      });
+        if (target.checked) {
+          this.model.failedImportedLogs = model.data.map(item => {
+            item.retry = true;
+            return item
+          });
+        } else {
+          this.model.failedImportedLogs = [];
+        }
+
+        this.updateRetryBtnState();
+
+      })
+
+      this.onTagEvent("retry-item-click", "change", (model, target, evt) => {
+        model.retry = target.checked;
+        if (!target.checked) {
+          this.model.failedImportedLogs.splice(this.model.failedImportedLogs.indexOf(model), 1);
+          document.querySelector("#retry-all-checkbox").checked = target.checked;
+        } else {
+          this.model.failedImportedLogs.push(model);
+        }
+
+        this.updateRetryBtnState();
+      })
 
       this.onTagClick("retry-failed", async (model, target, event) => {
         let messages = [];
@@ -223,12 +324,19 @@ export default class importController extends WebcController {
           this.querySelector("#retry-all-checkbox").checked = false;
         }
       })
-
-      this.model.onChange("failedImportedLogs", () => {
-        this.model.retryBtnIsDisabled = !this.model.failedImportedLogs.some(failedLog => failedLog.retry === true)
-      })
     })
 
+  }
+
+  updateRetryBtnState() {
+    let hasCheckedItems = Array.from(this.querySelectorAll(".failed-message")).findIndex((elem) => elem.checked) >= 0;
+    let hasUnCheckedItems = Array.from(this.querySelectorAll(".failed-message")).findIndex((elem) => !elem.checked) >= 0;
+    if (hasUnCheckedItems) {
+      this.querySelector("#retry-all-checkbox").checked = false;
+    } else {
+      this.querySelector("#retry-all-checkbox").checked = true;
+    }
+    this.model.retryBtnIsDisabled = !hasCheckedItems;
   }
 
   async getMessagesFromFiles(files) {
@@ -273,11 +381,13 @@ export default class importController extends WebcController {
   manageProcessedMessages(undigestedMessages) {
     window.WebCardinal.loader.hidden = true;
 
-    /*    if (undigestedMessages.length === 0) {
-      this.model.setChainValue("selectedTab", 0);
+    if (undigestedMessages.length === 0) {
+      this.model.selectedTab = 0;
+      this.model.successDataSource.goToPageByIndex(0);
     } else {
-      this.model.setChainValue("selectedTab", 1)
-        }*/
+      this.model.selectedTab = 1;
+      this.model.failedDataSource.goToPageByIndex(0);
+    }
   }
 
 }

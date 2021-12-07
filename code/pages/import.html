@@ -1,3 +1,39 @@
+<style>
+    .prev-page-btn,
+    .next-page-btn {
+        background-color: #e9510e;
+        border-style: none;
+        box-shadow: none;
+        border: 1px solid #e9510e;
+        color: white;
+        padding: 8px 16px;
+        margin-right: 10px;
+        border-radius: 5px;
+        margin-bottom: 1rem;
+    }
+
+    .prev-page-btn[disabled],
+    .next-page-btn[disabled] {
+        opacity: 0.6;
+    }
+
+    #code-search {
+        border-radius: 4px;
+        margin: 10px;
+        padding: 3px 8px;
+        border: 1px solid #e9510e;
+    }
+
+    #code-search:focus {
+        outline: none;
+    }
+
+    .validity .fa-ban,
+    .validity .fa-check {
+        display: none;
+    }
+
+</style>
 <psk-page>
     <webc-container controller="ImportController">
         <div class="m-5">
@@ -12,11 +48,16 @@
                         style="float:right"></psk-button>
 
             <h3>Import Logs</h3>
-            <div><input type="search" id="code-search">
-                <button data-tag="search-by-code">Search</button>
+            <div>
+                <span>Search by code </span>
+                <input id="code-search" type="search">
+                <span class="validity">
+                    <i aria-hidden="true" class="fa fa-ban"></i>
+                    <i class="fa fa-check"></i>
+                </span>
             </div>
-            <psk-tab-navigator selected="@selectedTab" id="orange-tab-navigator">
-                <psk-tab title="Successfully Imported Logs" class="success-messages-tab">
+            <psk-tab-navigator id="orange-tab-navigator" selected="@selectedTab">
+                <psk-tab class="success-messages-tab" title="Successfully Imported Logs">
                     <webc-datatable datasource="@successDataSource" hide-pagination>
                         <div slot="header">Item Code</div>
                         <div slot="header">Type</div>
@@ -31,16 +72,23 @@
                         <div class="data-item">{{@status}}</div>
                         <div class="data-item">{{@action}}</div>
                         <div class="data-item">
-                            <button class="btn btn-link p-0 col align-self-center text-left" data-tag="view-message">View
+                            <button class="btn btn-link p-0 col align-self-center text-left" data-tag="view-message">
+                                View
                                 Message
                             </button>
                         </div>
-
+                        <div slot="no-data">
+                            no data ...
+                        </div>
                     </webc-datatable>
-                    <button data-tag="prev-page">Go to previous page</button>
-                    <button data-tag="next-page">Go to next page</button>
+                    <div>
+                        <button class="prev-page-btn" data-tag="prev-page" disabled msgType="success">Go to previous
+                            page
+                        </button>
+                        <button class="next-page-btn" data-tag="next-page" msgType="success">Go to next page</button>
+                    </div>
                 </psk-tab>
-                <psk-tab title="Failed Imported Logs" class="failed-messages-tab">
+                <psk-tab class="failed-messages-tab" title="Failed Imported Logs">
                     <webc-datatable datasource="@failedDataSource" hide-pagination>
                         <div slot="header">Item Code</div>
                         <div slot="header">Type</div>
@@ -49,8 +97,7 @@
                         <div slot="header">Command</div>
                         <div slot="header">Action</div>
                         <div slot="header">
-                            <input data-tag="retry-all-click" id="retry-all-checkbox" name="retryAllCheckbox" type="checkbox"
-                                   value="@retryAll">
+                            <input data-tag="retry-all-click" id="retry-all-checkbox" type="checkbox">
                         </div>
 
                         <div class="data-item">{{@itemCode}}</div>
@@ -59,83 +106,26 @@
                         <div class="data-item">{{@status}}</div>
                         <div class="data-item">{{@action}}</div>
                         <div class="data-item">
-                            <button class="btn btn-link p-0 col align-self-center text-left" data-tag="view-message">View
+                            <button class="btn btn-link p-0 col align-self-center text-left" data-tag="view-message">
+                                View
                                 Message
                             </button>
                         </div>
                         <div class="data-item">
                             <input class="failed-message" data-tag="retry-item-click" name="@itemId" slot="true"
-                                   type="checkbox" value="@retry">
+                                   type="checkbox">
                         </div>
-
+                        <div slot="no-data">
+                            no data ...
+                        </div>
                     </webc-datatable>
+                    <div>
+                        <button class="prev-page-btn" data-tag="prev-page" disabled msgType="failed">Go to previous page
+                        </button>
+                        <button class="next-page-btn" data-tag="next-page" msgType="failed">Go to next page</button>
+                    </div>
                 </psk-tab>
             </psk-tab-navigator>
-
-
-
-            <!--            <psk-tab-navigator selected="@selectedTab" id="orange-tab-navigator">
-                            <psk-tab title="Successfully Imported Logs">
-
-                                <table class="import-success-table table">
-                                    <thead>
-                                    <tr>
-                                        <th scope="col">Item Code</th>
-                                        <th scope="col">Type</th>
-                                        <th scope="col">Date</th>
-                                        <th scope="col">Status</th>
-                                        <th scope="col">Command</th>
-                                        <th scope="col">Action</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody data-for="@successfullyImportedLogs">
-                                    <tr is-fresh="@isFresh">
-                                        <td>{{@itemCode}}</td>
-                                        <td>{{@itemType}}</td>
-                                        <td>{{@timeAgo}}</td>
-                                        <td>{{@status}}</td>
-                                        <td>{{@action}}</td>
-                                        <td>
-                                            <button class="btn btn-link p-0 col align-self-center text-left" data-tag="view-message">View Message</button>
-                                        </td>
-                                    </tr>
-                                    </tbody>
-                                </table>
-
-                            </psk-tab>
-                            <psk-tab title="Failed Imported Logs">
-                                <table class="import-failed-table table">
-                                    <thead>
-                                    <tr>
-                                        <th scope="col">Item Code</th>
-                                        <th scope="col">Type</th>
-                                        <th scope="col">Date</th>
-                                        <th scope="col">Status</th>
-                                        <th scope="col">Command</th>
-                                        <th scope="col">Action</th>
-                                        <th scope="col">
-                                            <input type="checkbox" name="retryAllCheckbox" id="retry-all-checkbox" data-tag="retry-all-click" value="@retryAll">
-                                        </th>
-                                    </tr>
-                                    </thead>
-                                    <tbody data-for="@failedImportedLogs">
-                                    <tr is-fresh="@isFresh">
-                                        <td>{{@itemCode}}</td>
-                                        <td>{{@itemType}}</td>
-                                        <td>{{@timeAgo}}</td>
-                                        <td>{{@status}}</td>
-                                        <td>{{@action}}</td>
-                                        <td>
-                                            <button class="btn btn-link p-0 col align-self-center text-left" data-tag="view-message">View Message</button>
-                                        </td>
-                                        <td>
-                                            <input type="checkbox" name="@itemId" data-tag="retry-item-click" class="failed-message" value="@retry">
-                                        </td>
-                                    </tr>
-                                    </tbody>
-                                </table>
-                            </psk-tab>
-                        </psk-tab-navigator>-->
         </div>
     </webc-container>
 </psk-page>

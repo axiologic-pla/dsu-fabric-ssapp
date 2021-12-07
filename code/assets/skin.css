@@ -47,7 +47,7 @@ psk-page::part(page-main) {
 
 .failed-messages-tab .webc-datatable--container {
     display: grid;
-    grid-template-columns: repeat(6, 1fr) 20px;
+    grid-template-columns: repeat(6, 1fr) 40px;
 }
 
 .webc-datatable--header,
