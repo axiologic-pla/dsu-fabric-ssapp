@@ -28,6 +28,7 @@ export default class Product {
   patientLeafletInfo = "Patient Information";
   strength = "";
   internalMaterialCode = "";
+  videoLink = "";
   imagePath;
   markets = [];
 
