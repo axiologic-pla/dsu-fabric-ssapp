@@ -10,7 +10,7 @@ class SuccessLogDataSource extends DataSource {
   constructor(...props) {
     const [enclvDB, ...defaultOptions] = props;
     super(...defaultOptions);
-    this.itemsOnPage = 2;
+    this.itemsOnPage = 10;
     this.setPageSize(this.itemsOnPage);
     this.enclaveDB = enclvDB;
     this.importLogs = [];
@@ -29,9 +29,9 @@ class SuccessLogDataSource extends DataSource {
     let importLogs = [];
     try {
       if (this.importLogs.length > 0) {
-        let moreItems = await $$.promisify(this.enclaveDB.filter)('import-logs', [`__timestamp > ${this.importLogs[0].__timestamp}`, 'status == success'], "dsc", this.itemsOnPage);
+        let moreItems = await $$.promisify(this.enclaveDB.filter)('import-logs', [`__timestamp < ${this.importLogs[this.importLogs.length - 1].__timestamp}`, 'status == success'], "dsc", this.itemsOnPage);
         if (moreItems && moreItems.length > 0 && moreItems[moreItems.length - 1].pk !== this.importLogs[this.importLogs.length - 1].pk) {
-          this.importLogs = [...this.importLogs, ...moreItems];
+          this.importLogs = [...this.importLogs, ...moreItems,];
         }
       } else {
         this.importLogs = await $$.promisify(this.enclaveDB.filter)('import-logs', ['__timestamp > 0', 'status == success'], "dsc", this.itemsOnPage * 2);
@@ -39,6 +39,13 @@ class SuccessLogDataSource extends DataSource {
 
       importLogs = this.importLogs.slice(startOffset, startOffset + dataLengthForCurrentPage);
       this.hasMoreLogs = this.importLogs.length > startOffset + dataLengthForCurrentPage + 1;
+
+      if (!this.hasMoreLogs) {
+        document.querySelector(".success-messages-page-btn .next-page-btn").disabled = true;
+      } else {
+        document.querySelector(".success-messages-page-btn .next-page-btn").disabled = false;
+      }
+
       let now = Date.now();
       importLogs = importLogs.map(log => {
         if (log.message) {
@@ -51,6 +58,11 @@ class SuccessLogDataSource extends DataSource {
     } catch (e) {
       console.log(e);
     }
+    if (!importLogs.length > 0) {
+      document.querySelector(".success-messages-page-btn").style.display = "none";
+    } else {
+      document.querySelector(".success-messages-page-btn").style.display = "block";
+    }
     return importLogs
   }
 }
@@ -59,7 +71,7 @@ class FailedLogDataSource extends DataSource {
   constructor(...props) {
     const [enclvDB, ...defaultOptions] = props;
     super(...defaultOptions);
-    this.itemsOnPage = 2;
+    this.itemsOnPage = 10;
     this.setPageSize(this.itemsOnPage);
     this.enclaveDB = enclvDB;
     this.importLogs = [];
@@ -78,7 +90,7 @@ class FailedLogDataSource extends DataSource {
     let importLogs = [];
     try {
       if (this.importLogs.length > 0) {
-        let moreItems = await $$.promisify(this.enclaveDB.filter)('import-logs', [`_timestamp > ${this.importLogs[0].__timestamp}`, 'status != success'], "dsc", this.itemsOnPage);
+        let moreItems = await $$.promisify(this.enclaveDB.filter)('import-logs', [`__timestamp < ${this.importLogs[this.importLogs.length - 1].__timestamp}`, 'status != success'], "dsc", this.itemsOnPage);
         if (moreItems && moreItems.length > 0 && moreItems[moreItems.length - 1].pk !== this.importLogs[this.importLogs.length - 1].pk) {
           this.importLogs = [...this.importLogs, ...moreItems];
         }
@@ -87,7 +99,11 @@ class FailedLogDataSource extends DataSource {
       }
       importLogs = this.importLogs.slice(startOffset, startOffset + dataLengthForCurrentPage);
       this.hasMoreLogs = this.importLogs.length > startOffset + dataLengthForCurrentPage + 1;
-
+      if (!this.hasMoreLogs) {
+        document.querySelector(".failed-messages-page-btn .next-page-btn").disabled = true;
+      } else {
+        document.querySelector(".failed-messages-page-btn .next-page-btn").disabled = false;
+      }
       let now = Date.now();
       importLogs = importLogs.map(log => {
         if (log.message) {
@@ -102,6 +118,11 @@ class FailedLogDataSource extends DataSource {
       window.WebCardinal.loader.hidden = true;
     } catch (e) {
       console.log(e);
+    }
+    if (!importLogs.length > 0) {
+      document.querySelector(".failed-messages-page-btn").style.display = "none";
+    } else {
+      document.querySelector(".failed-messages-page-btn").style.display = "block";
     }
     return importLogs
   }
@@ -200,10 +221,6 @@ export default class importController extends WebcController {
         target.parentElement.querySelector(".prev-page-btn").disabled = false;
         if (dataSource.hasMoreLogs) {
           dataSource.goToNextPage();
-        }
-
-        if (!dataSource.hasMoreLogs) {
-          target.disabled = true;
         }
 
       })
@@ -383,9 +400,15 @@ export default class importController extends WebcController {
 
     if (undigestedMessages.length === 0) {
       this.model.selectedTab = 0;
+      this.querySelector(".prev-page-btn[msgType='success']").disabled = true;
+      this.querySelector(".next-page-btn[msgType='success']").disabled = false;
+      this.model.successDataSource.importLogs = [];
       this.model.successDataSource.goToPageByIndex(0);
     } else {
       this.model.selectedTab = 1;
+      this.querySelector(".prev-page-btn[msgType='failed']").disabled = true;
+      this.querySelector(".next-page-btn[msgType='failed']").disabled = false;
+      this.model.failedDataSource.importLogs = [];
       this.model.failedDataSource.goToPageByIndex(0);
     }
   }
