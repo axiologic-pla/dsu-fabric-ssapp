@@ -33,6 +33,15 @@
         display: none;
     }
 
+    webc-spinner {
+        left: 250px;
+    }
+
+    @media screen and (max-width: 960px) {
+        webc-spinner {
+            left: 0px;
+        }
+    }
 </style>
 <psk-page>
     <webc-container controller="ImportController">
@@ -80,6 +89,7 @@
                         <div slot="no-data">
                             no data ...
                         </div>
+                        <div slot="loading"><span></span></div>
                     </webc-datatable>
                     <div class="success-messages-page-btn">
                         <button class="prev-page-btn" data-tag="prev-page" disabled msgType="success">Go to previous
