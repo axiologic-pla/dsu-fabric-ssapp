@@ -1,3 +1,5 @@
+import {getCommunicationService} from "../services/CommunicationService.js";
+
 const { WebcController } = WebCardinal.controllers;
 import getSharedStorage from "../services/SharedDBStorageService.js";
 import constants from "../constants.js";
@@ -9,6 +11,8 @@ export default class batchesController extends WebcController {
     this.model = {};
     this.model.batches = [];
     this.storageService = getSharedStorage(this.DSUStorage);
+    getCommunicationService(this.DSUStorage).waitForMessage(() => {});
+
     const openDSU = require("opendsu");
     const scAPI = openDSU.loadAPI("sc");
     scAPI.getMainDSU(async (err, mainDSU) => {

@@ -1,3 +1,5 @@
+import {getCommunicationService} from "../services/CommunicationService.js";
+
 const {WebcController} = WebCardinal.controllers;
 import Product from '../models/Product.js';
 import HolderService from '../services/HolderService.js';
@@ -22,6 +24,7 @@ export default class ManageProductController extends WebcController {
 
     this.storageService = getSharedStorage(this.DSUStorage);
     this.logService = new LogService(this.DSUStorage);
+    getCommunicationService(this.DSUStorage).waitForMessage(() => {});
 
     let state = this.history.location.state;
     this.gtin = typeof state !== "undefined" ? state.gtin : undefined;

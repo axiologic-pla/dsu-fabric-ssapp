@@ -1,8 +1,9 @@
 import constants from "./constants.js";
-import {copyToClipboard} from "../helpers/document-utils.js";
+import { copyToClipboard } from "../helpers/document-utils.js";
 import utils from "../utils.js";
+import {getCommunicationService} from "../services/CommunicationService.js";
 
-const {WebcController} = WebCardinal.controllers;
+const { WebcController } = WebCardinal.controllers;
 
 const getUserDetails = utils.getUserDetails;
 
@@ -22,70 +23,55 @@ export default class GenerateDIDController extends WebcController {
           this.DSUStorage.getObject.bind(this.DSUStorage)
         )(constants.WALLET_DID_PATH);
       } catch (e) {
-        console.log('Failed to read DID ', e);
+        console.log("Failed to read DID ", e);
       }
 
-      const __waitForAuthorization = async ()=>{
+      const __waitForAuthorization = async () => {
         const credential = await $$.promisify(
-            this.DSUStorage.getObject.bind(this.DSUStorage)
+          this.DSUStorage.getObject.bind(this.DSUStorage)
         )(constants.WALLET_CREDENTIAL_FILE_PATH);
 
         if (!credential) {
           this.authorizationStillInProgress();
-          did.readMessage(async (err, message) => {
-            if (err) {
-              throw err;
-            }
-            message = JSON.parse(message);
-            await $$.promisify(this.DSUStorage.setObject.bind(this.DSUStorage))(
-                constants.WALLET_CREDENTIAL_FILE_PATH,
-                {
-                  credential: message.credential,
-                }
-            );
-            const mainDSU = await $$.promisify(scAPI.getMainDSU)();
-            let env = await $$.promisify(mainDSU.readFile)("/environment.json");
-            env = JSON.parse(env.toString());
-            env[openDSU.constants.SHARED_ENCLAVE.TYPE] = message.enclave.enclaveType;
-            env[openDSU.constants.SHARED_ENCLAVE.DID] = message.enclave.enclaveDID;
-            env[openDSU.constants.SHARED_ENCLAVE.KEY_SSI] = message.enclave.enclaveKeySSI;
-            await $$.promisify(mainDSU.refresh)();
-            await $$.promisify(mainDSU.writeFile)(
-                "/environment.json",
-                JSON.stringify(env)
-            );
-            scAPI.refreshSecurityContext();
 
-            this.authorizationIsDone()
-          });
+          try {
+            await $$.promisify(getCommunicationService(this.DSUStorage).waitForMessage)();
+          } catch (e) {
+            throw e;
+          }
+          this.authorizationIsDone();
           return;
         }
 
         this.authorizationIsDone();
-      }
+      };
 
       if (!did) {
         const userDetails = await getUserDetails();
         const vaultDomain = await $$.promisify(scAPI.getVaultDomain)();
-        try{
-          did = await $$.promisify(w3cDID.resolveDID)(`did:ssi:name:${vaultDomain}:${userDetails.username}`);
-        }catch (e) {}
+        try {
+          did = await $$.promisify(w3cDID.resolveDID)(
+            `did:ssi:name:${vaultDomain}:${userDetails.username}`
+          );
+        } catch (e) {}
         if (did) {
-          throw Error(`The identity did:ssi:name:${vaultDomain}:${userDetails.username} was already created`);
+          throw Error(
+            `The identity did:ssi:name:${vaultDomain}:${userDetails.username} was already created`
+          );
         }
         const sc = scAPI.getSecurityContext();
-        sc.on("initialised", async ()=>{
+        sc.on("initialised", async () => {
           did = await $$.promisify(w3cDID.createIdentity)(
-              "ssi:name",
-              vaultDomain,
-              userDetails.username
+            "ssi:name",
+            vaultDomain,
+            userDetails.username
           );
           this.model.identity = did.getIdentifier();
           await $$.promisify(
-              this.DSUStorage.setObject.bind(this.DSUStorage)
-          )(constants.WALLET_DID_PATH, {did: did.getIdentifier()});
-          await __waitForAuthorization()
-        })
+            this.DSUStorage.setObject.bind(this.DSUStorage)
+          )(constants.WALLET_DID_PATH, { did: did.getIdentifier() });
+          await __waitForAuthorization();
+        });
       } else {
         this.model.identity = did.did;
         did = await $$.promisify(w3cDID.resolveDID)(did.did);

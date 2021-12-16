@@ -4,6 +4,7 @@ import getSharedStorage from "../services/SharedDBStorageService.js";
 import utils from "../utils.js";
 import LogService from "../services/LogService.js";
 import Product from "../models/Product.js";
+import { getCommunicationService } from "../services/CommunicationService.js";
 
 export default class ProductsController extends WebcController {
   constructor(element, history) {
@@ -20,6 +21,8 @@ export default class ProductsController extends WebcController {
       },
       "productsForDisplay"
     );
+
+    getCommunicationService(this.DSUStorage).waitForMessage(() => {});
 
     this.storageService.refresh((err) => {
       if (err) {

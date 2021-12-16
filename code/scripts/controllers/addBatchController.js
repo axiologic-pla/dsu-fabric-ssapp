@@ -1,3 +1,5 @@
+import {getCommunicationService} from "../services/CommunicationService.js";
+
 const {WebcController} = WebCardinal.controllers;
 import constants from "../constants.js";
 import Batch from "../models/Batch.js";
@@ -22,7 +24,7 @@ export default class addBatchController extends WebcController {
     this.model = {};
     this.storageService = getSharedStorage(this.DSUStorage);
     this.logService = new LogService(this.DSUStorage);
-
+    getCommunicationService(this.DSUStorage).waitForMessage(() => {});
     this.versionOffset = 1;
     this.model.languageTypeCards = [];
 

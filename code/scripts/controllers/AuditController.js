@@ -1,3 +1,5 @@
+import {getCommunicationService} from "../services/CommunicationService.js";
+
 const { WebcController } = WebCardinal.controllers;
 import LogService from "../services/LogService.js";
 
@@ -7,6 +9,7 @@ export default class AuditController extends WebcController {
 
         this.model = {};
         this.logService = new LogService(this.DSUStorage);
+        getCommunicationService(this.DSUStorage).waitForMessage(() => {});
 
         this.model.addExpression('logListLoaded', () => {
             return typeof this.model.logs !== "undefined";

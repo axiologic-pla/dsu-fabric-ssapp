@@ -1,3 +1,5 @@
+import {getCommunicationService} from "../services/CommunicationService.js";
+
 const { WebcController } = WebCardinal.controllers;
 import constants from "./constants.js";
 import {copyToClipboard} from "../helpers/document-utils.js";
@@ -12,7 +14,7 @@ export default class HolderController extends WebcController {
 
         this.model = {displayCredentialArea: true, isInvalidCredential: false};
         this.model.domain = "epi";
-
+        getCommunicationService(this.DSUStorage).waitForMessage(() => {});
         const setCredential = credential => {
             this.model.credential = credential;
             this.model.isInvalidCredential = false;
