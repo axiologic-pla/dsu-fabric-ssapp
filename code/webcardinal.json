@@ -27,11 +27,15 @@
     },
     {
       "name": "Products",
-      "tag": "products"
+      "tag": "products",
+      "src": "./productsPage/products.html",
+      "path": "./products"
     },
     {
       "name": "Batches",
-      "tag": "batches"
+      "tag": "batches",
+      "src": "./batchesPage/batches.html",
+      "path": "./batches"
     },
     {
       "name": "Audit",
@@ -54,6 +58,8 @@
     },{
       "name": "Import",
       "tag": "import",
+      "src": "./importPage/import.html",
+      "path": "./import",
       "indexed": false
     }
   ]

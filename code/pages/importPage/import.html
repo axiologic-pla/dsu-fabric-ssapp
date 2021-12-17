@@ -1,48 +1,4 @@
-<style>
-    .prev-page-btn,
-    .next-page-btn {
-        background-color: #e9510e;
-        border-style: none;
-        box-shadow: none;
-        border: 1px solid #e9510e;
-        color: white;
-        padding: 8px 16px;
-        margin-right: 10px;
-        border-radius: 5px;
-        margin-bottom: 1rem;
-    }
-
-    .prev-page-btn[disabled],
-    .next-page-btn[disabled] {
-        opacity: 0.6;
-    }
-
-    #code-search {
-        border-radius: 4px;
-        margin: 10px;
-        padding: 3px 8px;
-        border: 1px solid #e9510e;
-    }
-
-    #code-search:focus {
-        outline: none;
-    }
-
-    .validity .fa-ban,
-    .validity .fa-check {
-        display: none;
-    }
-
-    webc-spinner {
-        left: 250px;
-    }
-
-    @media screen and (max-width: 960px) {
-        webc-spinner {
-            left: 0px;
-        }
-    }
-</style>
+<link href="pages/importPage/import.css" rel="stylesheet"/>
 <psk-page>
     <webc-container controller="ImportController">
         <div class="m-5">
@@ -91,11 +47,9 @@
                         </div>
                         <div slot="loading"><span></span></div>
                     </webc-datatable>
-                    <div class="success-messages-page-btn">
-                        <button class="prev-page-btn" data-tag="prev-page" disabled msgType="success">Go to previous
-                            page
-                        </button>
-                        <button class="next-page-btn" data-tag="next-page" msgType="success">Go to next page</button>
+                    <div class="success-messages-page-btn pagination-container">
+                        <button class="prev-page-btn" data-tag="prev-page" disabled msgType="success"> <<</button>
+                        <button class="next-page-btn" data-tag="next-page" msgType="success"> >></button>
                     </div>
                 </psk-tab>
                 <psk-tab class="failed-messages-tab" title="Failed Imported Logs">
@@ -130,10 +84,9 @@
                             no data ...
                         </div>
                     </webc-datatable>
-                    <div class="failed-messages-page-btn">
-                        <button class="prev-page-btn" data-tag="prev-page" disabled msgType="failed">Go to previous page
-                        </button>
-                        <button class="next-page-btn" data-tag="next-page" msgType="failed">Go to next page</button>
+                    <div class="failed-messages-page-btn pagination-container">
+                        <button class="prev-page-btn" data-tag="prev-page" disabled msgType="failed"> <<</button>
+                        <button class="next-page-btn" data-tag="next-page" msgType="failed"> >></button>
                     </div>
                 </psk-tab>
             </psk-tab-navigator>

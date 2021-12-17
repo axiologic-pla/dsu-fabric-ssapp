@@ -40,15 +40,7 @@ psk-page::part(page-main) {
     font-size: 110%;
     font-weight: bold;
 }
-.success-messages-tab .webc-datatable--container {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-}
 
-.failed-messages-tab .webc-datatable--container {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr) 40px;
-}
 
 .webc-datatable--header,
 .data-item {
@@ -56,3 +48,30 @@ psk-page::part(page-main) {
     padding: 0.75rem;
 }
 
+.page-action-btn {
+    background-color: #e9510e;
+    border-style: none;
+    box-shadow: none;
+    border: 1px solid #e9510e;
+    color: white;
+    padding: 8px 16px;
+    margin-right: 10px;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+    font-size: 0.75rem;
+    user-select: none;
+}
+
+.page-action-btn:disabled {
+    opacity: .65;
+}
+
+.page-action-btn:not(:disabled):hover,
+.page-action-btn:not(:disabled):active,
+.page-action-btn:not(:disabled):focus,
+.page-action-btn:not(:disabled):focus-visible {
+    background-color: #f9b123;
+    border: 1px solid #e9510e;
+    box-shadow: none;
+    outline: none;
+}

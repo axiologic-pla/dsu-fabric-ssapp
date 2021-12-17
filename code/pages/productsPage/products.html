@@ -1,0 +1,61 @@
+<link href="pages/productsPage/products.css" rel="stylesheet"/>
+<page-template>
+        <span slot="page-title">
+            Product Details
+        </span>
+    <h6 slot="page-content">
+        <webc-container controller="ProductsController">
+            <div class="d-flex justify-content-end">
+                <button class="page-action-btn" data-tag="import">IMPORT</button>
+                <button class="page-action-btn" data-tag="get-transferred-product">GET TRANSFERRED PRODUCT</button>
+                <button class="page-action-btn" data-tag="add-product">+ ADD PRODUCT</button>
+            </div>
+
+            <div class="products-container">
+                <webc-datatable datasource="@prodDataSource" hide-pagination>
+                    <div class="fist-table-header first-column" slot="header">Brand / invented name</div>
+                    <div slot="header">
+                        <div>Product Code</div>
+                        <div class="search-container">
+                            <input id="code-search" placeholder="Search by code" type="search">
+                            <span class="validity">
+                    <i aria-hidden="true" class="fa fa-ban"></i>
+                    <i class="fa fa-check"></i>
+                </span>
+                        </div>
+                    </div>
+                    <div slot="header">AE Report Enabled</div>
+                    <div slot="header">AC Check Enabled</div>
+                    <div slot="header">View details</div>
+                    <div class="last-table-header last-column" slot="header">Transfer</div>
+
+                    <div class="data-item first-column">{{@name}}</div>
+                    <div class="data-item">{{@gtin}}</div>
+                    <div class="data-item">{{@adverseEventsReportingEnabled}}</div>
+                    <div class="data-item">{{@antiCounterfeitingEnabled}}</div>
+                    <div class="data-item">
+                        <button class="btn btn-link p-0 col align-self-center text-left" data-tag="edit-product"
+                                gtin="@gtin"
+                                type="button">View/Edit
+                        </button>
+                    </div>
+                    <div class="data-item last-column">
+                        <button class="btn btn-link p-0 col align-self-center text-left" data-tag="transfer"
+                                gtin="@gtin"
+                                type="button">Transfer
+                        </button>
+                    </div>
+                    <div slot="no-data">
+                        no data ...
+                    </div>
+                </webc-datatable>
+                <div class="pagination-container">
+                    <button class="prev-page-btn page-action-btn" data-tag="prev-page" disabled> <<</button>
+                    <button class="next-page-btn page-action-btn" data-tag="next-page"> >></button>
+                </div>
+            </div>
+
+        </webc-container>
+    </h6>
+</page-template>
+

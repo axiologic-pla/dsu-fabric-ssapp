@@ -1,5 +1,4 @@
 import utils from "../utils.js";
-import getSharedStorage from "../services/SharedDBStorageService.js";
 import MessagesService from "../services/MessagesService.js";
 
 
@@ -23,6 +22,7 @@ class SuccessLogDataSource extends DataSource {
 
     if (this.filterResult.length > 0) {
       window.WebCardinal.loader.hidden = true;
+      document.querySelector(".success-messages-page-btn").hidden = true;
       return this.filterResult
     }
 
@@ -36,9 +36,10 @@ class SuccessLogDataSource extends DataSource {
       } else {
         this.importLogs = await $$.promisify(this.enclaveDB.filter)('import-logs', ['__timestamp > 0', 'status == success'], "dsc", this.itemsOnPage * 2);
       }
+      this.importLogs.length > this.itemsOnPage ? document.querySelector(".success-messages-page-btn").hidden = false : document.querySelector(".success-messages-page-btn").hidden = true;
 
       importLogs = this.importLogs.slice(startOffset, startOffset + dataLengthForCurrentPage);
-      this.hasMoreLogs = this.importLogs.length > startOffset + dataLengthForCurrentPage + 1;
+      this.hasMoreLogs = this.importLogs.length >= startOffset + dataLengthForCurrentPage + 1;
 
       if (!this.hasMoreLogs) {
         document.querySelector(".success-messages-page-btn .next-page-btn").disabled = true;
@@ -61,7 +62,7 @@ class SuccessLogDataSource extends DataSource {
     if (!importLogs.length > 0) {
       document.querySelector(".success-messages-page-btn").style.display = "none";
     } else {
-      document.querySelector(".success-messages-page-btn").style.display = "block";
+      document.querySelector(".success-messages-page-btn").style.display = "flex";
     }
     return importLogs
   }
@@ -84,6 +85,7 @@ class FailedLogDataSource extends DataSource {
 
     if (this.filterResult.length > 0) {
       window.WebCardinal.loader.hidden = true;
+      document.querySelector(".failed-messages-page-btn").hidden = true;
       return this.filterResult
     }
 
@@ -97,8 +99,10 @@ class FailedLogDataSource extends DataSource {
       } else {
         this.importLogs = await $$.promisify(this.enclaveDB.filter)('import-logs', ['__timestamp > 0', 'status != success'], "dsc", this.itemsOnPage * 2);
       }
+      this.importLogs.length > this.itemsOnPage ? document.querySelector(".failed-messages-page-btn").hidden = false : document.querySelector(".failed-messages-page-btn").hidden = true;
+
       importLogs = this.importLogs.slice(startOffset, startOffset + dataLengthForCurrentPage);
-      this.hasMoreLogs = this.importLogs.length > startOffset + dataLengthForCurrentPage + 1;
+      this.hasMoreLogs = this.importLogs.length >= startOffset + dataLengthForCurrentPage + 1;
       if (!this.hasMoreLogs) {
         document.querySelector(".failed-messages-page-btn .next-page-btn").disabled = true;
       } else {
@@ -122,7 +126,7 @@ class FailedLogDataSource extends DataSource {
     if (!importLogs.length > 0) {
       document.querySelector(".failed-messages-page-btn").style.display = "none";
     } else {
-      document.querySelector(".failed-messages-page-btn").style.display = "block";
+      document.querySelector(".failed-messages-page-btn").style.display = "flex";
     }
     return importLogs
   }
@@ -134,7 +138,6 @@ export default class importController extends WebcController {
 
     super(...props);
     this.filesArray = [];
-    const storageService = getSharedStorage(this.DSUStorage);
     const dbAPI = require("opendsu").loadAPI("db");
     dbAPI.getSharedEnclaveDB((err, enclaveDB) => {
       if (err) {
@@ -228,8 +231,10 @@ export default class importController extends WebcController {
       let searchInput = this.querySelector("#code-search");
       let foundIcon = this.querySelector(".fa-check");
       let notFoundIcon = this.querySelector(".fa-ban");
-      if (searchInput) {
+      if (searchInput   ) {
         searchInput.addEventListener("search", async (event) => {
+          notFoundIcon.style.display = "none";
+          foundIcon.style.display = "none";
           if (event.target.value) {
             let result = await $$.promisify(this.enclaveDB.filter)('import-logs', `itemCode == ${event.target.value}`);
             if (result && result.length > 0) {
@@ -248,8 +253,6 @@ export default class importController extends WebcController {
               notFoundIcon.style.display = "inline";
             }
           } else {
-            notFoundIcon.style.display = "none";
-            foundIcon.style.display = "none";
             this.model.successDataSource.goToPageByIndex(0);
             this.model.failedDataSource.goToPageByIndex(0);
           }
@@ -397,20 +400,19 @@ export default class importController extends WebcController {
 
   manageProcessedMessages(undigestedMessages) {
     window.WebCardinal.loader.hidden = true;
-
     if (undigestedMessages.length === 0) {
       this.model.selectedTab = 0;
-      this.querySelector(".prev-page-btn[msgType='success']").disabled = true;
-      this.querySelector(".next-page-btn[msgType='success']").disabled = false;
-      this.model.successDataSource.importLogs = [];
-      this.model.successDataSource.goToPageByIndex(0);
     } else {
       this.model.selectedTab = 1;
-      this.querySelector(".prev-page-btn[msgType='failed']").disabled = true;
-      this.querySelector(".next-page-btn[msgType='failed']").disabled = false;
-      this.model.failedDataSource.importLogs = [];
-      this.model.failedDataSource.goToPageByIndex(0);
     }
+    this.querySelector(".prev-page-btn[msgType='success']").disabled = true;
+    this.querySelector(".next-page-btn[msgType='success']").disabled = false;
+    this.model.successDataSource.importLogs = [];
+    this.model.successDataSource.goToPageByIndex(0);
+    this.querySelector(".prev-page-btn[msgType='failed']").disabled = true;
+    this.querySelector(".next-page-btn[msgType='failed']").disabled = false;
+    this.model.failedDataSource.importLogs = [];
+    this.model.failedDataSource.goToPageByIndex(0);
   }
 
 }

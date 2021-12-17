@@ -1,0 +1,59 @@
+.success-messages-tab .webc-datatable--container {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+}
+
+.failed-messages-tab .webc-datatable--container {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr) 40px;
+}
+
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.prev-page-btn,
+.next-page-btn {
+    background-color: #e9510e;
+    border-style: none;
+    box-shadow: none;
+    border: 1px solid #e9510e;
+    color: white;
+    padding: 8px 16px;
+    margin-right: 10px;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+}
+
+.prev-page-btn[disabled],
+.next-page-btn[disabled] {
+    opacity: 0.6;
+}
+
+#code-search {
+    border-radius: 4px;
+    margin: 10px;
+    padding: 3px 8px;
+    border: 1px solid #e9510e;
+}
+
+#code-search:focus {
+    outline: none;
+}
+
+.validity .fa-ban,
+.validity .fa-check {
+    display: none;
+}
+
+webc-spinner {
+    left: 250px;
+}
+
+@media screen and (max-width: 960px) {
+    webc-spinner {
+        left: 0px;
+    }
+}
