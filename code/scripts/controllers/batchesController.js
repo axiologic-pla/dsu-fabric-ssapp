@@ -10,7 +10,7 @@ class BatchesDataSource extends DataSource {
   constructor(...props) {
     const [storageSrv, ...defaultOptions] = props;
     super(...defaultOptions);
-    this.itemsOnPage = 2;
+    this.itemsOnPage = 15;
     this.storageService = storageSrv;
     this.setPageSize(this.itemsOnPage);
     this.dataSourceRezults = [];

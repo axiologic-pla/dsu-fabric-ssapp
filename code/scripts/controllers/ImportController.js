@@ -1,7 +1,5 @@
 import utils from "../utils.js";
 import MessagesService from "../services/MessagesService.js";
-
-
 const {WebcController} = WebCardinal.controllers;
 const {DataSource} = WebCardinal.dataSources;
 
@@ -9,7 +7,7 @@ class SuccessLogDataSource extends DataSource {
   constructor(...props) {
     const [enclvDB, ...defaultOptions] = props;
     super(...defaultOptions);
-    this.itemsOnPage = 10;
+    this.itemsOnPage = 15;
     this.setPageSize(this.itemsOnPage);
     this.enclaveDB = enclvDB;
     this.importLogs = [];
@@ -72,7 +70,7 @@ class FailedLogDataSource extends DataSource {
   constructor(...props) {
     const [enclvDB, ...defaultOptions] = props;
     super(...defaultOptions);
-    this.itemsOnPage = 10;
+    this.itemsOnPage = 15;
     this.setPageSize(this.itemsOnPage);
     this.enclaveDB = enclvDB;
     this.importLogs = [];
@@ -231,31 +229,27 @@ export default class importController extends WebcController {
       let searchInput = this.querySelector("#code-search");
       let foundIcon = this.querySelector(".fa-check");
       let notFoundIcon = this.querySelector(".fa-ban");
-      if (searchInput   ) {
+      if (searchInput) {
         searchInput.addEventListener("search", async (event) => {
           notFoundIcon.style.display = "none";
           foundIcon.style.display = "none";
           if (event.target.value) {
-            let result = await $$.promisify(this.enclaveDB.filter)('import-logs', `itemCode == ${event.target.value}`);
-            if (result && result.length > 0) {
+            let results = await $$.promisify(this.enclaveDB.filter)('import-logs', `itemCode == ${event.target.value}`);
+            if (results && results.length > 0) {
               foundIcon.style.display = "inline";
-              let dataSource;
-              if (result[0].status === "success") {
-                dataSource = this.model.successDataSource;
+              this.model.successDataSource.filterResult = results.filter(item => item.status === "success");
+              this.model.failedDataSource.filterResult = results.filter(item => item.status !== "success");
+              if (results[0].status === "success") {
                 this.model.selectedTab = 0;
               } else {
-                dataSource = this.model.failedDataSource;
                 this.model.selectedTab = 1;
               }
-              dataSource.filterResult = result;
-              dataSource.goToPageByIndex(0);
             } else {
               notFoundIcon.style.display = "inline";
             }
-          } else {
-            this.model.successDataSource.goToPageByIndex(0);
-            this.model.failedDataSource.goToPageByIndex(0);
           }
+          this.model.successDataSource.goToPageByIndex(0);
+          this.model.failedDataSource.goToPageByIndex(0);
         })
       }
 
