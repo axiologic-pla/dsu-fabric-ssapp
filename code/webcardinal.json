@@ -39,7 +39,9 @@
     },
     {
       "name": "Audit",
-      "tag": "audit"
+      "tag": "audit",
+      "src": "./auditPage/audit.html",
+      "path": "./audit"
     },
     {
       "name": "Add batch",
@@ -55,7 +57,8 @@
       "name": "Add product",
       "tag": "add-product",
       "indexed": false
-    },{
+    },
+    {
       "name": "Import",
       "tag": "import",
       "src": "./importPage/import.html",

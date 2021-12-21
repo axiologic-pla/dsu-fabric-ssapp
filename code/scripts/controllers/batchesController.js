@@ -1,21 +1,17 @@
 import {getCommunicationService} from "../services/CommunicationService.js";
+
 const {WebcController} = WebCardinal.controllers;
 import getSharedStorage from "../services/SharedDBStorageService.js";
 import constants from "../constants.js";
 import utils from "../utils.js";
+import {LazyDataSource} from "../helpers/LazyDataSource.js";
+import lazyUtils from "../helpers/lazy-data-source-utils.js";
 
 const {DataSource} = WebCardinal.dataSources;
 
-class BatchesDataSource extends DataSource {
+class BatchesDataSource extends LazyDataSource {
   constructor(...props) {
-    const [storageSrv, ...defaultOptions] = props;
-    super(...defaultOptions);
-    this.itemsOnPage = 15;
-    this.storageService = storageSrv;
-    this.setPageSize(this.itemsOnPage);
-    this.dataSourceRezults = [];
-    this.hasMoreLogs = false;
-    this.filterResult = [];
+    super(...props);
   }
 
   generateSerializationForBatch(batch, serialNumber) {
@@ -42,42 +38,10 @@ class BatchesDataSource extends DataSource {
     });
   }
 
-  async getPageDataAsync(startOffset, dataLengthForCurrentPage) {
-    if (this.filterResult.length > 0) {
-      document.querySelector(".pagination-container").hidden = true;
-      this.generateSerializations(this.filterResult);
-      return this.filterResult
-    }
-    let resultData = [];
-
-    try {
-      if (this.dataSourceRezults.length > 0) {
-        let moreItems = await $$.promisify(this.storageService.filter.bind(this.storageService))(constants.BATCHES_STORAGE_TABLE, `__timestamp < ${this.dataSourceRezults[this.dataSourceRezults.length - 1].__timestamp}`, "dsc", this.itemsOnPage);
-        if (moreItems && moreItems.length > 0 && moreItems[moreItems.length - 1].pk !== this.dataSourceRezults[this.dataSourceRezults.length - 1].pk) {
-          this.dataSourceRezults = [...this.dataSourceRezults, ...moreItems,];
-        }
-      } else {
-        await $$.promisify(this.storageService.refresh.bind(this.storageService))();
-        this.dataSourceRezults = await $$.promisify(this.storageService.filter.bind(this.storageService))(constants.BATCHES_STORAGE_TABLE, "__timestamp > 0", "dsc", this.itemsOnPage * 2);
-      }
-
-      this.generateSerializations(this.dataSourceRezults);
-      this.dataSourceRezults.length > this.itemsOnPage ? document.querySelector(".pagination-container").hidden = false : document.querySelector(".pagination-container").hidden = true;
-      resultData = this.dataSourceRezults.slice(startOffset, startOffset + dataLengthForCurrentPage);
-      this.hasMoreLogs = this.dataSourceRezults.length >= startOffset + dataLengthForCurrentPage + 1;
-
-      if (!this.hasMoreLogs) {
-        document.querySelector(".pagination-container .next-page-btn").disabled = true;
-      } else {
-        document.querySelector(".pagination-container .next-page-btn").disabled = false;
-      }
-
-    } catch (e) {
-      console.log("Eroor on get async page data  ", e);
-    }
-    return resultData;
+  getMappedResult(data) {
+    this.generateSerializations(data);
+    return data;
   }
-
 }
 
 export default class batchesController extends WebcController {
@@ -86,54 +50,15 @@ export default class batchesController extends WebcController {
     this.model = {};
     this.model.batches = [];
     this.storageService = getSharedStorage(this.DSUStorage);
-    getCommunicationService(this.DSUStorage).waitForMessage(() => {});
-    this.model.batchesDataSource = new BatchesDataSource(this.storageService);
+    getCommunicationService(this.DSUStorage).waitForMessage(() => {
+    });
+    this.model.batchesDataSource = new BatchesDataSource({
+      storageService: this.storageService,
+      tableName: constants.BATCHES_STORAGE_TABLE,
+      searchField: "gtin"
+    });
 
-    let searchInput = this.querySelector("#code-search");
-    let foundIcon = this.querySelector(".fa-check");
-    let notFoundIcon = this.querySelector(".fa-ban");
-    if (searchInput) {
-      searchInput.addEventListener("search", async (event) => {
-        notFoundIcon.style.display = "none";
-        foundIcon.style.display = "none";
-        if (event.target.value) {
-          await $$.promisify(this.storageService.refresh.bind(this.storageService))();
-          let result = await $$.promisify(this.storageService.filter.bind(this.storageService))(constants.BATCHES_STORAGE_TABLE, `gtin == ${event.target.value}`);
-
-          if (result && result.length > 0) {
-            foundIcon.style.display = "inline";
-            this.model.batchesDataSource.filterResult = result;
-            this.goToFirstTablePage();
-          } else {
-            notFoundIcon.style.display = "inline";
-          }
-        } else {
-          this.model.batchesDataSource.filterResult = [];
-          this.goToFirstTablePage();
-        }
-      })
-    }
-    this.onTagClick("prev-page", (model, target, event) => {
-      target.parentElement.querySelector(".next-page-btn").disabled = false;
-      this.model.batchesDataSource.goToPreviousPage();
-      if (this.model.batchesDataSource.getCurrentPageIndex() === 1) {
-        target.parentElement.querySelector(".prev-page-btn").disabled = true;
-      }
-
-    })
-    this.onTagClick("next-page", (model, target, event) => {
-
-      target.parentElement.querySelector(".prev-page-btn").disabled = false;
-      if (this.model.batchesDataSource.hasMoreLogs) {
-        this.model.batchesDataSource.goToNextPage();
-      }
-
-    })
-
-    /*await $$.promisify(this.storageService.refresh.bind(this.storageService))();
-    const batches = await $$.promisify(this.storageService.filter.bind(this.storageService))(constants.BATCHES_STORAGE_TABLE);*/
-
-
+    lazyUtils.attachHandlers(this, "batchesDataSource");
     this.onTagClick("view-2DMatrix", (model, target, event) => {
       let eventData = JSON.parse(target.firstElementChild.innerText);
       this.model.actionModalModel = {
@@ -167,11 +92,5 @@ export default class batchesController extends WebcController {
       },
       {capture: true}
     );
-  }
-
-
-  goToFirstTablePage() {
-    document.querySelector(".pagination-container .prev-page-btn").disabled = true;
-    this.model.batchesDataSource.goToPageByIndex(0);
   }
 }

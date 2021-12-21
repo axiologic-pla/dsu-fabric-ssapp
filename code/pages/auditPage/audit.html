@@ -1,0 +1,47 @@
+<link href="pages/auditPage/audit.css" rel="stylesheet"/>
+<page-template>
+    <span slot="page-title">
+        Audit
+    </span>
+
+    <div class="test" slot="page-content">
+        <webc-container controller="AuditController">
+            <div class="audit-logs-container">
+                <webc-datatable datasource="@auditDataSource" hide-pagination>
+                    <div class="fist-table-header" slot="header">
+                        <div>Target</div>
+                        <div class="search-container">
+                            <input id="code-search" placeholder="Search by code" type="search">
+                            <span class="validity">
+                                    <i aria-hidden="true" class="fa fa-ban"></i>
+                                    <i class="fa fa-check"></i>
+                                </span>
+                        </div>
+                    </div>
+                    <div slot="header">Action</div>
+                    <div slot="header">User</div>
+                    <div slot="header">Creation Time</div>
+                    <div slot="header">Data</div>
+
+                    <div class="data-item">{{@target}}</div>
+                    <div class="data-item">{{@action}}</div>
+                    <div class="data-item">{{@username}}</div>
+                    <div class="data-item">{{@creationTime}}</div>
+                    <div class="data-item">
+                        <button class="btn btn-link p-0 col align-self-center text-left" data-tag="show-audit-entry">
+                            View
+                        </button>
+                    </div>
+
+                    <div slot="no-data">
+                        no data ...
+                    </div>
+                </webc-datatable>
+                <div class="pagination-container">
+                    <button class="prev-page-btn page-action-btn" data-tag="prev-page" disabled> <<</button>
+                    <button class="next-page-btn page-action-btn" data-tag="next-page"> >></button>
+                </div>
+            </div>
+        </webc-container>
+    </div>
+</page-template>
