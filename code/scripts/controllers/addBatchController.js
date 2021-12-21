@@ -127,7 +127,6 @@ export default class addBatchController extends WebcController {
       message.batch = {};
 
       epiUtils.transformToMessage(batch, message.batch, epiUtils.batchDataSourceMapping);
-      message.messageType = "Batch";
 
       try {
         //process batch, leaflet & smpc cards

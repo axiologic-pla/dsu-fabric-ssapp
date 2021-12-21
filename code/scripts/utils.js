@@ -226,6 +226,7 @@ async function initMessage(msgType) {
     receiverId: "",
     messageId: generateRandom(13),
     messageDateTime: new Date().toISOString(),
+    token: ""
   }
 }
 
