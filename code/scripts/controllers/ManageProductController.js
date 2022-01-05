@@ -219,14 +219,6 @@ export default class ManageProductController extends WebcController {
   }
 
   isValid(product) {
-
-    if (product.version === 1) {
-      if (!this.filesWereProvided()) {
-        this.showErrorModal("Cannot save the product because a leaflet was not provided.");
-        return false;
-      }
-    }
-
     let validationResult = product.validate();
     if (Array.isArray(validationResult)) {
       for (let i = 0; i < validationResult.length; i++) {
