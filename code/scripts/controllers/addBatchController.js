@@ -126,9 +126,9 @@ export default class addBatchController extends WebcController {
       let message = await utils.initMessage("Batch");
       message.batch = {};
 
-      epiUtils.transformToMessage(batch, message.batch, epiUtils.batchDataSourceMapping);
-
       try {
+        epiUtils.transformToMessage(batch, message.batch, epiUtils.batchDataSourceMapping);
+
         //process batch, leaflet & smpc cards
 
         let cardMessages = await LeafletService.createEpiMessages({

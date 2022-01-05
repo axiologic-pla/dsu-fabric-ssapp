@@ -17,14 +17,15 @@ export default class ManageProductController extends WebcController {
   constructor(...props) {
     super(...props);
     this.controllerElement = props[0];
-    this.model= {};
+    this.model = {};
     const mappings = require("epi-utils").loadApi("mappings");
     const epiUtils = require("epi-utils").getMappingsUtils();
     const LogService = require("epi-utils").loadApi("services").LogService
 
     this.storageService = getSharedStorage(this.DSUStorage);
     this.logService = new LogService(this.DSUStorage);
-    getCommunicationService(this.DSUStorage).waitForMessage(() => {});
+    getCommunicationService(this.DSUStorage).waitForMessage(() => {
+    });
 
     let state = this.history.location.state;
     this.gtin = typeof state !== "undefined" ? state.gtin : undefined;
@@ -121,9 +122,8 @@ export default class ManageProductController extends WebcController {
       let message = await utils.initMessage("Product");
       message.product = {};
 
-      epiUtils.transformToMessage(product, message.product, epiUtils.productDataSourceMapping);
-
       try {
+        epiUtils.transformToMessage(product, message.product, epiUtils.productDataSourceMapping);
 
         let photoMessages = [];
         //process photo
