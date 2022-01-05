@@ -7,6 +7,39 @@ import utils from "../utils.js";
 import {LazyDataSource} from "../helpers/LazyDataSource.js";
 import lazyUtils from "../helpers/lazy-data-source-utils.js";
 
+const charsMap = {
+  "33": "!",
+  "34": '"',
+  "35": "#",
+  "36": "$",
+  "37": "%",
+  "38": "&",
+  "39": "'",
+  "40": "(",
+  "41": ")",
+  "42": "*",
+  "43": "+",
+  "45": "-",
+  "46": ".",
+  "47": "/",
+  "58": ":",
+  "59": ";",
+  "60": "<",
+  "61": "=",
+  "62": ">",
+  "63": "?",
+  "64": "@",
+  "91": "[",
+  "92": "\\",
+  "93": "]",
+  "94": "^",
+  "95": "_",
+  "96": "`",
+  "123": "{",
+  "124": "|",
+  "125": "}",
+  "126": "~"
+}
 const {DataSource} = WebCardinal.dataSources;
 
 class BatchesDataSource extends LazyDataSource {
@@ -14,12 +47,23 @@ class BatchesDataSource extends LazyDataSource {
     super(...props);
   }
 
+  bwipjsEscape(data) {
+    let resultData = data.split("").map(char => {
+      if (charsMap[char.charCodeAt(0)]) {
+        return char.charCodeAt(0) >= 100 ? `^${char.charCodeAt(0)}` : `^0${char.charCodeAt(0)}`
+      } else {
+        return char;
+      }
+    }).join("")
+    return resultData;
+  }
+
   generateSerializationForBatch(batch, serialNumber) {
     if (serialNumber === "" || typeof serialNumber === "undefined") {
       return `(01)${batch.gtin}(10)${batch.batchNumber}(17)${batch.expiry}`;
     }
 
-    return `(01)${batch.gtin}(21)${serialNumber}(10)${batch.batchNumber}(17)${batch.expiry}`;
+    return `(01)${batch.gtin}(21)${this.bwipjsEscape(serialNumber)}(10)${this.bwipjsEscape(batch.batchNumber)}(17)${batch.expiry}`;
   }
 
   generateSerializations(arr) {
@@ -93,4 +137,5 @@ export default class batchesController extends WebcController {
       {capture: true}
     );
   }
+
 }
