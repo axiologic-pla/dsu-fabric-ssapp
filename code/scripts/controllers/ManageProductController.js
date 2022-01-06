@@ -12,6 +12,7 @@ import LeafletService from "../services/LeafletService.js";
 import Countries from "../models/Countries.js";
 
 const arrayBufferToBase64 = require("epi-utils").getMappingsUtils().arrayBufferToBase64;
+const gtinMultiplicationArray = [3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3];
 
 export default class ManageProductController extends WebcController {
   constructor(...props) {
@@ -36,6 +37,10 @@ export default class ManageProductController extends WebcController {
     };
 
     this.model.languageTypeCards = [];
+
+    this.onTagEvent("productcode-edit", "focusout", (model, target, event) => {
+      this.validateGTIN(target.value);
+    })
 
     this.onTagClick("cancel", () => {
       this.navigateToPageTag("products");
@@ -97,6 +102,7 @@ export default class ManageProductController extends WebcController {
     } else {
       this.model.submitLabel = "Save Product";
       this.model.product = new Product();
+      this.validateGTIN(this.model.product.gtin);
       // ensureHolderCredential();
     }
 
@@ -181,6 +187,42 @@ export default class ManageProductController extends WebcController {
     });
   }
 
+  validateGTIN(gtinValue) {
+    this.model.gtinIsValid = false;
+    if (isNaN(gtinValue)) {
+      this.model.invalidGTINMessage = "GTIN should be a numeric value";
+      return;
+    }
+    let gtinDigits = gtinValue.split("");
+
+    // TO DO this check is to cover all types of gtin. For the moment we support just 14 digits length. TO update also in leaflet-ssapp
+    /*
+    if (gtinDigits.length !== 8 && gtinDigits.length !== 12 && gtinDigits.length !== 13 && gtinDigits.length !== 14) {
+      this.model.invalidGTINMessage = "GTIN length should be 8, 12, 13 or 14";
+      return;
+    }
+    */
+
+    if (gtinDigits.length !== 14) {
+      this.model.invalidGTINMessage = "GTIN length should be 14";
+      return;
+    }
+    let j = gtinMultiplicationArray.length - 1;
+    let reszultSum = 0;
+    for (let i = gtinDigits.length - 2; i >= 0; i--) {
+      reszultSum = reszultSum + gtinDigits[i] * gtinMultiplicationArray[j];
+      j--;
+    }
+    let validDigit = Math.floor((reszultSum + 10) / 10) * 10 - reszultSum;
+    if (gtinDigits[gtinDigits.length - 1] != validDigit) {
+      this.model.invalidGTINMessage = "Invalid GTIN. Last digit should be " + validDigit;
+      return;
+    }
+    this.model.invalidGTINMessage = "GTIN is valid";
+    this.model.gtinIsValid = true;
+    return;
+  }
+
   showMessageError(undigestedMessages) {
     let errors = [];
     if (undigestedMessages.length > 0) {
@@ -219,6 +261,10 @@ export default class ManageProductController extends WebcController {
   }
 
   isValid(product) {
+    if (!this.model.gtinIsValid) {
+      this.showErrorModal("Invalid GTIN.");
+      return false;
+    }
     let validationResult = product.validate();
     if (Array.isArray(validationResult)) {
       for (let i = 0; i < validationResult.length; i++) {
@@ -323,7 +369,6 @@ export default class ManageProductController extends WebcController {
   }
 
   validateMarket() {
-
     let market = {
       marketId: this.model.marketModel.countriesCodes.value,
       nationalCode: this.model.marketModel.nationalCode.value,

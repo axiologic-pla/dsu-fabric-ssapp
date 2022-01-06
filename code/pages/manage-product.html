@@ -9,10 +9,16 @@
                             <div class="pt-2 pb-2">{{@product.gtin}}</div>
                         </div>
                         <i class="fa fa-pencil-square-o editable-icon" slot="true"></i>
-                        <div class="background-container col-12 pl-3 mb-3 pl-3" slot="true">
+                        <div class="background-container prod-code-container col-12 pl-3 mb-3 pl-3"
+                             gtin-isvalid="@gtinIsValid"
+                             slot="true">
                             <div class="form-label">Product Code</div>
-                            <input class="form-control" placeholder="Add product code" type="text"
+                            <input class="form-control" data-tag="productcode-edit" id="productcode-input"
+                                   placeholder="Add product code" type="text"
                                    value="@product.gtin"/>
+                            <div class="validation-status" gtin-isvalid="@gtinIsValid">
+                                {{@invalidGTINMessage}}
+                            </div>
                         </div>
                     </div>
 
@@ -229,17 +235,9 @@
         display: none;
     }
 
-    psk-input div input,
-    psk-textarea div textarea,
-    .context-group {
-        box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.3);
-        border-radius: 4px;
-    }
-
     psk-checkbox input {
         box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.6);
     }
-
 
     .read-only-container {
         background: #f3f3f3;
@@ -330,9 +328,22 @@
         color: #000
     }
 
-    psk-input[isvalid="false"] input {
-        border-color: red
+    .prod-code-container {
+        background: #FFCCCC;
     }
 
+    .prod-code-container[gtin-isvalid] {
+        background: none;
+    }
+
+    .validation-status {
+        font-size: 14px;
+        font-weight: lighter;
+        color: red;
+    }
+
+    .validation-status[gtin-isvalid] {
+        color: #28a745;
+    }
 
 </style>
