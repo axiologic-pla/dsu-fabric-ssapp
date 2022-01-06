@@ -102,9 +102,10 @@ export default class ManageProductController extends WebcController {
     } else {
       this.model.submitLabel = "Save Product";
       this.model.product = new Product();
-      this.validateGTIN(this.model.product.gtin);
       // ensureHolderCredential();
     }
+
+    this.validateGTIN(this.model.product.gtin);
 
     this.on("product-photo-selected", (event) => {
       this.productPhoto = event.data;
@@ -214,6 +215,9 @@ export default class ManageProductController extends WebcController {
       j--;
     }
     let validDigit = Math.floor((reszultSum + 10) / 10) * 10 - reszultSum;
+    if (validDigit === 10) {
+      validDigit = 0;
+    }
     if (gtinDigits[gtinDigits.length - 1] != validDigit) {
       this.model.invalidGTINMessage = "Invalid GTIN. Last digit should be " + validDigit;
       return;
