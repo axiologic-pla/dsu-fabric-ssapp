@@ -4,6 +4,11 @@
 <main>
     <psk-select required value="@modalData.product.language" view-model="@modalData.languages"></psk-select>
     <psk-select required value="@modalData.product.type" view-model="@modalData.types"></psk-select>
+    <psk-label>Video link</psk-label>
+
+    <input class="form-control" placeholder="Add video source"
+           type="text" value="@modalData.product.videoSource"/>
+
 
     <psk-card class="language-leaflet-card">
         <div class="language-leaflet-card-header">
@@ -17,11 +22,14 @@
 </main>
 <footer class="modal-action-menu" slot="footer">
     <psk-button class="marketplace-manager-button" data-close>{{@modalData.denyButtonText}}</psk-button>
-    <psk-button class="marketplace-manager-button" disabled="@modalData.filesWereNotSelected" data-confirm>{{@modalData.acceptButtonText}}</psk-button>
+    <psk-button class="marketplace-manager-button" data-confirm disabled="@modalData.filesWereNotSelected">
+        {{@modalData.acceptButtonText}}
+    </psk-button>
 </footer>
 
 <style>
     psk-card .card.psk-card {
+        margin-top: 15px;
         width: 100%;
     }
 </style>

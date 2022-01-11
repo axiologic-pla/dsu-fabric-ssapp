@@ -20,8 +20,8 @@
                         </div>
                     </div>
                     <div class="col p-0">
-                        <i class="fa fa-pencil-square-o editable-icon" slot="false"></i>
-                        <div class="background-container col mb-3 pl-3" slot="false">
+                        <i class="fa fa-pencil-square-o editable-icon"></i>
+                        <div class="background-container col mb-3 pl-3">
                             <div class="form-label">Packaging site name</div>
                             <input class="form-control" placeholder="Add site name" type="text"
                                    value="@batch.packagingSiteName"/>
@@ -45,6 +45,14 @@
                                           checked="@batch.enableExpiryDay"
                                           name="enableExpiryDay"
                                           value="@batch.enableExpiryDay"></psk-checkbox>
+                        </div>
+                    </div>
+                    <div class="col p-0">
+                        <i class="fa fa-pencil-square-o editable-icon"></i>
+                        <div class="background-container col mb-3 pl-3">
+                            <div class="form-label">Video source</div>
+                            <input class="form-control" placeholder="Add video source"
+                                   type="text" value="@batch.videos.defaultSource"/>
                         </div>
                     </div>
                     <div>

@@ -88,6 +88,7 @@ export default class ManageProductController extends WebcController {
         this.model.product.version++;
         this.model.product.previousVersion = product.version;
         this.model.product.isCodeEditable = false;
+        this.model.product.videos = product.videos || {defaultSource: ""};
         this.getProductAttachments(product, (err, attachments) => {
           if (err) {
             this.showErrorModalAndRedirect("Failed to get inherited cards", "products");
@@ -98,14 +99,26 @@ export default class ManageProductController extends WebcController {
           }
         });
         // ensureHolderCredential();
+
+        //keep initial state to detect changes on videos fields
+        this.videosInitialState = {
+          defaultSource: this.model.product.videos.defaultSource,
+          cards: this.model.languageTypeCards
+        }
+        this.validateGTIN(this.model.product.gtin);
       });
+
     } else {
       this.model.submitLabel = "Save Product";
       this.model.product = new Product();
       // ensureHolderCredential();
+      //keep initial state to detect changes on videos fields
+      this.videosInitialState = {
+        defaultSource: this.model.product.videos.defaultSource,
+        cards: []
+      }
+      this.validateGTIN(this.model.product.gtin);
     }
-
-    this.validateGTIN(this.model.product.gtin);
 
     this.on("product-photo-selected", (event) => {
       this.productPhoto = event.data;
@@ -116,7 +129,6 @@ export default class ManageProductController extends WebcController {
       if (!self.isValid(product)) {
         return;
       }
-
 
       self.createWebcModal({
         disableExpanding: true,
@@ -134,16 +146,10 @@ export default class ManageProductController extends WebcController {
 
         let photoMessages = [];
         //process photo
-
-        let newPhoto = typeof self.productPhoto !== "undefined";
-        if (newPhoto) {
-          let addPhotoMessage = {
-            messageType: "ProductPhoto",
-            productCode: message.product.productCode,
-            senderId: self.model.username,
-            imageData: arrayBufferToBase64(self.productPhoto)
-          }
-
+        if (typeof self.productPhoto !== "undefined") {
+          let addPhotoMessage = await utils.initMessage("ProductPhoto");
+          addPhotoMessage.productCode = message.product.productCode;
+          addPhotoMessage.imageData = arrayBufferToBase64(self.productPhoto);
           photoMessages.push(addPhotoMessage);
         }
 
@@ -155,14 +161,14 @@ export default class ManageProductController extends WebcController {
           username: self.model.username,
           code: message.product.productCode
         })
+
         if (!self.DSUStorage.directAccessEnabled) {
           self.DSUStorage.enableDirectAccess(async () => {
-            await MessagesService.processMessages([message, ...photoMessages, ...cardMessages], self.DSUStorage, self.showMessageError.bind(self));
+            self.sendMessagesToProcess([message, ...photoMessages, ...cardMessages]);
           })
         } else {
-          await MessagesService.processMessages([message, ...photoMessages, ...cardMessages], self.DSUStorage, self.showMessageError.bind(self));
+          self.sendMessagesToProcess([message, ...photoMessages, ...cardMessages]);
         }
-
 
       } catch (e) {
         self.showErrorModal(e.message);
@@ -187,6 +193,36 @@ export default class ManageProductController extends WebcController {
       }
     });
   }
+
+  async sendMessagesToProcess(messageArr) {
+    await MessagesService.processMessages(messageArr, this.DSUStorage, this.showMessageError.bind(this));
+
+    //process video source if any change for video fields inproduct or language card
+    if (this.videosInitialState.defaultSource !== this.model.product.videos.defaultSource ||
+      this.model.deletedLanguageTypeCards.length >= 1 ||
+      this.model.languageTypeCards.length != this.videosInitialState.cards.length) {
+      let videoMessage = await utils.initMessage("VideoSource");
+      videoMessage.videos = {
+        productCode: this.model.product.gtin,
+      }
+      if (this.videosInitialState.defaultSource !== this.model.product.videos.defaultSource) {
+        videoMessage.videos.source = this.model.product.videos.defaultSource;
+      }
+
+      let videoSources = [];
+      this.model.languageTypeCards.forEach(card => {
+        if (card.videoSource) {
+          videoSources.push({documentType: card.type.value, lang: card.language.value, source: card.videoSource})
+        }
+      })
+
+      videoMessage.videos.sources = videoSources
+
+      await MessagesService.processMessages([videoMessage], this.DSUStorage, this.showMessageError.bind(this));
+    }
+
+  }
+
 
   validateGTIN(gtinValue) {
     this.model.gtinIsValid = false;
@@ -296,11 +332,13 @@ export default class ManageProductController extends WebcController {
         let smpcs = await $$.promisify(productDSU.listFolders)("/smpc");
         for (const leafletLanguageCode of leaflets) {
           let leafletFiles = await $$.promisify(productDSU.listFiles)("/leaflet/" + leafletLanguageCode);
-          languageTypeCards.push(LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.EXISTS, "leaflet", leafletLanguageCode, leafletFiles));
+          let videoSource = product.videos[`leaflet/${leafletLanguageCode}`] || "";
+          languageTypeCards.push(LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.EXISTS, "leaflet", leafletLanguageCode, leafletFiles, videoSource));
         }
         for (const smpcLanguageCode of smpcs) {
           let smpcFiles = await $$.promisify(productDSU.listFiles)("/smpc/" + smpcLanguageCode);
-          languageTypeCards.push(LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.EXISTS, "smpc", smpcLanguageCode, smpcFiles));
+          let videoSource = product.videos[`smpc/${leafletLanguageCode}`] || "";
+          languageTypeCards.push(LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.EXISTS, "smpc", smpcLanguageCode, smpcFiles, videoSource));
         }
         let stat = await $$.promisify(productDSU.stat)(constants.PRODUCT_IMAGE_FILE)
         if (stat.type === "file") {

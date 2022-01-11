@@ -22,7 +22,7 @@ export class LazyDataSource extends DataSource {
     this.filterResult = [];
   }
 
-  async searchHAndler(inputValue, foundIcon, notFoundIcon) {
+  async searchHandler(inputValue, foundIcon, notFoundIcon) {
     notFoundIcon.style.display = "none";
     foundIcon.style.display = "none";
     if (inputValue) {

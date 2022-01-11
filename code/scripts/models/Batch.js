@@ -26,6 +26,9 @@ export default class Batch {
   snRecalledReset = false;
   acfBatchCheckURL = false;
   flagEnableACFBatchCheck = false;
+  videos = {
+    defaultSource: ""
+  }
 
   constructor(batch) {
     if (typeof batch !== undefined) {

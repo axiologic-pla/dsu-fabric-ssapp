@@ -28,9 +28,12 @@ export default class Product {
   patientLeafletInfo = "Patient Information";
   strength = "";
   internalMaterialCode = "";
-  videoLink = "";
+  videoSource = "";
   imagePath;
   markets = [];
+  videos = {
+    defaultSource: ""
+  }
 
   constructor(product) {
     if (typeof product !== undefined) {

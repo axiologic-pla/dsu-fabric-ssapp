@@ -7,12 +7,13 @@ const LEAFLET_CARD_STATUS = {
   DELETE: "delete"
 }
 
-function generateCard(status, type, code, files) {
+function generateCard(status, type, code, files, videoSource) {
   let card = {
     status: status,
     type: {value: type},
     language: {value: code},
-    files: files
+    files: files,
+    videoSource: videoSource
   };
   card.type.label = UploadTypes.getLanguage(type);
   card.language.label = Languages.getLanguage(code);

@@ -4,14 +4,11 @@ import UploadTypes from "../../models/UploadTypes.js";
 
 const {WebcController} = WebCardinal.controllers;
 
-class LeafletController extends WebcController {
+export default class LeafletController extends WebcController {
 
   constructor(...props) {
     super(...props);
     this.model.deletedLanguageTypeCards = [];
-  }
-
-  onReady() {
     this.onTagClick("add-language-leaflet", (event) => {
       this.addLanguageTypeFilesListener(event)
     });
@@ -27,9 +24,7 @@ class LeafletController extends WebcController {
           lf.status = LeafletService.LEAFLET_CARD_STATUS.DELETE;
           this.model.deletedLanguageTypeCards.push(lf)
         }
-
         return false
-
       });
     });
   }
@@ -53,13 +48,14 @@ class LeafletController extends WebcController {
       types: types,
       product: {
         language: "en",
-        type: "leaflet"
+        type: "leaflet",
+        videoSource: ""
       },
       fileChooser: {
         accept: "directory",
         "event-name": "uploadLeaflet",
         label: "Upload files",
-        "list-files": true,
+        "list-files": true
       },
       filesWereNotSelected: true,
     }
@@ -76,7 +72,8 @@ class LeafletController extends WebcController {
       }
       let selectedLanguage = Languages.getListAsVM().find(lang => lang.value === this.model.modalData.product.language);
       let selectedType = UploadTypes.getListAsVM().find(type => type.value === this.model.modalData.product.type);
-      let card = LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.NEW, selectedType.value, selectedLanguage.value, this.model.modalData.files);
+      let videoSource = this.model.modalData.product.videoSource;
+      let card = LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.NEW, selectedType.value, selectedLanguage.value, this.model.modalData.files, videoSource);
       this.model.languageTypeCards.push(card);
     }, () => {
       return
@@ -89,4 +86,3 @@ class LeafletController extends WebcController {
 
 }
 
-export default LeafletController;

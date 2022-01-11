@@ -4,7 +4,7 @@ function attachHandlers(controller, datasource) {
   let notFoundIcon = controller.querySelector(".fa-ban");
   if (searchInput) {
     searchInput.addEventListener("search", async (event) => {
-      await controller.model[datasource].searchHAndler(event.target.value, foundIcon, notFoundIcon)
+      await controller.model[datasource].searchHandler(event.target.value, foundIcon, notFoundIcon)
     })
   }
 

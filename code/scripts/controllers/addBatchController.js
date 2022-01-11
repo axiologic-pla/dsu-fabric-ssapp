@@ -24,7 +24,8 @@ export default class addBatchController extends WebcController {
     this.model = {};
     this.storageService = getSharedStorage(this.DSUStorage);
     this.logService = new LogService(this.DSUStorage);
-    getCommunicationService(this.DSUStorage).waitForMessage(() => {});
+    getCommunicationService(this.DSUStorage).waitForMessage(() => {
+    });
     this.versionOffset = 1;
     this.model.languageTypeCards = [];
 
@@ -46,6 +47,12 @@ export default class addBatchController extends WebcController {
       ],
       placeholder: "Select an option"
     }
+
+    this.videosInitialState = {
+      defaultSource: this.model.batch.videos.defaultSource,
+      cards: this.model.languageTypeCards
+    }
+
     if (editMode) {
       this.gtin = this.model.batch.gtin;
       this.model.batch.version++;
@@ -54,6 +61,10 @@ export default class addBatchController extends WebcController {
           this.showErrorModalAndRedirect("Failed to get inherited cards", "patch");
         }
         this.model.languageTypeCards = attachments.languageTypeCards;
+        this.videosInitialState = {
+          defaultSource: this.model.batch.videos.defaultSource,
+          cards: this.model.languageTypeCards
+        }
       });
       this.model.batch.enableExpiryDay = this.model.batch.expiry.slice(-2) !== "00";
 
@@ -62,6 +73,7 @@ export default class addBatchController extends WebcController {
         this.model.productDescription = product.description;
       });
     }
+
 
     this.storageService.filter(this.model.batch.batchNumber, "__timestamp > 0", (err, logs) => {
       if (err || typeof logs === "undefined") {
@@ -139,10 +151,10 @@ export default class addBatchController extends WebcController {
         })
         if (!this.DSUStorage.directAccessEnabled) {
           this.DSUStorage.enableDirectAccess(async () => {
-            await MessagesService.processMessages([message, ...cardMessages], this.DSUStorage, this.showMessageError.bind(this));
+            await this.sendMessagesToProcess([message, ...cardMessages]);
           })
         } else {
-          await MessagesService.processMessages([message, ...cardMessages], this.DSUStorage, this.showMessageError.bind(this));
+          await this.sendMessagesToProcess([message, ...cardMessages]);
         }
 
       } catch (e) {
@@ -182,6 +194,36 @@ export default class addBatchController extends WebcController {
     this.on('openFeedback', (e) => {
       this.feedbackEmitter = e.detail;
     });
+  }
+
+  async sendMessagesToProcess(messageArr) {
+    await MessagesService.processMessages(messageArr, this.DSUStorage, this.showMessageError.bind(this));
+
+    //process video source if any change for video fields inproduct or language card
+    if (this.videosInitialState.defaultSource !== this.model.batch.videos.defaultSource ||
+      this.model.deletedLanguageTypeCards.length >= 1 ||
+      this.model.languageTypeCards.length != this.videosInitialState.cards.length) {
+      let videoMessage = await utils.initMessage("VideoSource");
+      videoMessage.videos = {
+        productCode: this.model.batch.gtin,
+        batch: this.model.batch.batchNumber
+      }
+      if (this.videosInitialState.defaultSource !== this.model.batch.videos.defaultSource) {
+        videoMessage.videos.source = this.model.batch.videos.defaultSource;
+      }
+
+      let videoSources = [];
+      this.model.languageTypeCards.forEach(card => {
+        if (card.videoSource) {
+          videoSources.push({documentType: card.type.value, lang: card.language.value, source: card.videoSource})
+        }
+      })
+
+      videoMessage.videos.sources = videoSources
+
+      await MessagesService.processMessages([videoMessage], this.DSUStorage, this.showMessageError.bind(this));
+    }
+
   }
 
   showMessageError(undigestedMessages) {
@@ -244,11 +286,13 @@ export default class addBatchController extends WebcController {
         let smpcs = await $$.promisify(batchDSU.listFolders)("/smpc");
         for (const leafletLanguageCode of leaflets) {
           let leafletFiles = await $$.promisify(batchDSU.listFiles)("/leaflet/" + leafletLanguageCode);
-          languageTypeCards.push(LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.EXISTS, "leaflet", leafletLanguageCode, leafletFiles));
+          let videoSource = batch.videos[`leaflet/${leafletLanguageCode}`] || "";
+          languageTypeCards.push(LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.EXISTS, "leaflet", leafletLanguageCode, leafletFiles, videoSource));
         }
         for (const smpcLanguageCode of smpcs) {
           let smpcFiles = await $$.promisify(batchDSU.listFiles)("/smpc/" + smpcLanguageCode);
-          languageTypeCards.push(LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.EXISTS, "smpc", smpcLanguageCode, smpcFiles));
+          let videoSource = batch.videos[`smpc/${leafletLanguageCode}`] || "";
+          languageTypeCards.push(LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.EXISTS, "smpc", smpcLanguageCode, smpcFiles, videoSource));
         }
         callback(undefined, {languageTypeCards: languageTypeCards});
       } catch (e) {
