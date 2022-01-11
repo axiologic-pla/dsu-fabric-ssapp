@@ -56,6 +56,7 @@ class AuditDataSource extends LazyDataSource {
             break;
           case "PRODUCT_PHOTO_LOG":
           case "LEAFLET_LOG":
+          case "VIDEO_LOG":
             viewLog = this.attachmentLogProcessing(item);
             break;
           default:

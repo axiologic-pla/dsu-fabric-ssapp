@@ -48,10 +48,12 @@ export default class addBatchController extends WebcController {
       placeholder: "Select an option"
     }
 
-    this.videosInitialState = {
-      defaultSource: this.model.batch.videos.defaultSource,
-      cards: this.model.languageTypeCards
-    }
+    this.model.videoSourceUpdated = false;
+    this.videoInitialDefaultSource = this.model.batch.videos.defaultSource;
+
+    this.model.onChange('batch.videos.defaultSource', async (...props) => {
+      this.model.videoSourceUpdated = this.videoInitialDefaultSource !== this.model.batch.videos.defaultSource;
+    })
 
     if (editMode) {
       this.gtin = this.model.batch.gtin;
@@ -61,10 +63,6 @@ export default class addBatchController extends WebcController {
           this.showErrorModalAndRedirect("Failed to get inherited cards", "patch");
         }
         this.model.languageTypeCards = attachments.languageTypeCards;
-        this.videosInitialState = {
-          defaultSource: this.model.batch.videos.defaultSource,
-          cards: this.model.languageTypeCards
-        }
       });
       this.model.batch.enableExpiryDay = this.model.batch.expiry.slice(-2) !== "00";
 
@@ -73,7 +71,6 @@ export default class addBatchController extends WebcController {
         this.model.productDescription = product.description;
       });
     }
-
 
     this.storageService.filter(this.model.batch.batchNumber, "__timestamp > 0", (err, logs) => {
       if (err || typeof logs === "undefined") {
@@ -197,20 +194,15 @@ export default class addBatchController extends WebcController {
   }
 
   async sendMessagesToProcess(messageArr) {
-    await MessagesService.processMessages(messageArr, this.DSUStorage, this.showMessageError.bind(this));
-
     //process video source if any change for video fields inproduct or language card
-    if (this.videosInitialState.defaultSource !== this.model.batch.videos.defaultSource ||
-      this.model.deletedLanguageTypeCards.length >= 1 ||
-      this.model.languageTypeCards.length != this.videosInitialState.cards.length) {
+    if (this.model.videoSourceUpdated) {
       let videoMessage = await utils.initMessage("VideoSource");
       videoMessage.videos = {
         productCode: this.model.batch.gtin,
         batch: this.model.batch.batchNumber
       }
-      if (this.videosInitialState.defaultSource !== this.model.batch.videos.defaultSource) {
-        videoMessage.videos.source = this.model.batch.videos.defaultSource;
-      }
+
+      videoMessage.videos.source = this.model.batch.videos.defaultSource;
 
       let videoSources = [];
       this.model.languageTypeCards.forEach(card => {
@@ -218,12 +210,20 @@ export default class addBatchController extends WebcController {
           videoSources.push({documentType: card.type.value, lang: card.language.value, source: card.videoSource})
         }
       })
-
       videoMessage.videos.sources = videoSources
+      MessagesService.processMessages(messageArr, this.DSUStorage, async (undigestedMessages) => {
+        MessagesService.processMessages([videoMessage], this.DSUStorage, (undigestedVideo) => {
+          this.hideModal();
+          this.showMessageError([...undigestedMessages, ...undigestedVideo])
+        });
+      })
 
-      await MessagesService.processMessages([videoMessage], this.DSUStorage, this.showMessageError.bind(this));
+    } else {
+      MessagesService.processMessages(messageArr, this.DSUStorage, async (undigestedMessages) => {
+        this.hideModal();
+        this.showMessageError(undigestedMessages)
+      })
     }
-
   }
 
   showMessageError(undigestedMessages) {
@@ -239,11 +239,8 @@ export default class addBatchController extends WebcController {
         this.hideModal();
         this.navigateToPageTag("batches");
       }, () => {
-        this.hideModal();
       }, {model: {errors: errors}});
     } else {
-
-      this.hideModal();
       this.navigateToPageTag("batches");
     }
   }
@@ -291,7 +288,7 @@ export default class addBatchController extends WebcController {
         }
         for (const smpcLanguageCode of smpcs) {
           let smpcFiles = await $$.promisify(batchDSU.listFiles)("/smpc/" + smpcLanguageCode);
-          let videoSource = batch.videos[`smpc/${leafletLanguageCode}`] || "";
+          let videoSource = batch.videos[`smpc/${smpcLanguageCode}`] || "";
           languageTypeCards.push(LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.EXISTS, "smpc", smpcLanguageCode, smpcFiles, videoSource));
         }
         callback(undefined, {languageTypeCards: languageTypeCards});

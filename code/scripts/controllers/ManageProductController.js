@@ -2,7 +2,6 @@ import {getCommunicationService} from "../services/CommunicationService.js";
 
 const {WebcController} = WebCardinal.controllers;
 import Product from '../models/Product.js';
-import HolderService from '../services/HolderService.js';
 import MessagesService from '../services/MessagesService.js';
 import Languages from "../models/Languages.js";
 import constants from '../constants.js';
@@ -93,36 +92,30 @@ export default class ManageProductController extends WebcController {
           if (err) {
             this.showErrorModalAndRedirect("Failed to get inherited cards", "products");
           }
+
           this.model.languageTypeCards = attachments.languageTypeCards;
           if (attachments.productPhoto) {
             this.model.product.photo = attachments.productPhoto;
           }
         });
         // ensureHolderCredential();
-
-        //keep initial state to detect changes on videos fields
-        this.videosInitialState = {
-          defaultSource: this.model.product.videos.defaultSource,
-          cards: this.model.languageTypeCards
-        }
+        this.videoInitialDefaultSource = this.model.product.videos.defaultSource;
         this.validateGTIN(this.model.product.gtin);
       });
 
     } else {
       this.model.submitLabel = "Save Product";
       this.model.product = new Product();
+      this.videoInitialDefaultSource = this.model.product.videos.defaultSource;
+
       // ensureHolderCredential();
-      //keep initial state to detect changes on videos fields
-      this.videosInitialState = {
-        defaultSource: this.model.product.videos.defaultSource,
-        cards: []
-      }
       this.validateGTIN(this.model.product.gtin);
     }
+    this.model.videoSourceUpdated = false;
 
-    this.on("product-photo-selected", (event) => {
-      this.productPhoto = event.data;
-    });
+    this.model.onChange('product.videos.defaultSource', async (...props) => {
+      this.model.videoSourceUpdated = this.videoInitialDefaultSource !== this.model.product.videos.defaultSource;
+    })
 
     let self = this;
     let saveProduct = async function (product) {
@@ -195,19 +188,14 @@ export default class ManageProductController extends WebcController {
   }
 
   async sendMessagesToProcess(messageArr) {
-    await MessagesService.processMessages(messageArr, this.DSUStorage, this.showMessageError.bind(this));
-
-    //process video source if any change for video fields inproduct or language card
-    if (this.videosInitialState.defaultSource !== this.model.product.videos.defaultSource ||
-      this.model.deletedLanguageTypeCards.length >= 1 ||
-      this.model.languageTypeCards.length != this.videosInitialState.cards.length) {
+    //process video source if any change for video fields in product or language cards
+    if (this.model.videoSourceUpdated) {
       let videoMessage = await utils.initMessage("VideoSource");
       videoMessage.videos = {
         productCode: this.model.product.gtin,
       }
-      if (this.videosInitialState.defaultSource !== this.model.product.videos.defaultSource) {
-        videoMessage.videos.source = this.model.product.videos.defaultSource;
-      }
+
+      videoMessage.videos.source = this.model.product.videos.defaultSource;
 
       let videoSources = [];
       this.model.languageTypeCards.forEach(card => {
@@ -215,14 +203,22 @@ export default class ManageProductController extends WebcController {
           videoSources.push({documentType: card.type.value, lang: card.language.value, source: card.videoSource})
         }
       })
-
       videoMessage.videos.sources = videoSources
 
-      await MessagesService.processMessages([videoMessage], this.DSUStorage, this.showMessageError.bind(this));
+
+      MessagesService.processMessages(messageArr, this.DSUStorage, async (undigestedMessages) => {
+        MessagesService.processMessages([videoMessage], this.DSUStorage, (videoUndigested) => {
+          this.hideModal();
+          this.showMessageError([...undigestedMessages, ...videoUndigested]);
+        });
+      })
+    } else {
+      MessagesService.processMessages(messageArr, this.DSUStorage, async (undigestedMessages) => {
+        this.hideModal();
+        this.showMessageError(undigestedMessages);
+      })
     }
-
   }
-
 
   validateGTIN(gtinValue) {
     this.model.gtinIsValid = false;
@@ -273,13 +269,13 @@ export default class ManageProductController extends WebcController {
       })
 
       this.showModalFromTemplate("digest-messages-error-modal", () => {
-        this.hideModal();
+
         this.navigateToPageTag("products");
       }, () => {
-        this.hideModal();
+
       }, {model: {errors: errors}});
     } else {
-      this.hideModal();
+
       this.navigateToPageTag("products");
     }
   }
@@ -337,7 +333,7 @@ export default class ManageProductController extends WebcController {
         }
         for (const smpcLanguageCode of smpcs) {
           let smpcFiles = await $$.promisify(productDSU.listFiles)("/smpc/" + smpcLanguageCode);
-          let videoSource = product.videos[`smpc/${leafletLanguageCode}`] || "";
+          let videoSource = product.videos[`smpc/${smpcLanguageCode}`] || "";
           languageTypeCards.push(LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.EXISTS, "smpc", smpcLanguageCode, smpcFiles, videoSource));
         }
         let stat = await $$.promisify(productDSU.stat)(constants.PRODUCT_IMAGE_FILE)

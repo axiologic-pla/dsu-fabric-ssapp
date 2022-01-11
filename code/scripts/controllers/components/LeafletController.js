@@ -22,7 +22,10 @@ export default class LeafletController extends WebcController {
 
         if (lf.status === LeafletService.LEAFLET_CARD_STATUS.EXISTS) {
           lf.status = LeafletService.LEAFLET_CARD_STATUS.DELETE;
-          this.model.deletedLanguageTypeCards.push(lf)
+          this.model.deletedLanguageTypeCards.push(lf);
+          if (lf.videoSource) {
+            this.model.videoSourceUpdated = true;
+          }
         }
         return false
       });
@@ -75,6 +78,9 @@ export default class LeafletController extends WebcController {
       let videoSource = this.model.modalData.product.videoSource;
       let card = LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.NEW, selectedType.value, selectedLanguage.value, this.model.modalData.files, videoSource);
       this.model.languageTypeCards.push(card);
+      if (videoSource) {
+        this.model.videoSourceUpdated = true;
+      }
     }, () => {
       return
     }, {model: this.model});
