@@ -30,6 +30,7 @@ export default class addBatchController extends WebcController {
     this.model.languageTypeCards = [];
 
     this.model.batch = batch;
+    this.model.batch.videos.defaultSource = atob(this.model.batch.videos.defaultSource);
     this.model.batch.productName = "";
     this.model.productDescription = "";
     this.model.editMode = editMode;
@@ -202,12 +203,12 @@ export default class addBatchController extends WebcController {
         batch: this.model.batch.batchNumber
       }
 
-      videoMessage.videos.source = this.model.batch.videos.defaultSource;
+      videoMessage.videos.source = btoa(this.model.batch.videos.defaultSource);
 
       let videoSources = [];
       this.model.languageTypeCards.forEach(card => {
         if (card.videoSource) {
-          videoSources.push({documentType: card.type.value, lang: card.language.value, source: card.videoSource})
+          videoSources.push({documentType: card.type.value, lang: card.language.value, source: btoa(card.videoSource)})
         }
       })
       videoMessage.videos.sources = videoSources
@@ -283,12 +284,12 @@ export default class addBatchController extends WebcController {
         let smpcs = await $$.promisify(batchDSU.listFolders)("/smpc");
         for (const leafletLanguageCode of leaflets) {
           let leafletFiles = await $$.promisify(batchDSU.listFiles)("/leaflet/" + leafletLanguageCode);
-          let videoSource = batch.videos[`leaflet/${leafletLanguageCode}`] || "";
+          let videoSource = atob(batch.videos[`leaflet/${leafletLanguageCode}`] || "");
           languageTypeCards.push(LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.EXISTS, "leaflet", leafletLanguageCode, leafletFiles, videoSource));
         }
         for (const smpcLanguageCode of smpcs) {
           let smpcFiles = await $$.promisify(batchDSU.listFiles)("/smpc/" + smpcLanguageCode);
-          let videoSource = batch.videos[`smpc/${smpcLanguageCode}`] || "";
+          let videoSource = atob(batch.videos[`smpc/${smpcLanguageCode}`] || "");
           languageTypeCards.push(LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.EXISTS, "smpc", smpcLanguageCode, smpcFiles, videoSource));
         }
         callback(undefined, {languageTypeCards: languageTypeCards});

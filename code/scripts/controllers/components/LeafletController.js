@@ -75,7 +75,7 @@ export default class LeafletController extends WebcController {
       }
       let selectedLanguage = Languages.getListAsVM().find(lang => lang.value === this.model.modalData.product.language);
       let selectedType = UploadTypes.getListAsVM().find(type => type.value === this.model.modalData.product.type);
-      let videoSource = this.model.modalData.product.videoSource;
+      let videoSource = btoa(this.model.modalData.product.videoSource);
       let card = LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.NEW, selectedType.value, selectedLanguage.value, this.model.modalData.files, videoSource);
       this.model.languageTypeCards.push(card);
       if (videoSource) {

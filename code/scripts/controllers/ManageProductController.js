@@ -99,6 +99,7 @@ export default class ManageProductController extends WebcController {
           }
         });
         // ensureHolderCredential();
+        this.model.product.videos.defaultSource = atob(this.model.product.videos.defaultSource);
         this.videoInitialDefaultSource = this.model.product.videos.defaultSource;
         this.validateGTIN(this.model.product.gtin);
       });
@@ -106,6 +107,7 @@ export default class ManageProductController extends WebcController {
     } else {
       this.model.submitLabel = "Save Product";
       this.model.product = new Product();
+      this.model.product.videos.defaultSource = atob(this.model.product.videos.defaultSource);
       this.videoInitialDefaultSource = this.model.product.videos.defaultSource;
 
       // ensureHolderCredential();
@@ -195,7 +197,7 @@ export default class ManageProductController extends WebcController {
         productCode: this.model.product.gtin,
       }
 
-      videoMessage.videos.source = this.model.product.videos.defaultSource;
+      videoMessage.videos.source = btoa(this.model.product.videos.defaultSource);
 
       let videoSources = [];
       this.model.languageTypeCards.forEach(card => {
@@ -328,12 +330,12 @@ export default class ManageProductController extends WebcController {
         let smpcs = await $$.promisify(productDSU.listFolders)("/smpc");
         for (const leafletLanguageCode of leaflets) {
           let leafletFiles = await $$.promisify(productDSU.listFiles)("/leaflet/" + leafletLanguageCode);
-          let videoSource = product.videos[`leaflet/${leafletLanguageCode}`] || "";
+          let videoSource = atob(product.videos[`leaflet/${leafletLanguageCode}`] || "");
           languageTypeCards.push(LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.EXISTS, "leaflet", leafletLanguageCode, leafletFiles, videoSource));
         }
         for (const smpcLanguageCode of smpcs) {
           let smpcFiles = await $$.promisify(productDSU.listFiles)("/smpc/" + smpcLanguageCode);
-          let videoSource = product.videos[`smpc/${smpcLanguageCode}`] || "";
+          let videoSource = atob(product.videos[`smpc/${smpcLanguageCode}`] || "");
           languageTypeCards.push(LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.EXISTS, "smpc", smpcLanguageCode, smpcFiles, videoSource));
         }
         let stat = await $$.promisify(productDSU.stat)(constants.PRODUCT_IMAGE_FILE)
