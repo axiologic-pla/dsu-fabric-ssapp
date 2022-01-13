@@ -4,11 +4,11 @@
 <main>
     <psk-select required value="@modalData.product.language" view-model="@modalData.languages"></psk-select>
     <psk-select required value="@modalData.product.type" view-model="@modalData.types"></psk-select>
-    <psk-label>Video link</psk-label>
+    <psk-label>Video source</psk-label>
 
-    <input class="form-control" placeholder="Add video source"
-           type="text" value="@modalData.product.videoSource"/>
-
+    <textarea class="w-100 mt-2 overflow-hidden"
+              placeholder="Add video source"
+              rows="3" value="@modalData.product.videoSource"></textarea>
 
     <psk-card class="language-leaflet-card">
         <div class="language-leaflet-card-header">
@@ -31,5 +31,11 @@
     psk-card .card.psk-card {
         margin-top: 15px;
         width: 100%;
+    }
+
+    textarea {
+        padding-top: 15px;
+        padding-left: 15px;
+        padding-right: 15px;
     }
 </style>

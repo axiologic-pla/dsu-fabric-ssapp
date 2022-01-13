@@ -208,7 +208,7 @@ export default class addBatchController extends WebcController {
       let videoSources = [];
       this.model.languageTypeCards.forEach(card => {
         if (card.videoSource) {
-          videoSources.push({documentType: card.type.value, lang: card.language.value, source: btoa(card.videoSource)})
+          videoSources.push({documentType: card.type.value, lang: card.language.value, source: card.videoSource})
         }
       })
       videoMessage.videos.sources = videoSources

@@ -9,6 +9,10 @@
     background: #F4F5F5;
 }
 
+.btn-link {
+    display: contents;
+}
+
 .fist-table-header {
     border-top-left-radius: 7px;
 }
