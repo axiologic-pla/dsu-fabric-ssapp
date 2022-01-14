@@ -284,12 +284,18 @@ export default class addBatchController extends WebcController {
         let smpcs = await $$.promisify(batchDSU.listFolders)("/smpc");
         for (const leafletLanguageCode of leaflets) {
           let leafletFiles = await $$.promisify(batchDSU.listFiles)("/leaflet/" + leafletLanguageCode);
-          let videoSource = atob(batch.videos[`leaflet/${leafletLanguageCode}`] || "");
+          let videoSource = "";
+          if (batch.videos && batch.videos[`leaflet/${leafletLanguageCode}`]) {
+            videoSource = atob(batch.videos[`leaflet/${leafletLanguageCode}`]);
+          }
           languageTypeCards.push(LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.EXISTS, "leaflet", leafletLanguageCode, leafletFiles, videoSource));
         }
         for (const smpcLanguageCode of smpcs) {
           let smpcFiles = await $$.promisify(batchDSU.listFiles)("/smpc/" + smpcLanguageCode);
-          let videoSource = atob(batch.videos[`smpc/${smpcLanguageCode}`] || "");
+          let videoSource = "";
+          if (batch.videos && batch.videos[`smpc/${smpcLanguageCode}`]) {
+            videoSource = atob(batch.videos[`smpc/${smpcLanguageCode}`]);
+          }
           languageTypeCards.push(LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.EXISTS, "smpc", smpcLanguageCode, smpcFiles, videoSource));
         }
         callback(undefined, {languageTypeCards: languageTypeCards});

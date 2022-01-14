@@ -119,6 +119,10 @@ export default class ManageProductController extends WebcController {
       this.model.videoSourceUpdated = this.videoInitialDefaultSource !== this.model.product.videos.defaultSource;
     })
 
+    this.on("product-photo-selected", (event) => {
+      this.productPhoto = event.data;
+    });
+
     let self = this;
     let saveProduct = async function (product) {
       if (!self.isValid(product)) {
@@ -330,12 +334,18 @@ export default class ManageProductController extends WebcController {
         let smpcs = await $$.promisify(productDSU.listFolders)("/smpc");
         for (const leafletLanguageCode of leaflets) {
           let leafletFiles = await $$.promisify(productDSU.listFiles)("/leaflet/" + leafletLanguageCode);
-          let videoSource = atob(product.videos[`leaflet/${leafletLanguageCode}`] || "");
+          let videoSource = "";
+          if (product.videos && product.videos[`leaflet/${leafletLanguageCode}`]) {
+            videoSource = atob(product.videos[`leaflet/${leafletLanguageCode}`]);
+          }
           languageTypeCards.push(LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.EXISTS, "leaflet", leafletLanguageCode, leafletFiles, videoSource));
         }
         for (const smpcLanguageCode of smpcs) {
           let smpcFiles = await $$.promisify(productDSU.listFiles)("/smpc/" + smpcLanguageCode);
-          let videoSource = atob(product.videos[`smpc/${smpcLanguageCode}`] || "");
+          let videoSource = "";
+          if (product.videos && product.videos[`smpc/${smpcLanguageCode}`]) {
+            videoSource = atob(product.videos[`smpc/${smpcLanguageCode}`]);
+          }
           languageTypeCards.push(LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.EXISTS, "smpc", smpcLanguageCode, smpcFiles, videoSource));
         }
         let stat = await $$.promisify(productDSU.stat)(constants.PRODUCT_IMAGE_FILE)
