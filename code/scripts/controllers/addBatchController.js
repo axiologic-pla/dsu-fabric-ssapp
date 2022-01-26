@@ -30,6 +30,16 @@ export default class addBatchController extends WebcController {
     this.model.languageTypeCards = [];
 
     this.model.batch = batch;
+    // ACDC PATCH START
+    this.model.hasAcdcAuthFeature = !!batch.acdcAuthFeatureSSI;
+    this.model.authFeatureFieldModel = {
+      label: "Authentication Feature SSI",
+      type: "text",
+      placeholder: "Add an authentication feature ssi",
+      value: this.model.batch.acdcAuthFeatureSSI
+    }
+    // ACDC PATCH END
+
     this.model.batch.videos.defaultSource = atob(this.model.batch.videos.defaultSource);
     this.model.batch.productName = "";
     this.model.productDescription = "";
@@ -111,6 +121,11 @@ export default class addBatchController extends WebcController {
         return this.showErrorModal("Invalid product code. Please select a valid code");
       }
       let batch = this.initBatch();
+
+      // ACDC PATCH START
+      batch.acdcAuthFeatureSSI = this.model.authFeatureFieldModel.value;
+      // ACDC PATCH END
+
       if (!batch.expiryForDisplay) {
         return this.showErrorModal("Invalid date");
       }

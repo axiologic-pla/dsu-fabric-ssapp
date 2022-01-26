@@ -28,7 +28,11 @@ export default class Batch {
   flagEnableACFBatchCheck = false;
   videos = {
     defaultSource: ""
-  }
+  };
+
+  // ACDC PATCH START
+  acdcAuthFeatureSSI = "";
+  // ACDC PATCH END
 
   constructor(batch) {
     if (typeof batch !== undefined) {

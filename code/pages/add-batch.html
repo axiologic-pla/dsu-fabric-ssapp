@@ -129,6 +129,16 @@
                         <textarea class="w-100 mt-2" placeholder="-" readonly required
                                   rows="3" value="@productDescription"></textarea>
                     </div>
+
+                    <!--                    PATCH START -->
+                    <psk-checkbox checkbox-label="Enable Authentication Feature"
+                                  name="authFeature" value="@hasAcdcAuthFeature"></psk-checkbox>
+                    <psk-condition condition="@hasAcdcAuthFeature">
+                        <div class="col p-0">
+                            <psk-input view-model="@authFeatureFieldModel"></psk-input>
+                        </div>
+                    </psk-condition>
+                    <!--                    PATCH END -->
                     <psk-checkbox checkbox-label="Enable Serial Number Verification" checked="@batch.serialCheck"
                                   name="serialCheck" value="@batch.serialCheck"></psk-checkbox>
                     <div class="d-flex flex-row">

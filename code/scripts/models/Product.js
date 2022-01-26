@@ -12,8 +12,9 @@ export default class Product {
   previousVersion = 1;
   files = [];
   transferred = false;
-  reportURL = `${window.top.location.origin}/default-report.html`;
-  antiCounterfeitingURL = `${window.top.location.origin}/default-anti-counterfeiting.html`;
+  reportURL = `${window.top.location.origin}/borest/scan`;
+  antiCounterfeitingURL = `${window.top.location.origin}/borest/scan`;
+  // END acdc patch
   isCodeEditable = true;
   adverseEventsReportingEnabled = true;
   antiCounterfeitingEnabled = true;
