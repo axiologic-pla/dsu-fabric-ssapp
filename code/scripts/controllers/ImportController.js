@@ -191,7 +191,10 @@ export default class importController extends WebcController {
       });
 
       this.onTagClick("view-all", async () => {
-        window.open(`${window.location.origin}/mappingEngine/${this.domain}/logs`, '_blank');
+        const openDSU = require("opendsu");
+        const config = openDSU.loadAPI("config");
+        const domain = await $$.promisify(config.getEnv)("epiDomain");
+        window.open(`${window.location.origin}/mappingEngine/${domain}/logs`, '_blank');
       })
 
 
