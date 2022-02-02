@@ -7,7 +7,8 @@
         <webc-container controller="ProductsController">
             <div class="d-flex justify-content-end">
                 <button class="page-action-btn" data-tag="import">IMPORT</button>
-                <button class="page-action-btn" data-tag="get-transferred-product">GET TRANSFERRED PRODUCT</button>
+                <button class="page-action-btn" data-tag="get-transferred-product" disabled>GET TRANSFERRED PRODUCT
+                </button>
                 <button class="page-action-btn" data-tag="add-product">+ ADD PRODUCT</button>
             </div>
 
@@ -41,6 +42,7 @@
                     </div>
                     <div class="data-item last-column">
                         <button class="btn btn-link p-0 col align-self-center text-left" data-tag="transfer"
+                                disabled
                                 gtin="@gtin"
                                 type="button">Transfer
                         </button>
