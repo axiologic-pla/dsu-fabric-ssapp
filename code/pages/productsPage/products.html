@@ -7,14 +7,15 @@
         <webc-container controller="ProductsController">
             <div class="d-flex justify-content-end">
                 <button class="page-action-btn" data-tag="import">IMPORT</button>
-                <button class="page-action-btn" data-tag="get-transferred-product" disabled>GET TRANSFERRED PRODUCT
-                </button>
+<!--                <button class="page-action-btn" data-tag="get-transferred-product">GET TRANSFERRED PRODUCT
+                </button>-->
                 <button class="page-action-btn" data-tag="add-product">+ ADD PRODUCT</button>
             </div>
 
             <div class="products-container">
                 <webc-datatable datasource="@prodDataSource" hide-pagination>
                     <div class="fist-table-header first-column" slot="header">Brand / invented name</div>
+                    <div class="fist-table-header first-column" slot="header">Name of Medicinal Product</div>
                     <div slot="header">
                         <div>Product Code</div>
                         <div class="search-container">
@@ -27,26 +28,26 @@
                     </div>
                     <div slot="header">AE Report Enabled</div>
                     <div slot="header">AC Check Enabled</div>
-                    <div slot="header">View details</div>
-                    <div class="last-table-header last-column" slot="header">Transfer</div>
+                    <div class="last-table-header last-column" slot="header">View details</div>
+                    <!--                    <div class="last-table-header last-column" slot="header">Transfer</div>-->
 
                     <div class="data-item first-column">{{@name}}</div>
+                    <div class="data-item">{{@description}}</div>
                     <div class="data-item">{{@gtin}}</div>
                     <div class="data-item">{{@adverseEventsReportingEnabled}}</div>
                     <div class="data-item">{{@antiCounterfeitingEnabled}}</div>
-                    <div class="data-item">
+                    <div class="data-item last-column">
                         <button class="btn btn-link p-0 col align-self-center text-left" data-tag="edit-product"
                                 gtin="@gtin"
                                 type="button">View/Edit
                         </button>
                     </div>
-                    <div class="data-item last-column">
-                        <button class="btn btn-link p-0 col align-self-center text-left" data-tag="transfer"
-                                disabled
-                                gtin="@gtin"
-                                type="button">Transfer
-                        </button>
-                    </div>
+                    <!--                    <div class="data-item last-column">
+                                            <button class="btn btn-link p-0 col align-self-center text-left" data-tag="transfer"
+                                                    gtin="@gtin"
+                                                    type="button">Transfer
+                                            </button>
+                                        </div>-->
                     <div slot="no-data">
                         no data ...
                     </div>

@@ -25,6 +25,7 @@
                 <psk-tab class="success-messages-tab" title="Successfully Imported Logs">
                     <webc-datatable datasource="@successDataSource" hide-pagination>
                         <div slot="header">Item Code</div>
+                        <div slot="header">Message ID</div>
                         <div slot="header">Type</div>
                         <div slot="header">Date</div>
                         <div slot="header">Status</div>
@@ -32,6 +33,7 @@
                         <div slot="header">Action</div>
 
                         <div class="data-item">{{@itemCode}}</div>
+                        <div class="data-item">{{@itemMsgId}}</div>
                         <div class="data-item">{{@itemType}}</div>
                         <div class="data-item">{{@timeAgo}}</div>
                         <div class="data-item">{{@status}}</div>
@@ -55,6 +57,7 @@
                 <psk-tab class="failed-messages-tab" title="Failed Imported Logs">
                     <webc-datatable datasource="@failedDataSource" hide-pagination>
                         <div slot="header">Item Code</div>
+                        <div slot="header">Message ID</div>
                         <div slot="header">Type</div>
                         <div slot="header">Date</div>
                         <div slot="header">Status</div>
@@ -65,6 +68,7 @@
                         </div>
 
                         <div class="data-item">{{@itemCode}}</div>
+                        <div class="data-item">{{@itemMsgId}}</div>
                         <div class="data-item">{{@itemType}}</div>
                         <div class="data-item">{{@timeAgo}}</div>
                         <div class="data-item">{{@status}}</div>

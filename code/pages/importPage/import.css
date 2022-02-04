@@ -1,11 +1,11 @@
 .success-messages-tab .webc-datatable--container {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(7, 1fr);
 }
 
 .failed-messages-tab .webc-datatable--container {
     display: grid;
-    grid-template-columns: repeat(6, 1fr) 40px;
+    grid-template-columns: repeat(7, 1fr) 40px;
 }
 
 .pagination-container {
