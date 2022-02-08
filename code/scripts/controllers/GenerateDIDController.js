@@ -1,9 +1,9 @@
 import constants from "./constants.js";
-import { copyToClipboard } from "../helpers/document-utils.js";
+import {copyToClipboard} from "../helpers/document-utils.js";
 import utils from "../utils.js";
-import { getCommunicationService } from "../services/CommunicationService.js";
+import {getCommunicationService} from "../services/CommunicationService.js";
 
-const { WebcController } = WebCardinal.controllers;
+const {WebcController} = WebCardinal.controllers;
 
 const getUserDetails = utils.getUserDetails;
 
@@ -52,25 +52,30 @@ export default class GenerateDIDController extends WebcController {
       if (!did) {
         const userDetails = await getUserDetails();
         const vaultDomain = await $$.promisify(scAPI.getVaultDomain)();
-        try {
-          did = await $$.promisify(w3cDID.resolveDID)(
-            `did:ssi:name:${vaultDomain}:${userDetails.username}`
-          );
-        } catch (e) {}
-        if (did) {
-          throw Error(
-            `The identity did:ssi:name:${vaultDomain}:${userDetails.username} was already created`
-          );
-        }
+        let userId = userDetails.username;
+        let i = 1;
+        do {
+          try {
+            did = await $$.promisify(w3cDID.resolveDID)(
+              `did:ssi:name:${vaultDomain}:${userId}`
+            );
+          } catch (e) {
+            did = null;
+          }
+          if (did) {
+            userId = userDetails.username + i++;
+          }
+        } while (did)
+
         did = await $$.promisify(w3cDID.createIdentity)(
           "ssi:name",
           vaultDomain,
-          userDetails.username
+          userId
         );
         this.model.identity = did.getIdentifier();
         await $$.promisify(
           this.DSUStorage.setObject.bind(this.DSUStorage)
-        )(constants.WALLET_DID_PATH, { did: did.getIdentifier() });
+        )(constants.WALLET_DID_PATH, {did: did.getIdentifier()});
         await __waitForAuthorization();
       } else {
         this.model.identity = did.did;
