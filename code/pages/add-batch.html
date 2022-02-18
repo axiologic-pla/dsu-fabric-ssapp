@@ -132,7 +132,9 @@
 
                     <!--                    PATCH START -->
                     <psk-checkbox checkbox-label="Enable Authentication Feature"
-                                  name="authFeature" value="@hasAcdcAuthFeature"></psk-checkbox>
+                                  checked="@hasAcdcAuthFeature"
+                                  name="authFeature"
+                                  value="@hasAcdcAuthFeature"></psk-checkbox>
                     <psk-condition condition="@hasAcdcAuthFeature">
                         <div class="col p-0">
                             <psk-input view-model="@authFeatureFieldModel"></psk-input>

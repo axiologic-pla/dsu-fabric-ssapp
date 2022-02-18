@@ -111,7 +111,11 @@ export default class addBatchController extends WebcController {
         this.model.serialNumbersLogs = logs;
       });
     })
-
+    this.model.onChange("hasAcdcAuthFeature", (event) => {
+      if (!this.model.hasAcdcAuthFeature) {
+        this.model.authFeatureFieldModel.value = "";
+      }
+    })
     this.onTagClick("cancel", () => {
       this.navigateToPageTag("batches");
     });
@@ -135,6 +139,9 @@ export default class addBatchController extends WebcController {
       }
       batch.expiry = utils.convertDateToGS1Format(batch.expiryForDisplay, batch.enableExpiryDay);
 
+      if (this.model.hasAcdcAuthFeature && !batch.acdcAuthFeatureSSI) {
+        return this.showErrorModal("You have enabled Authentication Feature. Please add a value or disable it");
+      }
       let error = batch.validate();
       if (error) {
         printOpenDSUError(createOpenDSUErrorWrapper("Invalid batch info", err));
