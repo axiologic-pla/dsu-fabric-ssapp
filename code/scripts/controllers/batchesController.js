@@ -7,6 +7,9 @@ import utils from "../utils.js";
 import {LazyDataSource} from "../helpers/LazyDataSource.js";
 import lazyUtils from "../helpers/lazy-data-source-utils.js";
 
+const gtinResolver = require("gtin-resolver");
+
+
 const charsMap = {
   "33": "!",
   "34": '"',
@@ -123,15 +126,16 @@ export default class batchesController extends WebcController {
       event.stopImmediatePropagation();
       this.navigateToPageTag("import");
     });
-    this.onTagClick("add-batch", () => {
-      this.navigateToPageTag("add-batch");
+    this.onTagClick("add-batch", async () => {
+      this.navigateToPageTag("add-batch", {disabledFeatures: await gtinResolver.getDisabledFeatures()});
     });
 
-    this.onTagClick("edit-batch", (model, target, event) => {
+    this.onTagClick("edit-batch", async (model, target, event) => {
         let eventData = target.getAttribute("event-data");
         const batchData = this.model.batchesDataSource.dataSourceRezults.find((element) => element.batchNumber === eventData);
         this.navigateToPageTag("add-batch", {
           batchData: JSON.stringify(batchData),
+          disabledFeatures: await gtinResolver.getDisabledFeatures()
         });
       },
       {capture: true}

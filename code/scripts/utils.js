@@ -230,6 +230,22 @@ async function initMessage(msgType) {
   }
 }
 
+//disable functionalities as it was defined in environment config
+function disableFeatures(thisObj) {
+  thisObj.disabledFeatures.forEach(offFuncKey => {
+    let htmlNodes = thisObj.querySelectorAll(`.featureCode-${offFuncKey}`);
+    htmlNodes.forEach(item => {
+      item.disabled = true;
+      item.classList.add("disabled-container");
+      let childNodes = item.getElementsByTagName('*');
+      for (let node of childNodes) {
+        node.disabled = true;
+      }
+    })
+
+  })
+}
+
 export default {
   convertDateFromISOToGS1Format,
   convertDateToISO,
@@ -244,5 +260,6 @@ export default {
   timeAgo,
   getUserDetails,
   generateRandom,
-  initMessage
+  initMessage,
+  disableFeatures
 }

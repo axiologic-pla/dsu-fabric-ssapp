@@ -1,3 +1,5 @@
+<link href="pages/editBatch/add-batch.css" rel="stylesheet"/>
+<link href="assets/css/disabled-component.css" rel="stylesheet"/>
 <psk-page title="Edit batch">
     <h6>
         <webc-container controller="addBatchController">
@@ -47,7 +49,7 @@
                                           value="@batch.enableExpiryDay"></psk-checkbox>
                         </div>
                     </div>
-                    <div class="col p-0">
+                    <div class="col p-0 featureCode-05">
                         <i class="fa fa-pencil-square-o editable-icon"></i>
                         <div class="background-container col mb-3 pl-3">
                             <div class="form-label">Video source</div>
@@ -57,23 +59,42 @@
                         </div>
                     </div>
                     <div>
-                        <psk-checkbox checkbox-label="Enable Incorrect Expiration Date Verification"
-                                      checked="@batch.incorrectDateCheck" name="incorrectDateCheck"
-                                      value="@batch.incorrectDateCheck"></psk-checkbox>
-                        <psk-checkbox checkbox-label="Enable Expired Expiration Date Verification"
-                                      checked="@batch.expiredDateCheck"
-                                      name="expiredDateCheck"
-                                      value="@batch.expiredDateCheck"></psk-checkbox>
+                        <!--                        <psk-checkbox checkbox-label="Enable Incorrect Expiration Date Verification"
+                                                              class="featureCode-07"
+                                                              checked="@batch.incorrectDateCheck" name="incorrectDateCheck"
+                                                              value="@batch.incorrectDateCheck"></psk-checkbox>-->
+                        <div class="checkbox-container featureCode-07">
+                            <input type="checkbox"
+                                   value="@batch.incorrectDateCheck">
+                            <span class="checkbox-label">Enable Incorrect Expiration Date Verification</span>
+                        </div>
+
+                        <!--                        <psk-checkbox checkbox-label="Enable Expired Expiration Date Verification"
+                                                              class="featureCode-02"
+                                                              checked="@batch.expiredDateCheck"
+                                                              name="expiredDateCheck"
+                                                              value="@batch.expiredDateCheck"></psk-checkbox>-->
+
+                        <div class="checkbox-container featureCode-02">
+                            <input type="checkbox"
+                                   value="@batch.expiredDateCheck">
+                            <span class="checkbox-label">Enable Expired Expiration Date Verification</span>
+                        </div>
                     </div>
-                    <div class="background-container col pl-3 mb-3 pl-3">
+                    <div class="background-container col pl-3 mb-3 pl-3 featureCode-09">
                         <div class="form-label">Batch message</div>
                         <i class="fa fa-pencil-square-o editable-icon" slot="false"></i>
                         <textarea class="w-100 mt-2"
                                   placeholder="This text will be displayed to user after Barcode is scanned"
                                   required rows="3" value="@batch.defaultMessage"></textarea>
                     </div>
-                    <psk-checkbox checkbox-label="Check to recall this batch" checked="@batch.recalled"
-                                  name="recalled" value="@batch.recalled"></psk-checkbox>
+                    <!--                    <psk-checkbox checkbox-label="Check to recall this batch" checked="@batch.@batch.recalled" class="featureCode-08"
+                                                      name="recalled" value="@batch.recalled"></psk-checkbox>-->
+                    <div class="checkbox-container featureCode-08">
+                        <input type="checkbox"
+                               value="@batch.recalled">
+                        <span class="checkbox-label">Check to recall this batch</span>
+                    </div>
                     <div data-if="@batch.recalled">
                         <div class="background-container col pl-3 mb-3 pl-3" slot="true">
                             <div class="form-label">Recall message</div>
@@ -131,19 +152,31 @@
                     </div>
 
                     <!--                    PATCH START -->
-                    <psk-checkbox checkbox-label="Enable Authentication Feature"
-                                  checked="@hasAcdcAuthFeature"
-                                  name="authFeature"
-                                  value="@hasAcdcAuthFeature"></psk-checkbox>
+                    <!--                    <psk-checkbox checkbox-label="Enable Authentication Feature"
+                                                      checked="@hasAcdcAuthFeature"
+                                                      name="authFeature"
+                                                      value="@hasAcdcAuthFeature"></psk-checkbox>-->
+                    <div class="checkbox-container featureCode-07">
+                        <input type="checkbox"
+                               value="@hasAcdcAuthFeature">
+                        <span class="checkbox-label">Enable Authentication Feature</span>
+                    </div>
                     <psk-condition condition="@hasAcdcAuthFeature">
                         <div class="col p-0">
                             <psk-input view-model="@authFeatureFieldModel"></psk-input>
                         </div>
                     </psk-condition>
                     <!--                    PATCH END -->
-                    <psk-checkbox checkbox-label="Enable Serial Number Verification" checked="@batch.serialCheck"
-                                  name="serialCheck" value="@batch.serialCheck"></psk-checkbox>
-                    <div class="d-flex flex-row">
+                    <!--                   <psk-checkbox checkbox-label="Enable Serial Number Verification" checked="@batch.serialCheck"
+                                                     class="featureCode-07"
+                                                     name="serialCheck" value="@batch.serialCheck"></psk-checkbox>-->
+
+                    <div class="checkbox-container featureCode-07">
+                        <input type="checkbox"
+                               value="@batch.serialCheck">
+                        <span class="checkbox-label">Enable Serial Number Verification</span>
+                    </div>
+                    <div class="d-flex flex-row featureCode-07">
                         <div class="select-label d-flex flex-column justify-content-center">Manage serial numbers
                         </div>
                         <div class="custom-select d-flex flex-column justify-content-center">
@@ -159,196 +192,4 @@
     </h6>
 </psk-page>
 
-<style>
 
-
-    psk-input div input,
-    psk-textarea div textarea,
-    .context-group {
-        box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.3);
-        border-radius: 4px;
-    }
-
-    psk-checkbox input {
-        box-shadow: 0px 1px 3px rgba(231, 82, 34, 0.6);
-    }
-
-    psk-checkbox input:checked {
-        color: #E75222;
-    }
-
-    psk-checkbox .form-check-inline {
-        margin-right: 0px;
-    }
-
-    .read-only-container {
-        background: #f3f3f3;
-    }
-
-    .read-only-container,
-    .background-container {
-        border-bottom: 1.5px solid #E75222;
-    }
-
-    .background-container input,
-    .background-container input:focus,
-    .background-container textarea,
-    .read-only-container textarea,
-    .background-container textarea:focus,
-    .background-container psk-select .form-control,
-    .background-container psk-select .form-control:focus,
-    psk-date-input .form-control[readonly],
-    .read-only-container .form-control[readonly] {
-        border: none;
-        background: none;
-        box-shadow: none;
-        padding: 0px;
-        outline: none;
-        resize: none;
-        overflow: auto;
-    }
-
-    psk-select .form-control,
-    psk-select .form-control:focus {
-        background: none;
-        box-shadow: none;
-        padding: 0px;
-        outline: none;
-        resize: none;
-        overflow: auto;
-        border-color: black;
-    }
-
-    .background-container input::placeholder,
-    .background-container textarea::placeholder {
-        font-style: italic;
-        font-size: smaller;
-    }
-
-    .form-label,
-    .form-button {
-        color: #E75222;
-    }
-
-    .editable-icon {
-        position: absolute;
-        top: 2px;
-        right: 2px;
-    }
-
-    .form-button {
-        border: 1px solid #E75222;
-        border-radius: 3px;
-        padding: 7px;
-        background: none;
-    }
-
-    .select-label {
-        border: 1px solid #E75222;
-        color: #E75222;
-        height: auto;
-        border-bottom-left-radius: 3px;
-        border-top-left-radius: 3px;
-        padding: 9px 1em;
-    }
-
-    .custom-select psk-select label {
-        display: none;
-    }
-
-    psk-select.default-select .form-group {
-        margin: 0px;
-        width: fit-content;
-        min-width: 175px;
-        position: relative;
-        left: -4px;
-    }
-
-    psk-select.default-select select {
-        padding-right: 15px;
-    }
-
-    psk-date-input .form-group {
-        margin: 0px;
-        width: calc(100% + 25px);
-        position: relative;
-    }
-
-    psk-date-input .formated-date:before {
-        left: 0px;
-    }
-
-    .custom-select select {
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        -ms-appearance: none;
-        appearance: none;
-        outline: 0;
-        box-shadow: none;
-        border: 0 !important;
-        background: none;
-        background-image: none;
-        flex: 1;
-        color: #fff;
-        cursor: pointer;
-        max-width: 50px;
-    }
-
-    /* Remove IE arrow */
-    .custom-select select::-ms-expand {
-        display: none;
-    }
-
-    .custom-select psk-select .form-group {
-        margin: 0px;
-    }
-
-    /* Custom Select */
-    .custom-select {
-        position: relative;
-        width: fit-content;
-        height: 100%;
-        background: none;
-        overflow: hidden;
-        border: 1px solid #E75222;
-        border-bottom-right-radius: 3px;
-        border-top-right-radius: 3px;
-        border-bottom-left-radius: 0px;
-        border-top-left-radius: 0px;
-        padding: 0px;
-    }
-
-    /* Arrow */
-    .custom-select::after {
-        content: '\25BE';
-        position: absolute;
-        background: #fff;
-        cursor: pointer;
-        pointer-events: none;
-        -webkit-transition: .25s all ease;
-        -o-transition: .25s all ease;
-        transition: .25s all ease;
-        color: #E75222;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        justify-content: center;
-        flex-direction: row;
-        margin-top: 15px;
-    }
-
-    input[type="date"]::after {
-        content: '\f073';
-        font-family: 'FontAwesome';
-        color: black;
-        font-weight: bolder;
-        position: absolute;
-        right: 15px;
-    }
-
-    input[type="date"]::-webkit-calendar-picker-indicator {
-        background: none;
-        z-index: 1;
-    }
-
-</style>

@@ -7,6 +7,8 @@ import {getCommunicationService} from "../services/CommunicationService.js";
 import {LazyDataSource} from "../helpers/LazyDataSource.js";
 import lazyUtils from "../helpers/lazy-data-source-utils.js";
 
+const gtinResolver = require("gtin-resolver");
+
 class ProductsDataSource extends LazyDataSource {
   constructor(...props) {
     super(...props);
@@ -30,9 +32,9 @@ export default class ProductsController extends WebcController {
     });
 
     lazyUtils.attachHandlers(this, "prodDataSource")
-    this.onTagClick("add-product", (model, target, event) => {
+    this.onTagClick("add-product", async (model, target, event) => {
       event.stopImmediatePropagation();
-      this.navigateToPageTag("manage-product");
+      this.navigateToPageTag("manage-product", {disabledFeatures: await gtinResolver.getDisabledFeatures()});
     });
 
     this.onTagClick("import", (model, target, event) => {
@@ -96,9 +98,13 @@ export default class ProductsController extends WebcController {
       );
     });
 
-    this.onTagClick("edit-product", (model, target, event) => {
+    this.onTagClick("edit-product", async (model, target, event) => {
         const gtin = event.target.getAttribute("gtin");
-        this.navigateToPageTag("manage-product", {gtin: gtin});
+
+        this.navigateToPageTag("manage-product", {
+          gtin: gtin,
+          disabledFeatures: await gtinResolver.getDisabledFeatures()
+        });
       },
       {capture: true}
     );

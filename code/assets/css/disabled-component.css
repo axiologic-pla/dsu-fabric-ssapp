@@ -1,0 +1,58 @@
+.disabled-container {
+    position: relative;
+    background: #f3f3f3;
+    color: #7a8288;;
+}
+
+.disabled-container,
+.disabled-container .form-label,
+.disabled-container .select-label,
+.disabled-container .form-control:disabled,
+.disabled-container .custom-select::after,
+.disabled-container .custom-select {
+    color: #7a8288;
+    border-color: #7a8288;
+    background: #f3f3f3;
+}
+
+.disabled-container input[disabled] {
+    border: none;
+    background: none;
+    box-shadow: none;
+    padding: 0px;
+    outline: none;
+    resize: none;
+    overflow: auto;
+}
+
+.disabled-container .editable-icon {
+    display: none;
+}
+
+.disabled-container::after {
+    font-family: "FontAwesome";
+    font-weight: 400;
+    content: "\f05e";
+    position: absolute;
+    right: 8px;
+    top: calc(50% - 10px);
+    color: #E75222;
+}
+
+.disabled-container:hover:before {
+    content: "Disabled feature";
+    font-size: 12px;
+    background: #f3f3f3;
+    position: absolute;
+    right: -30px;
+    top: calc(50% - 35px);
+    color: #E75222;
+    padding: 3px;
+    border-radius: 3px;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.checkbox-container {
+    margin-bottom: 1rem;
+    padding: 10px;
+}

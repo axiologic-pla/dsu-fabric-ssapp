@@ -1,0 +1,188 @@
+psk-input div input,
+psk-textarea div textarea,
+.context-group {
+    box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+}
+
+psk-checkbox input {
+    box-shadow: 0px 1px 3px rgba(231, 82, 34, 0.6);
+}
+
+psk-checkbox input:checked {
+    color: #E75222;
+}
+
+psk-checkbox .form-check-inline {
+    margin-right: 0px;
+}
+
+.read-only-container {
+    background: #f3f3f3;
+}
+
+.read-only-container,
+.background-container {
+    border-bottom: 1.5px solid #E75222;
+}
+
+.background-container input,
+.background-container input:focus,
+.background-container textarea,
+.read-only-container textarea,
+.background-container textarea:focus,
+.background-container .form-control,
+.background-container .form-control:focus,
+psk-date-input .form-control[readonly],
+.read-only-container .form-control[readonly] {
+    border: none;
+    background: none;
+    box-shadow: none;
+    padding: 0px;
+    outline: none;
+    resize: none;
+    overflow: auto;
+}
+
+psk-select .form-control,
+psk-select .form-control:focus {
+    background: none;
+    box-shadow: none;
+    padding: 0px;
+    outline: none;
+    resize: none;
+    overflow: auto;
+    border-color: black;
+}
+
+.background-container input::placeholder,
+.background-container textarea::placeholder {
+    font-style: italic;
+    font-size: smaller;
+}
+
+.form-label,
+.form-button {
+    color: #E75222;
+}
+
+.editable-icon {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+}
+
+.form-button {
+    border: 1px solid #E75222;
+    border-radius: 3px;
+    padding: 7px;
+    background: none;
+}
+
+.select-label {
+    border: 1px solid #E75222;
+    color: #E75222;
+    height: auto;
+    border-bottom-left-radius: 3px;
+    border-top-left-radius: 3px;
+    padding: 9px 1em;
+}
+
+.custom-select psk-select label {
+    display: none;
+}
+
+psk-select.default-select .form-group {
+    margin: 0px;
+    width: fit-content;
+    min-width: 175px;
+    position: relative;
+    left: -4px;
+}
+
+psk-select.default-select select {
+    padding-right: 15px;
+}
+
+psk-date-input .form-group {
+    margin: 0px;
+    width: calc(100% + 25px);
+    position: relative;
+}
+
+psk-date-input .formated-date:before {
+    left: 0px;
+}
+
+.custom-select select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    -ms-appearance: none;
+    appearance: none;
+    outline: 0;
+    box-shadow: none;
+    border: 0 !important;
+    background: none;
+    background-image: none;
+    flex: 1;
+    color: #fff;
+    cursor: pointer;
+    max-width: 50px;
+}
+
+/* Remove IE arrow */
+.custom-select select::-ms-expand {
+    display: none;
+}
+
+.custom-select psk-select .form-group {
+    margin: 0px;
+}
+
+/* Custom Select */
+.custom-select {
+    position: relative;
+    width: fit-content;
+    height: 100%;
+    background: none;
+    overflow: hidden;
+    border: 1px solid #E75222;
+    border-bottom-right-radius: 3px;
+    border-top-right-radius: 3px;
+    border-bottom-left-radius: 0px;
+    border-top-left-radius: 0px;
+    padding: 0px;
+}
+
+/* Arrow */
+.custom-select::after {
+    content: '\25BE';
+    position: absolute;
+    background: #fff;
+    cursor: pointer;
+    pointer-events: none;
+    -webkit-transition: .25s all ease;
+    -o-transition: .25s all ease;
+    transition: .25s all ease;
+    color: #E75222;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    flex-direction: row;
+    margin-top: 15px;
+}
+
+input[type="date"]::after {
+    content: '\f073';
+    font-family: 'FontAwesome';
+    color: black;
+    font-weight: bolder;
+    position: absolute;
+    right: 15px;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    background: none;
+    z-index: 1;
+}

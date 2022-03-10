@@ -45,12 +45,15 @@
     },
     {
       "name": "Add batch",
+      "src": "./editBatch/add-batch.html",
       "tag": "add-batch",
+      "path": "./add-batch",
       "indexed": false
     },
     {
       "name": "Manage product",
       "tag": "manage-product",
+      "src": "./editProduct/manage-product.html",
       "indexed": false
     },
     {

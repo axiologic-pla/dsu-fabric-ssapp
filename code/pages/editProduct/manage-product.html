@@ -1,3 +1,5 @@
+<link href="pages/editProduct/manage-product.css" rel="stylesheet"/>
+<link href="assets/css/disabled-component.css" rel="stylesheet"/>
 <psk-page title="Manage Product">
     <h6>
         <webc-container controller="ManageProductController">
@@ -70,7 +72,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="background-container col-12 pl-3 mb-3">
+                    <div class="background-container col-12 pl-3 mb-3 featureCode-05">
                         <div class="form-label">Video source</div>
                         <div>
                             <i class="fa fa-pencil-square-o editable-icon"></i>
@@ -80,7 +82,7 @@
                         </div>
                     </div>
 
-                    <div class="background-container col-12 pl-3 mb-3">
+                    <div class="background-container col-12 pl-3 mb-3 featureCode-01">
                         <div class="form-label">Patient Specific Information Leaflet</div>
                         <div>
                             <i class="fa fa-pencil-square-o editable-icon"></i>
@@ -88,7 +90,7 @@
                                    type="text" value="@product.patientLeafletInfo"/>
                         </div>
                     </div>
-                    <div class="background-container col-12 pl-3 mb-3">
+                    <div class="background-container col-12 pl-3 mb-3 featureCode-04">
                         <div class="form-label">Healthcare practitioner information</div>
                         <div>
                             <i class="fa fa-pencil-square-o editable-icon"></i>
@@ -101,17 +103,22 @@
                         <div class="read-only-container pl-3">
                             <div class="form-label">Product version</div>
                             <input class="form-control" readonly type="text" value="@product.previousVersion"/>
-
                         </div>
                     </div>
                 </div>
 
                 <div class="col-5 align-self-start">
-                    <div>
-                        <psk-checkbox checkbox-label="Enable Adverse Events Reporting"
-                                      checked="@product.adverseEventsReportingEnabled"
-                                      name="adverseEventsReportingEnabled"
-                                      value="@product.adverseEventsReportingEnabled"></psk-checkbox>
+                    <div class="featureCode-06">
+
+                        <!--                        <psk-checkbox checkbox-label="Enable Adverse Events Reporting"
+                                                              checked="@product.adverseEventsReportingEnabled"
+                                                              name="adverseEventsReportingEnabled"
+                                                              value="@product.adverseEventsReportingEnabled"></psk-checkbox>-->
+                        <div class="checkbox-container">
+                            <input type="checkbox"
+                                   value="@product.adverseEventsReportingEnabled">
+                            <span class="checkbox-label">Enable Adverse Events Reporting</span>
+                        </div>
                         <div data-if="@product.adverseEventsReportingEnabled">
                             <div class="background-container col-12">
                                 <div class="form-label">Adverse Events Reporting URL</div>
@@ -121,10 +128,16 @@
                             </div>
                         </div>
                     </div>
-                    <div>
-                        <psk-checkbox checkbox-label="Enable Anti-Counterfeiting check for this product"
-                                      checked="@product.antiCounterfeitingEnabled" name="antiCounterfeitingEnabled"
-                                      value="@product.antiCounterfeitingEnabled"></psk-checkbox>
+                    <div class="featureCode-07">
+
+                        <!--                        <psk-checkbox checkbox-label="Enable Anti-Counterfeiting check for this product"
+                                                              checked="@product.antiCounterfeitingEnabled" name="antiCounterfeitingEnabled"
+                                                              value="@product.antiCounterfeitingEnabled"></psk-checkbox>-->
+                        <div class="checkbox-container">
+                            <input type="checkbox"
+                                   value="@product.antiCounterfeitingEnabled">
+                            <span class="checkbox-label">Enable Anti-Counterfeiting check for this product</span>
+                        </div>
                         <div data-if="@product.antiCounterfeitingEnabled">
                             <div class="background-container col-12">
                                 <div class="form-label">Anti-Counterfieting End Point URL</div>
@@ -133,38 +146,76 @@
                                        type="text" value="@product.antiCounterfeitingURL"/>
                             </div>
                         </div>
+
                     </div>
                     <div>
                         <div class="form-label mt-5 mb-3 ml-1">Display ePI when:</div>
                         <div>
-                            <psk-checkbox checkbox-label="Batch is recalled"
-                                          checked="@product.showEPIOnBatchRecalled"
-                                          name="showEPIOnBatchRecalled"
-                                          value="@product.showEPIOnBatchRecalled"></psk-checkbox>
-                            <psk-checkbox checkbox-label="Expiration Date is incorrect"
-                                          checked="@product.showEPIOnIncorrectExpiryDate"
-                                          name="showEPIOnIncorrectExpiryDate"
-                                          value="@product.showEPIOnIncorrectExpiryDate"></psk-checkbox>
-                            <psk-checkbox checkbox-label="Batch is expired"
-                                          checked="@product.showEPIOnBatchExpired"
-                                          name="showEPIOnBatchExpired"
-                                          value="@product.showEPIOnBatchExpired"></psk-checkbox>
-                            <psk-checkbox checkbox-label="SN is in Recall list"
-                                          checked="@product.showEPIOnSNRecalled"
-                                          name="showEPIOnSNRecalled"
-                                          value="@product.showEPIOnSNRecalled"></psk-checkbox>
-                            <psk-checkbox checkbox-label="SN is in Decommissioned list"
-                                          checked="@product.showEPIOnSNDecommissioned"
-                                          name="showEPIOnSNDecommissioned"
-                                          value="@product.showEPIOnSNDecommissioned"></psk-checkbox>
-                            <psk-checkbox checkbox-label="SN is unknown"
-                                          checked="@product.showEPIOnSNUnknown"
-                                          name="showEPIOnSNUnknown"
-                                          value="@product.showEPIOnSNUnknown"></psk-checkbox>
-                            <psk-checkbox checkbox-label="Batch number unknown"
-                                          checked="@product.showEPIOnUnknownBatchNumber"
-                                          name="showEPIOnUnknownBatchNumber"
-                                          value="@product.showEPIOnUnknownBatchNumber"></psk-checkbox>
+                            <div class="checkbox-container featureCode-08">
+                                <input type="checkbox" value="@product.showEPIOnBatchRecalled">
+                                <span class="checkbox-label">Batch is recalled</span>
+                            </div>
+                            <div class="checkbox-container featureCode-07">
+                                <input type="checkbox" value="@product.showEPIOnIncorrectExpiryDate">
+                                <span class="checkbox-label">Expiration Date is incorrect</span>
+                            </div>
+                            <div class="checkbox-container featureCode-02">
+                                <input type="checkbox" value="@product.showEPIOnBatchExpired">
+                                <span class="checkbox-label">Batch is expired</span>
+                            </div>
+                            <div class="checkbox-container featureCode-07">
+                                <input type="checkbox" value="@product.showEPIOnSNRecalled">
+                                <span class="checkbox-label">SN is in Recall list</span>
+                            </div>
+                            <div class="checkbox-container featureCode-07">
+                                <input type="checkbox" value="@product.showEPIOnSNDecommissioned">
+                                <span class="checkbox-label">SN is in Decommissioned list</span>
+                            </div>
+                            <div class="checkbox-container featureCode-07">
+                                <input type="checkbox" value="@product.showEPIOnSNUnknown">
+                                <span class="checkbox-label">SN is unknown</span>
+                            </div>
+                            <div class="checkbox-container featureCode-03">
+                                <input type="checkbox" value="@product.showEPIOnUnknownBatchNumber">
+                                <span class="checkbox-label">Batch number unknown</span>
+                            </div>
+
+                            <!--
+                                                        <psk-checkbox checkbox-label="Batch is recalled"
+                                                                      checked="@product.showEPIOnBatchRecalled"
+                                                                      class="featureCode-08"
+                                                                      name="showEPIOnBatchRecalled"
+                                                                      value="@product.showEPIOnBatchRecalled"></psk-checkbox>
+                                                        <psk-checkbox checkbox-label="Expiration Date is incorrect"
+                                                                      checked="@product.showEPIOnIncorrectExpiryDate"
+                                                                      class="featureCode-07"
+                                                                      name="showEPIOnIncorrectExpiryDate"
+                                                                      value="@product.showEPIOnIncorrectExpiryDate"></psk-checkbox>
+                                                        <psk-checkbox checkbox-label="Batch is expired"
+                                                                      checked="@product.showEPIOnBatchExpired"
+                                                                      class="featureCode-02"
+                                                                      name="showEPIOnBatchExpired"
+                                                                      value="@product.showEPIOnBatchExpired"></psk-checkbox>
+                                                        <psk-checkbox checkbox-label="SN is in Recall list"
+                                                                      checked="@product.showEPIOnSNRecalled"
+                                                                      class="featureCode-07"
+                                                                      name="showEPIOnSNRecalled"
+                                                                      value="@product.showEPIOnSNRecalled"></psk-checkbox>
+                                                        <psk-checkbox checkbox-label="SN is in Decommissioned list"
+                                                                      checked="@product.showEPIOnSNDecommissioned"
+                                                                      class="featureCode-07"
+                                                                      name="showEPIOnSNDecommissioned"
+                                                                      value="@product.showEPIOnSNDecommissioned"></psk-checkbox>
+                                                        <psk-checkbox checkbox-label="SN is unknown"
+                                                                      checked="@product.showEPIOnSNUnknown"
+                                                                      class="featureCode-07"
+                                                                      name="showEPIOnSNUnknown"
+                                                                      value="@product.showEPIOnSNUnknown"></psk-checkbox>
+                                                        <psk-checkbox checkbox-label="Batch number unknown"
+                                                                      checked="@product.showEPIOnUnknownBatchNumber"
+                                                                      class="featureCode-03"
+                                                                      name="showEPIOnUnknownBatchNumber"
+                                                                      value="@product.showEPIOnUnknownBatchNumber"></psk-checkbox>-->
                         </div>
                     </div>
                     <psk-tab-navigator default="0" id="orange-tab-navigator">
@@ -218,133 +269,3 @@
     </h6>
 </psk-page>
 
-<style>
-    psk-form-row {
-        padding-left: 10px;
-    }
-
-    .product-image {
-        max-height: 175px;
-    }
-
-    .product-image img {
-        max-height: 100%;
-        max-width: 100%;
-    }
-
-    psk-radio-group .form-group > psk-label {
-        display: none;
-    }
-
-    psk-checkbox input {
-        box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.6);
-    }
-
-    .read-only-container {
-        background: #f3f3f3;
-    }
-
-    .read-only-container,
-    .background-container {
-        border-bottom: 1.5px solid #E75222;
-    }
-
-    .background-container input,
-    .background-container input:focus,
-    .background-container textarea,
-    .background-container textarea:focus,
-    .read-only-container .form-control[readonly] {
-        border: none;
-        background: none;
-        box-shadow: none;
-        padding: 0px;
-        outline: none;
-        resize: none;
-        overflow: auto;
-    }
-
-    .background-container input::placeholder,
-    .background-container textarea::placeholder {
-        font-style: italic;
-        font-size: smaller;
-    }
-
-    .form-label,
-    .form-button {
-        color: #E75222;
-    }
-
-    .editable-icon {
-        position: absolute;
-        top: 2px;
-        right: 2px;
-    }
-
-    .form-button {
-        border: 1px solid #E75222;
-        border-radius: 3px;
-        padding: 7px;
-        background: none;
-    }
-
-    .epi-card {
-        border: 1.5px solid #E75222;
-        width: fit-content;
-        box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.6);
-        border-radius: 4px;
-    }
-
-    .epi-card .delete-language,
-    .delete-market {
-        top: 0;
-        position: relative;
-        background: none;
-        border: none;
-        padding: 0;
-        font-size: 20px;
-        line-height: 20px;
-        color: #858585;
-
-    }
-
-    .epi-card .delete-language {
-        right: -7px;
-    }
-
-    .epi-card-container .delete-market {
-        right: 7px;
-    }
-
-    .epi-card-container:hover {
-        cursor: pointer;
-    }
-
-    .epi-card .delete-language:focus,
-    .delete-market:focus {
-        outline: none;
-    }
-
-    .epi-card .delete-language:hover,
-    .delete-market:hover {
-        color: #000
-    }
-
-    .prod-code-container {
-        background: #FFCCCC;
-    }
-
-    .prod-code-container[gtin-isvalid] {
-        background: none;
-    }
-
-    .validation-status {
-        font-size: 14px;
-        font-weight: lighter;
-        color: red;
-    }
-
-    .validation-status[gtin-isvalid] {
-        color: #28a745;
-    }
-
-</style>

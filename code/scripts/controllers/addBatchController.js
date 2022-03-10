@@ -11,15 +11,17 @@ import HolderService from "../services/HolderService.js";
 import LeafletService from "../services/LeafletService.js";
 
 const holderService = HolderService.getHolderService();
+const epiUtils = require("epi-utils").getMappingsUtils();
+const mappings = require("epi-utils").loadApi("mappings");
 
 export default class addBatchController extends WebcController {
   constructor(...props) {
     super(...props);
-    const epiUtils = require("epi-utils").getMappingsUtils();
-    const mappings = require("epi-utils").loadApi("mappings");
+
     let state = this.history.location.state;
     const editMode = state != null && state.batchData != null;
     const editData = editMode ? JSON.parse(state.batchData) : undefined;
+    this.disabledFeatures = state.disabledFeatures;
     let batch = new Batch(editData);
     this.model = {};
     this.storageService = getSharedStorage(this.DSUStorage);
@@ -62,9 +64,6 @@ export default class addBatchController extends WebcController {
     this.model.videoSourceUpdated = false;
     this.videoInitialDefaultSource = this.model.batch.videos.defaultSource;
 
-    this.model.onChange('batch.videos.defaultSource', async (...props) => {
-      this.model.videoSourceUpdated = this.videoInitialDefaultSource !== this.model.batch.videos.defaultSource;
-    })
 
     if (editMode) {
       this.gtin = this.model.batch.gtin;
@@ -103,6 +102,76 @@ export default class addBatchController extends WebcController {
       this.model.products.options = options;
     });
 
+    this.addEventListeners();
+    utils.disableFeatures(this);
+    setTimeout(() => {
+      this.setUpCheckboxes();
+    }, 0)
+  }
+
+  async addOrUpdateBatch() {
+    if (!this.model.batch.gtin) {
+      return this.showErrorModal("Invalid product code. Please select a valid code");
+    }
+    let batch = this.initBatch();
+
+    // ACDC PATCH START
+    batch.acdcAuthFeatureSSI = this.model.authFeatureFieldModel.value;
+    // ACDC PATCH END
+
+    if (!batch.expiryForDisplay) {
+      return this.showErrorModal("Invalid date");
+    }
+    // manage ignore date if day is not used we save it as last day of the month
+    if (!batch.enableExpiryDay) {
+      batch.expiryForDisplay = utils.getIgnoreDayDate(batch.expiryForDisplay)
+    }
+    batch.expiry = utils.convertDateToGS1Format(batch.expiryForDisplay, batch.enableExpiryDay);
+
+    if (this.model.hasAcdcAuthFeature && !batch.acdcAuthFeatureSSI) {
+      return this.showErrorModal("You have enabled Authentication Feature. Please add a value or disable it");
+    }
+    let error = batch.validate();
+    if (error) {
+      printOpenDSUError(createOpenDSUErrorWrapper("Invalid batch info", err));
+      return this.showErrorModalAndRedirect("Invalid batch info" + err.message, "batches");
+    }
+    this.createWebcModal({
+      disableExpanding: true,
+      disableClosing: true,
+      disableFooter: true,
+      modalTitle: "Info",
+      modalContent: "Saving batch..."
+    });
+
+    let message = await utils.initMessage("Batch");
+    message.batch = {};
+
+    try {
+      epiUtils.transformToMessage(batch, message.batch, epiUtils.batchDataSourceMapping);
+
+      //process batch, leaflet & smpc cards
+
+      let cardMessages = await LeafletService.createEpiMessages({
+        cards: [...this.model.deletedLanguageTypeCards, ...this.model.languageTypeCards],
+        type: "batch",
+        username: this.model.username,
+        code: message.batch.batch
+      })
+      if (!this.DSUStorage.directAccessEnabled) {
+        this.DSUStorage.enableDirectAccess(async () => {
+          await this.sendMessagesToProcess([message, ...cardMessages]);
+        })
+      } else {
+        await this.sendMessagesToProcess([message, ...cardMessages]);
+      }
+
+    } catch (e) {
+      this.showErrorModal(e.message);
+    }
+  };
+
+  addEventListeners() {
     this.model.onChange("batch.batchNumber", (event) => {
       this.storageService.filter(this.model.batch.batchNumber, "__timestamp > 0", (err, logs) => {
         if (err || typeof logs === "undefined") {
@@ -119,73 +188,12 @@ export default class addBatchController extends WebcController {
     this.onTagClick("cancel", () => {
       this.navigateToPageTag("batches");
     });
+    this.onTagClick("update-batch", this.addOrUpdateBatch.bind(this))
+    this.onTagClick("add-batch", this.addOrUpdateBatch.bind(this));
 
-    let addOrUpdateBatch = async () => {
-      if (!this.model.batch.gtin) {
-        return this.showErrorModal("Invalid product code. Please select a valid code");
-      }
-      let batch = this.initBatch();
-
-      // ACDC PATCH START
-      batch.acdcAuthFeatureSSI = this.model.authFeatureFieldModel.value;
-      // ACDC PATCH END
-
-      if (!batch.expiryForDisplay) {
-        return this.showErrorModal("Invalid date");
-      }
-      // manage ignore date if day is not used we save it as last day of the month
-      if (!batch.enableExpiryDay) {
-        batch.expiryForDisplay = utils.getIgnoreDayDate(batch.expiryForDisplay)
-      }
-      batch.expiry = utils.convertDateToGS1Format(batch.expiryForDisplay, batch.enableExpiryDay);
-
-      if (this.model.hasAcdcAuthFeature && !batch.acdcAuthFeatureSSI) {
-        return this.showErrorModal("You have enabled Authentication Feature. Please add a value or disable it");
-      }
-      let error = batch.validate();
-      if (error) {
-        printOpenDSUError(createOpenDSUErrorWrapper("Invalid batch info", err));
-        return this.showErrorModalAndRedirect("Invalid batch info" + err.message, "batches");
-      }
-      this.createWebcModal({
-        disableExpanding: true,
-        disableClosing: true,
-        disableFooter: true,
-        modalTitle: "Info",
-        modalContent: "Saving batch..."
-      });
-
-      let message = await utils.initMessage("Batch");
-      message.batch = {};
-
-      try {
-        epiUtils.transformToMessage(batch, message.batch, epiUtils.batchDataSourceMapping);
-
-        //process batch, leaflet & smpc cards
-
-        let cardMessages = await LeafletService.createEpiMessages({
-          cards: [...this.model.deletedLanguageTypeCards, ...this.model.languageTypeCards],
-          type: "batch",
-          username: this.model.username,
-          code: message.batch.batch
-        })
-        if (!this.DSUStorage.directAccessEnabled) {
-          this.DSUStorage.enableDirectAccess(async () => {
-            await this.sendMessagesToProcess([message, ...cardMessages]);
-          })
-        } else {
-          await this.sendMessagesToProcess([message, ...cardMessages]);
-        }
-
-      } catch (e) {
-        this.showErrorModal(e.message);
-      }
-    };
-
-    this.onTagClick("update-batch", addOrUpdateBatch)
-    this.onTagClick("add-batch", addOrUpdateBatch);
-
-
+    this.model.onChange('batch.videos.defaultSource', async (...props) => {
+      this.model.videoSourceUpdated = this.videoInitialDefaultSource !== this.model.batch.videos.defaultSource;
+    })
     this.model.onChange("serial_update_options.value", (event) => {
       if (this.model.serial_update_options.value === "update-history") {
         this.showSerialHistoryModal()
@@ -214,6 +222,13 @@ export default class addBatchController extends WebcController {
     this.on('openFeedback', (e) => {
       this.feedbackEmitter = e.detail;
     });
+  }
+
+  setUpCheckboxes() {
+    let checkboxes = this.querySelectorAll("input[type='checkbox']");
+    checkboxes.forEach(checkbox => {
+      checkbox.checked = checkbox.value === "true";
+    })
   }
 
   async sendMessagesToProcess(messageArr) {
