@@ -1,11 +1,11 @@
-const mappings = require("epi-utils").loadApi("mappings");
-const MessagesPipe = require("epi-utils").getMessagesPipe();
+const mappings = require("gtin-resolver").loadApi("mappings");
+const MessagesPipe = require("gtin-resolver").getMessagesPipe();
 
 async function processMessages(messages, dsuStorage, callback) {
   if (!messages || messages.length === 0) {
     return;
   }
-  const LogService = require("epi-utils").loadApi("services").LogService
+  const LogService = require("gtin-resolver").loadApi("services").LogService
   let logService = new LogService(dsuStorage);
   const openDSU = require("opendsu");
   const config = openDSU.loadAPI("config");
@@ -29,7 +29,7 @@ async function processMessages(messages, dsuStorage, callback) {
   return new Promise(function (resolve, reject) {
     try {
 
-      const MessageQueuingService = require("epi-utils").loadApi("services").getMessageQueuingServiceInstance();
+      const MessageQueuingService = require("gtin-resolver").loadApi("services").getMessageQueuingServiceInstance();
       let messagesPipe = new MessagesPipe(30, 2 * 1000, MessageQueuingService.getNextMessagesBlock);
       let digestedMessagesCounter = 0;
       let undigestedMessages = [];

@@ -10,10 +10,11 @@ import utils from "../utils.js";
 import LeafletService from "../services/LeafletService.js";
 import Countries from "../models/Countries.js";
 
-const mappings = require("epi-utils").loadApi("mappings");
-const epiUtils = require("epi-utils").getMappingsUtils();
-const arrayBufferToBase64 = epiUtils.arrayBufferToBase64;
-const LogService = require("epi-utils").loadApi("services").LogService
+const mappings = require("gtin-resolver").loadApi("mappings");
+const gtinResolverUtils = require("gtin-resolver").getMappingsUtils();
+const arrayBufferToBase64 = gtinResolverUtils.arrayBufferToBase64;
+const LogService = require("gtin-resolver").loadApi("services").LogService;
+const ModelMessageService = require("gtin-resolver").loadApi("services").ModelMessageService;
 const gtinMultiplicationArray = [3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3];
 
 export default class ManageProductController extends WebcController {
@@ -87,7 +88,6 @@ export default class ManageProductController extends WebcController {
       checkbox.checked = checkbox.value === "true";
     })
   }
-
 
 
   addEventListeners() {
@@ -177,10 +177,9 @@ export default class ManageProductController extends WebcController {
     });
 
     let message = await utils.initMessage("Product");
-    message.product = {};
 
     try {
-      epiUtils.transformToMessage(product, message.product, epiUtils.productDataSourceMapping);
+      message.product = ModelMessageService.getMessageFromModel(product, "product");
 
       let photoMessages = [];
       //process photo

@@ -11,8 +11,9 @@ import HolderService from "../services/HolderService.js";
 import LeafletService from "../services/LeafletService.js";
 
 const holderService = HolderService.getHolderService();
-const epiUtils = require("epi-utils").getMappingsUtils();
-const mappings = require("epi-utils").loadApi("mappings");
+const gtinResolverUtils = require("gtin-resolver").getMappingsUtils();
+const mappings = require("gtin-resolver").loadApi("mappings");
+const ModelMessageService = require("gtin-resolver").loadApi("services").ModelMessageService;
 
 export default class addBatchController extends WebcController {
   constructor(...props) {
@@ -145,10 +146,10 @@ export default class addBatchController extends WebcController {
     });
 
     let message = await utils.initMessage("Batch");
-    message.batch = {};
 
     try {
-      epiUtils.transformToMessage(batch, message.batch, epiUtils.batchDataSourceMapping);
+
+      message.batch = ModelMessageService.getMessageFromModel(batch, "batch");
 
       //process batch, leaflet & smpc cards
 
