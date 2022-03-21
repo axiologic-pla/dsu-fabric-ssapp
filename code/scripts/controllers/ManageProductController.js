@@ -1,6 +1,4 @@
 import {getCommunicationService} from "../services/CommunicationService.js";
-
-const {WebcController} = WebCardinal.controllers;
 import Product from '../models/Product.js';
 import MessagesService from '../services/MessagesService.js';
 import Languages from "../models/Languages.js";
@@ -10,76 +8,83 @@ import utils from "../utils.js";
 import LeafletService from "../services/LeafletService.js";
 import Countries from "../models/Countries.js";
 
+
+const {WebcController} = WebCardinal.controllers;
 const mappings = require("gtin-resolver").loadApi("mappings");
 const gtinResolverUtils = require("gtin-resolver").getMappingsUtils();
 const arrayBufferToBase64 = gtinResolverUtils.arrayBufferToBase64;
 const LogService = require("gtin-resolver").loadApi("services").LogService;
 const ModelMessageService = require("gtin-resolver").loadApi("services").ModelMessageService;
 const gtinMultiplicationArray = [3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3];
+const gtinResolver = require("gtin-resolver");
 
 export default class ManageProductController extends WebcController {
   constructor(...props) {
     super(...props);
-    this.model = {};
-    this.storageService = getSharedStorage(this.DSUStorage);
-    this.logService = new LogService(this.DSUStorage);
-    getCommunicationService(this.DSUStorage).waitForMessage(() => {
-    });
 
-    let state = this.history.location.state;
-    this.disabledFeatures = state.disabledFeatures;
-    if (state && state.gtin) {
-      this.storageService.getRecord(constants.PRODUCTS_TABLE, state.gtin, (err, product) => {
-        this.model.submitLabel = "Update Product";
-        this.model.product = new Product(product);
-        this.model.product.version++;
-        this.model.product.previousVersion = product.version;
-        this.model.product.isCodeEditable = false;
-        this.model.product.videos = product.videos || {defaultSource: ""};
-        this.getProductAttachments(product, (err, attachments) => {
-          if (err) {
-            this.showErrorModalAndRedirect("Failed to get inherited cards", "products");
-          }
+    gtinResolver.getDisabledFeatures().then((disabledFeatures) => {
+      this.disabledFeatures = disabledFeatures
+      this.model = {};
+      this.storageService = getSharedStorage(this.DSUStorage);
+      this.logService = new LogService(this.DSUStorage);
+      getCommunicationService(this.DSUStorage).waitForMessage(() => {
+      });
 
-          this.model.languageTypeCards = attachments.languageTypeCards;
-          if (attachments.productPhoto) {
-            this.model.product.photo = attachments.productPhoto;
-          }
+      let state = this.history.location.state;
+      if (state && state.gtin) {
+        this.storageService.getRecord(constants.PRODUCTS_TABLE, state.gtin, (err, product) => {
+          this.model.submitLabel = "Update Product";
+          this.model.product = new Product(product);
+          this.model.product.version++;
+          this.model.product.previousVersion = product.version;
+          this.model.product.isCodeEditable = false;
+          this.model.product.videos = product.videos || {defaultSource: ""};
+          this.getProductAttachments(product, (err, attachments) => {
+            if (err) {
+              this.showErrorModalAndRedirect("Failed to get inherited cards", "products");
+            }
+
+            this.model.languageTypeCards = attachments.languageTypeCards;
+            if (attachments.productPhoto) {
+              this.model.product.photo = attachments.productPhoto;
+            }
+          });
+          // ensureHolderCredential();
+          this.model.product.videos.defaultSource = atob(this.model.product.videos.defaultSource);
+          this.videoInitialDefaultSource = this.model.product.videos.defaultSource;
+          this.validateGTIN(this.model.product.gtin);
+          setTimeout(() => {
+            this.setUpCheckboxes();
+          }, 0)
         });
-        // ensureHolderCredential();
+      } else {
+        this.model.submitLabel = "Save Product";
+        this.model.product = new Product();
         this.model.product.videos.defaultSource = atob(this.model.product.videos.defaultSource);
         this.videoInitialDefaultSource = this.model.product.videos.defaultSource;
+
+        // ensureHolderCredential();
         this.validateGTIN(this.model.product.gtin);
         setTimeout(() => {
           this.setUpCheckboxes();
         }, 0)
-      });
-    } else {
-      this.model.submitLabel = "Save Product";
-      this.model.product = new Product();
-      this.model.product.videos.defaultSource = atob(this.model.product.videos.defaultSource);
-      this.videoInitialDefaultSource = this.model.product.videos.defaultSource;
+      }
 
-      // ensureHolderCredential();
-      this.validateGTIN(this.model.product.gtin);
-      setTimeout(() => {
-        this.setUpCheckboxes();
-      }, 0)
-    }
+      utils.disableFeatures(this);
 
-    utils.disableFeatures(this);
+      this.model.videoSourceUpdated = false;
 
-    this.model.videoSourceUpdated = false;
+      this.model.languages = {
+        label: "Language",
+        placeholder: "Select a language",
+        options: Languages.getListAsVM()
+      };
 
-    this.model.languages = {
-      label: "Language",
-      placeholder: "Select a language",
-      options: Languages.getListAsVM()
-    };
+      this.model.languageTypeCards = [];
 
-    this.model.languageTypeCards = [];
+      this.addEventListeners();
+    }).catch(e => console.log("Couldn't get disabled features"))
 
-    this.addEventListeners();
   }
 
   setUpCheckboxes() {
