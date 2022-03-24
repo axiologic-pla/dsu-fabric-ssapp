@@ -6,8 +6,8 @@
   "scripts": {
     "postinstall": "node ./node_modules/octopus/scripts/run dependencies devmode",
     "prebuild": "node ./node_modules/octopus/scripts/run prebuild devmode",
-    "build": "node ./node_modules/octopus/scripts/buildDossier.js",
-    "build_new": "node ./node_modules/octopus/scripts/buildDossier ./bin/build.json",
+    "build": "node ./node_modules/octopus/scripts/buildDSU.js",
+    "build_new": "node ./node_modules/octopus/scripts/buildDSU.js ./bin/build.json",
     "postbuild": "node ./node_modules/octopus/scripts/run postbuild devmode",
     "update": "npm install",
     "test": "echo \"Error: no test specified\" && exit 1"
