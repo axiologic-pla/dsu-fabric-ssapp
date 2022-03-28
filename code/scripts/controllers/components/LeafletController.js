@@ -1,7 +1,7 @@
-import LeafletService from "../../services/LeafletService.js";
-import Languages from "../../models/Languages.js";
-import UploadTypes from "../../models/UploadTypes.js";
-
+const gtinResolver = require("gtin-resolver");
+const LeafletService = gtinResolver.DSUFabricUtilsService;
+const Languages = gtinResolver.Languages
+const UploadTypes = gtinResolver.UploadTypes
 const {WebcController} = WebCardinal.controllers;
 
 export default class LeafletController extends WebcController {
@@ -33,15 +33,23 @@ export default class LeafletController extends WebcController {
   }
 
   addLanguageTypeFilesListener(event) {
+    let disabledFeatures = this.model.disabledFeatures.map(feature => {
+      if (feature === "01") {
+        return "leaflet"
+      }
+      if (feature === "04") {
+        return "smpc"
+      }
+    })
     const languages = {
       label: "Language",
       placeholder: "Select a language",
       options: Languages.getListAsVM()
     };
     const types = {
-      label: "Type",
+      componentLabel: "Type",
       placeholder: "Select a type",
-      options: UploadTypes.getListAsVM()
+      options: UploadTypes.getListAsVM(disabledFeatures)
     };
     this.model.modalData = {
       title: "Choose language and type of upload",
@@ -74,9 +82,10 @@ export default class LeafletController extends WebcController {
         return alert('This language and type combo already exist.');
       }
       let selectedLanguage = Languages.getListAsVM().find(lang => lang.value === this.model.modalData.product.language);
-      let selectedType = UploadTypes.getListAsVM().find(type => type.value === this.model.modalData.product.type);
+      const select = document.getElementsByClassName('document-type-select')[0];
+      let selectedType = select.options[select.selectedIndex].value;
       let videoSource = btoa(this.model.modalData.product.videoSource);
-      let card = LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.NEW, selectedType.value, selectedLanguage.value, this.model.modalData.files, videoSource);
+      let card = LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.NEW, selectedType, selectedLanguage.value, this.model.modalData.files, videoSource);
       this.model.languageTypeCards.push(card);
       if (videoSource) {
         this.model.videoSourceUpdated = true;
@@ -85,6 +94,7 @@ export default class LeafletController extends WebcController {
       return
     }, {model: this.model});
   }
+
 
   typeAndLanguageExist(language, type) {
     return this.model.languageTypeCards.findIndex(lf => lf.type.value === type && lf.language.value === language) !== -1;

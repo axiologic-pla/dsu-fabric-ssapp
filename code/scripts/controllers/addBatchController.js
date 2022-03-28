@@ -6,7 +6,6 @@ import utils from "../utils.js";
 import MessagesService from "../services/MessagesService.js";
 import LogService from "../services/LogService.js";
 import HolderService from "../services/HolderService.js";
-import LeafletService from "../services/LeafletService.js";
 
 const {WebcController} = WebCardinal.controllers;
 const holderService = HolderService.getHolderService();
@@ -18,9 +17,8 @@ const gtinResolver = require("gtin-resolver");
 export default class addBatchController extends WebcController {
   constructor(...props) {
     super(...props);
-
-    gtinResolver.getDisabledFeatures().then((disabledFeatures) => {
-      this.disabledFeatures = disabledFeatures
+    gtinResolver.DSUFabricFeatureManager.getDisabledFeatures().then((disabledFeatures) => {
+      this.model.disabledFeatures = disabledFeatures
       let state = this.history.location.state;
       const editMode = state != null && state.batchData != null;
       const editData = editMode ? JSON.parse(state.batchData) : undefined;
@@ -70,7 +68,7 @@ export default class addBatchController extends WebcController {
       if (editMode) {
         this.gtin = this.model.batch.gtin;
         this.model.batch.version++;
-        this.getBatchAttachments(this.model.batch, (err, attachments) => {
+        gtinResolver.DSUFabricUtilsService.getDSUAttachments(this.model.batch, disabledFeatures, (err, attachments) => {
           if (err) {
             this.showErrorModalAndRedirect("Failed to get inherited cards", "patch");
           }
@@ -106,11 +104,11 @@ export default class addBatchController extends WebcController {
 
       this.addEventListeners();
       utils.disableFeatures(this);
-    }).catch(e => console.log("Couldn't get disabled features"))
+      setTimeout(() => {
+        this.setUpCheckboxes();
+      }, 0)
+    }).catch(e => console.log("Couldn't get disabled features"));
 
-    setTimeout(() => {
-      this.setUpCheckboxes();
-    }, 0)
   }
 
   async addOrUpdateBatch() {
@@ -156,7 +154,7 @@ export default class addBatchController extends WebcController {
 
       //process batch, leaflet & smpc cards
 
-      let cardMessages = await LeafletService.createEpiMessages({
+      let cardMessages = await gtinResolver.DSUFabricUtilsService.createEpiMessages({
         cards: [...this.model.deletedLanguageTypeCards, ...this.model.languageTypeCards],
         type: "batch",
         username: this.model.username,
@@ -307,43 +305,6 @@ export default class addBatchController extends WebcController {
     result.recalledSerialNumbers = this.stringToArray(this.model.recalledSerialNumbers);
     result.decommissionedSerialNumbers = this.stringToArray(this.model.decommissionedSerialNumbers);
     return result;
-  }
-
-  getBatchAttachments(batch, callback) {
-    const resolver = require("opendsu").loadAPI("resolver");
-    resolver.loadDSU(batch.keySSI, async (err, batchDSU) => {
-      if (err) {
-        return callback(err);
-      }
-
-      let languageTypeCards = [];
-      //used temporarily to avoid the usage of dsu cached instances which are not up to date
-
-      try {
-        await $$.promisify(batchDSU.load)();
-        let leaflets = await $$.promisify(batchDSU.listFolders)("/leaflet");
-        let smpcs = await $$.promisify(batchDSU.listFolders)("/smpc");
-        for (const leafletLanguageCode of leaflets) {
-          let leafletFiles = await $$.promisify(batchDSU.listFiles)("/leaflet/" + leafletLanguageCode);
-          let videoSource = "";
-          if (batch.videos && batch.videos[`leaflet/${leafletLanguageCode}`]) {
-            videoSource = atob(batch.videos[`leaflet/${leafletLanguageCode}`]);
-          }
-          languageTypeCards.push(LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.EXISTS, "leaflet", leafletLanguageCode, leafletFiles, videoSource));
-        }
-        for (const smpcLanguageCode of smpcs) {
-          let smpcFiles = await $$.promisify(batchDSU.listFiles)("/smpc/" + smpcLanguageCode);
-          let videoSource = "";
-          if (batch.videos && batch.videos[`smpc/${smpcLanguageCode}`]) {
-            videoSource = atob(batch.videos[`smpc/${smpcLanguageCode}`]);
-          }
-          languageTypeCards.push(LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.EXISTS, "smpc", smpcLanguageCode, smpcFiles, videoSource));
-        }
-        callback(undefined, {languageTypeCards: languageTypeCards});
-      } catch (e) {
-        return callback(e);
-      }
-    });
   }
 
   //TODO move it to utils

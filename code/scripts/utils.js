@@ -232,7 +232,7 @@ async function initMessage(msgType) {
 
 //disable functionalities as it was defined in environment config
 function disableFeatures(thisObj) {
-  thisObj.disabledFeatures.forEach(offFuncKey => {
+  thisObj.model.disabledFeatures.forEach(offFuncKey => {
     let htmlNodes = thisObj.querySelectorAll(`.featureCode-${offFuncKey}`);
     htmlNodes.forEach(item => {
       item.disabled = true;

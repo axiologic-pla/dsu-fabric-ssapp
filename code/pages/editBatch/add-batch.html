@@ -59,21 +59,11 @@
                         </div>
                     </div>
                     <div>
-                        <!--                        <psk-checkbox checkbox-label="Enable Incorrect Expiration Date Verification"
-                                                              class="featureCode-07"
-                                                              checked="@batch.incorrectDateCheck" name="incorrectDateCheck"
-                                                              value="@batch.incorrectDateCheck"></psk-checkbox>-->
                         <div class="checkbox-container featureCode-07">
                             <input type="checkbox"
                                    value="@batch.incorrectDateCheck">
                             <span class="checkbox-label">Enable Incorrect Expiration Date Verification</span>
                         </div>
-
-                        <!--                        <psk-checkbox checkbox-label="Enable Expired Expiration Date Verification"
-                                                              class="featureCode-02"
-                                                              checked="@batch.expiredDateCheck"
-                                                              name="expiredDateCheck"
-                                                              value="@batch.expiredDateCheck"></psk-checkbox>-->
 
                         <div class="checkbox-container featureCode-02">
                             <input type="checkbox"
@@ -88,8 +78,6 @@
                                   placeholder="This text will be displayed to user after Barcode is scanned"
                                   required rows="3" value="@batch.defaultMessage"></textarea>
                     </div>
-                    <!--                    <psk-checkbox checkbox-label="Check to recall this batch" checked="@batch.@batch.recalled" class="featureCode-08"
-                                                      name="recalled" value="@batch.recalled"></psk-checkbox>-->
                     <div class="checkbox-container featureCode-08">
                         <input type="checkbox"
                                value="@batch.recalled">
@@ -106,7 +94,6 @@
                         </div>
                     </div>
 
-
                     <div class="d-flex flex-row">
                         <div class="read-only-container pl-3">
                             <div class="form-label">Batch version</div>
@@ -114,7 +101,6 @@
 
                         </div>
                     </div>
-
 
                     <div class="d-flex flex-row mt-5">
                         <psk-button data-tag="cancel" label="Cancel"></psk-button>
@@ -150,12 +136,6 @@
                         <textarea class="w-100 mt-2" placeholder="-" readonly required
                                   rows="3" value="@productDescription"></textarea>
                     </div>
-
-                    <!--                    PATCH START -->
-                    <!--                    <psk-checkbox checkbox-label="Enable Authentication Feature"
-                                                      checked="@hasAcdcAuthFeature"
-                                                      name="authFeature"
-                                                      value="@hasAcdcAuthFeature"></psk-checkbox>-->
                     <div class="checkbox-container featureCode-07">
                         <input type="checkbox"
                                value="@hasAcdcAuthFeature">
@@ -166,11 +146,6 @@
                             <psk-input view-model="@authFeatureFieldModel"></psk-input>
                         </div>
                     </psk-condition>
-                    <!--                    PATCH END -->
-                    <!--                   <psk-checkbox checkbox-label="Enable Serial Number Verification" checked="@batch.serialCheck"
-                                                     class="featureCode-07"
-                                                     name="serialCheck" value="@batch.serialCheck"></psk-checkbox>-->
-
                     <div class="checkbox-container featureCode-07">
                         <input type="checkbox"
                                value="@batch.serialCheck">
@@ -183,7 +158,7 @@
                             <psk-select required value="" view-model="@serial_update_options"></psk-select>
                         </div>
                     </div>
-                    <dsu-leaflet data-view-model="@"></dsu-leaflet>
+                    <dsu-leaflet></dsu-leaflet>
                 </div>
             </div>
 

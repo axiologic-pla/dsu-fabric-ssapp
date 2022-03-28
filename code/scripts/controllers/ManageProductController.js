@@ -1,11 +1,10 @@
 import {getCommunicationService} from "../services/CommunicationService.js";
 import Product from '../models/Product.js';
 import MessagesService from '../services/MessagesService.js';
-import Languages from "../models/Languages.js";
+/*import Languages from "../models/Languages.js";*/
 import constants from '../constants.js';
 import getSharedStorage from '../services/SharedDBStorageService.js';
 import utils from "../utils.js";
-import LeafletService from "../services/LeafletService.js";
 import Countries from "../models/Countries.js";
 
 
@@ -22,8 +21,8 @@ export default class ManageProductController extends WebcController {
   constructor(...props) {
     super(...props);
 
-    gtinResolver.getDisabledFeatures().then((disabledFeatures) => {
-      this.disabledFeatures = disabledFeatures
+    gtinResolver.DSUFabricFeatureManager.getDisabledFeatures().then((disabledFeatures) => {
+      this.model.disabledFeatures = disabledFeatures
       this.model = {};
       this.storageService = getSharedStorage(this.DSUStorage);
       this.logService = new LogService(this.DSUStorage);
@@ -39,7 +38,7 @@ export default class ManageProductController extends WebcController {
           this.model.product.previousVersion = product.version;
           this.model.product.isCodeEditable = false;
           this.model.product.videos = product.videos || {defaultSource: ""};
-          this.getProductAttachments(product, (err, attachments) => {
+          gtinResolver.DSUFabricUtilsService.getDSUAttachments(product,disabledFeatures ,(err, attachments) => {
             if (err) {
               this.showErrorModalAndRedirect("Failed to get inherited cards", "products");
             }
@@ -53,9 +52,6 @@ export default class ManageProductController extends WebcController {
           this.model.product.videos.defaultSource = atob(this.model.product.videos.defaultSource);
           this.videoInitialDefaultSource = this.model.product.videos.defaultSource;
           this.validateGTIN(this.model.product.gtin);
-          setTimeout(() => {
-            this.setUpCheckboxes();
-          }, 0)
         });
       } else {
         this.model.submitLabel = "Save Product";
@@ -65,21 +61,16 @@ export default class ManageProductController extends WebcController {
 
         // ensureHolderCredential();
         this.validateGTIN(this.model.product.gtin);
-        setTimeout(() => {
-          this.setUpCheckboxes();
-        }, 0)
+
       }
+
+      setTimeout(() => {
+        this.setUpCheckboxes();
+      }, 0);
 
       utils.disableFeatures(this);
 
       this.model.videoSourceUpdated = false;
-
-      this.model.languages = {
-        label: "Language",
-        placeholder: "Select a language",
-        options: Languages.getListAsVM()
-      };
-
       this.model.languageTypeCards = [];
 
       this.addEventListeners();
@@ -197,7 +188,7 @@ export default class ManageProductController extends WebcController {
 
       //process leaflet & smpc cards
 
-      let cardMessages = await LeafletService.createEpiMessages({
+      let cardMessages = await gtinResolver.DSUFabricUtilsService.createEpiMessages({
         cards: [...this.model.deletedLanguageTypeCards, ...this.model.languageTypeCards],
         type: "product",
         username: this.model.username,
@@ -310,18 +301,6 @@ export default class ManageProductController extends WebcController {
     }
   }
 
-  getImageAsBase64(imageData) {
-    if (typeof imageData === "string") {
-      return imageData;
-    }
-    if (!(imageData instanceof Uint8Array)) {
-      imageData = new Uint8Array(imageData);
-    }
-    let base64Image = utils.bytesToBase64(imageData);
-    base64Image = `data:image/png;base64, ${base64Image}`;
-    return base64Image;
-  }
-
   filesWereProvided() {
     return this.model.languageTypeCards.filter(lf => lf.files.length > 0).length > 0;
   }
@@ -340,51 +319,6 @@ export default class ManageProductController extends WebcController {
       return false;
     }
     return true;
-  }
-
-  getProductAttachments(product, callback) {
-    const resolver = require("opendsu").loadAPI("resolver");
-    resolver.loadDSU(product.keySSI, async (err, productDSU) => {
-      if (err) {
-        return callback(err);
-      }
-
-      let languageTypeCards = [];
-      //used temporarily to avoid the usage of dsu cached instances which are not up to date
-
-      try {
-        await $$.promisify(productDSU.load)();
-        let leaflets = await $$.promisify(productDSU.listFolders)("/leaflet");
-        let smpcs = await $$.promisify(productDSU.listFolders)("/smpc");
-        for (const leafletLanguageCode of leaflets) {
-          let leafletFiles = await $$.promisify(productDSU.listFiles)("/leaflet/" + leafletLanguageCode);
-          let videoSource = "";
-          if (product.videos && product.videos[`leaflet/${leafletLanguageCode}`]) {
-            videoSource = atob(product.videos[`leaflet/${leafletLanguageCode}`]);
-          }
-          languageTypeCards.push(LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.EXISTS, "leaflet", leafletLanguageCode, leafletFiles, videoSource));
-        }
-        for (const smpcLanguageCode of smpcs) {
-          let smpcFiles = await $$.promisify(productDSU.listFiles)("/smpc/" + smpcLanguageCode);
-          let videoSource = "";
-          if (product.videos && product.videos[`smpc/${smpcLanguageCode}`]) {
-            videoSource = atob(product.videos[`smpc/${smpcLanguageCode}`]);
-          }
-          languageTypeCards.push(LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.EXISTS, "smpc", smpcLanguageCode, smpcFiles, videoSource));
-        }
-        let stat = await $$.promisify(productDSU.stat)(constants.PRODUCT_IMAGE_FILE)
-        if (stat.type === "file") {
-          let data = await $$.promisify(productDSU.readFile)(constants.PRODUCT_IMAGE_FILE);
-          let productPhoto = this.getImageAsBase64(data);
-          callback(undefined, {languageTypeCards: languageTypeCards, productPhoto: productPhoto});
-        } else {
-          callback(undefined, {languageTypeCards: languageTypeCards});
-        }
-      } catch (e) {
-        return callback(e);
-      }
-
-    });
   }
 
   editMarket(event) {
