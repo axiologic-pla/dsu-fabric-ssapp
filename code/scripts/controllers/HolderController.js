@@ -5,6 +5,8 @@ import constants from "./constants.js";
 import {copyToClipboard} from "../helpers/document-utils.js";
 
 let crypto = require("opendsu").loadApi("crypto");
+const openDSU = require("opendsu");
+const config = openDSU.loadAPI("config");
 
 
 export default class HolderController extends WebcController {
@@ -14,6 +16,22 @@ export default class HolderController extends WebcController {
 
         this.model = {displayCredentialArea: true, isInvalidCredential: false};
         this.model.domain = "epi";
+
+        config.readEnvFile((err, envFile) => {
+          this.model.envData = JSON.stringify(envFile, null, 4);
+          const environmentContainer = this.element.querySelector('#environmentContainer');
+          let environmentDataElement = environmentContainer.querySelector('#environmentData');
+          if (environmentDataElement) {
+            environmentDataElement.remove();
+          }
+
+          environmentDataElement = document.createElement('psk-code');
+          environmentDataElement.id = "environmentData";
+          environmentDataElement.language = "json";
+          environmentDataElement.innerHTML = this.model.envData;
+          environmentContainer.appendChild(environmentDataElement);
+        });
+
         getCommunicationService(this.DSUStorage).waitForMessage(() => {});
         const setCredential = credential => {
             this.model.credential = credential;

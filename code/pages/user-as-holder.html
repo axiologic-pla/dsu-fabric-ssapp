@@ -10,7 +10,7 @@
     }
 </style>
 <psk-page title="User Info">
-    <psk-form controller-name="HolderController">
+    <webc-container controller-name="HolderController">
         <psk-layout row-gap="1em">
             <div class="d-flex">
                 <psk-label class="user-label ml-3" label="User Identity:"></psk-label>
@@ -29,6 +29,11 @@
                 </psk-condition>
             </div>
 
+            <div class="pl-3">
+                <p class="user-label">Wallet settings:</p>
+                <div id="environmentContainer">
+                </div>
+            </div>
             <div class="wallet-ssi">
                 <p class="ml-3">To configure the import API please use the following Wallet Identifier in your API-Hub
                     config:</p>
@@ -40,9 +45,11 @@
                     </psk-button>
                 </div>
             </div>
+
+            </div>
             </psk-condition>
         </psk-layout>
 
         <psk-list-feedbacks></psk-list-feedbacks>
-    </psk-form>
+    </webc-container>
 </psk-page>
