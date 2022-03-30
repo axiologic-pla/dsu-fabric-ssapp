@@ -1,5 +1,5 @@
 const gtinResolver = require("gtin-resolver");
-const LeafletService = gtinResolver.DSUFabricUtilsService;
+const LeafletService = gtinResolver.DSUFabricUtils;
 const Languages = gtinResolver.Languages
 const UploadTypes = gtinResolver.UploadTypes
 const {WebcController} = WebCardinal.controllers;
@@ -78,12 +78,13 @@ export default class LeafletController extends WebcController {
     });
 
     this.showModalFromTemplate('select-language-and-type-modal', () => {
-      if (this.typeAndLanguageExist(this.model.modalData.product.language, this.model.modalData.product.type)) {
+      const select = document.getElementsByClassName('document-type-select')[0];
+      let selectedType = select.options[select.selectedIndex].value;
+      if (this.typeAndLanguageExist(this.model.modalData.product.language, selectedType)) {
         return alert('This language and type combo already exist.');
       }
       let selectedLanguage = Languages.getListAsVM().find(lang => lang.value === this.model.modalData.product.language);
-      const select = document.getElementsByClassName('document-type-select')[0];
-      let selectedType = select.options[select.selectedIndex].value;
+
       let videoSource = btoa(this.model.modalData.product.videoSource);
       let card = LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.NEW, selectedType, selectedLanguage.value, this.model.modalData.files, videoSource);
       this.model.languageTypeCards.push(card);

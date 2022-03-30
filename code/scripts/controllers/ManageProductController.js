@@ -38,7 +38,7 @@ export default class ManageProductController extends WebcController {
           this.model.product.previousVersion = product.version;
           this.model.product.isCodeEditable = false;
           this.model.product.videos = product.videos || {defaultSource: ""};
-          gtinResolver.DSUFabricUtilsService.getDSUAttachments(product,disabledFeatures ,(err, attachments) => {
+          gtinResolver.DSUFabricUtils.getDSUAttachments(product,disabledFeatures ,(err, attachments) => {
             if (err) {
               this.showErrorModalAndRedirect("Failed to get inherited cards", "products");
             }
@@ -175,7 +175,8 @@ export default class ManageProductController extends WebcController {
     let message = await utils.initMessage("Product");
 
     try {
-      message.product = ModelMessageService.getMessageFromModel(product, "product");
+      let modelMsgService = new ModelMessageService("product");
+      message.product = modelMsgService.getMessageFromModel(product);
 
       let photoMessages = [];
       //process photo
@@ -188,7 +189,7 @@ export default class ManageProductController extends WebcController {
 
       //process leaflet & smpc cards
 
-      let cardMessages = await gtinResolver.DSUFabricUtilsService.createEpiMessages({
+      let cardMessages = await gtinResolver.DSUFabricUtils.createEpiMessages({
         cards: [...this.model.deletedLanguageTypeCards, ...this.model.languageTypeCards],
         type: "product",
         username: this.model.username,

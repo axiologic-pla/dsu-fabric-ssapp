@@ -68,7 +68,7 @@ export default class addBatchController extends WebcController {
       if (editMode) {
         this.gtin = this.model.batch.gtin;
         this.model.batch.version++;
-        gtinResolver.DSUFabricUtilsService.getDSUAttachments(this.model.batch, disabledFeatures, (err, attachments) => {
+        gtinResolver.DSUFabricUtils.getDSUAttachments(this.model.batch, disabledFeatures, (err, attachments) => {
           if (err) {
             this.showErrorModalAndRedirect("Failed to get inherited cards", "patch");
           }
@@ -150,11 +150,12 @@ export default class addBatchController extends WebcController {
 
     try {
 
-      message.batch = ModelMessageService.getMessageFromModel(batch, "batch");
+      let modelMsgService = new ModelMessageService("batch");
+      message.batch = modelMsgService.getMessageFromModel(batch);
 
       //process batch, leaflet & smpc cards
 
-      let cardMessages = await gtinResolver.DSUFabricUtilsService.createEpiMessages({
+      let cardMessages = await gtinResolver.DSUFabricUtils.createEpiMessages({
         cards: [...this.model.deletedLanguageTypeCards, ...this.model.languageTypeCards],
         type: "batch",
         username: this.model.username,
