@@ -4,7 +4,7 @@ import Batch from "../models/Batch.js";
 import getSharedStorage from '../services/SharedDBStorageService.js';
 import utils from "../utils.js";
 import MessagesService from "../services/MessagesService.js";
-import LogService from "../services/LogService.js";
+const LogService = require("gtin-resolver").loadApi("services").LogService;
 import HolderService from "../services/HolderService.js";
 
 const {WebcController} = WebCardinal.controllers;

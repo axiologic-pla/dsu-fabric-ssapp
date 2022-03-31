@@ -1,7 +1,6 @@
 import {getCommunicationService} from "../services/CommunicationService.js";
 import Product from '../models/Product.js';
 import MessagesService from '../services/MessagesService.js';
-/*import Languages from "../models/Languages.js";*/
 import constants from '../constants.js';
 import getSharedStorage from '../services/SharedDBStorageService.js';
 import utils from "../utils.js";

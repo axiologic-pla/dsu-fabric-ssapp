@@ -1,0 +1,24 @@
+<div class="custom-modal-header header-color" slot="header">
+    <h5>{{@title}}</h5>
+</div>
+<main>
+    <div class="d-flex flex-column features-container" data-for="@features">
+        <div class="d-flex flex-row">
+            <div data-if="@checked">
+                <input checked name="@code" slot="true" type="checkbox" value="@value">
+                <input name="@code" slot="false" type="checkbox" value="@value">
+            </div>
+
+            <span class="checkbox-label ml-3">{{@code}} - {{@label}} </span>
+        </div>
+
+    </div>
+
+</main>
+<footer class="modal-action-menu" slot="footer">
+    <button class="page-action-btn" data-tag="close-window">Cancel</button>
+    <button class="page-action-btn" data-tag="submit-window">Accept</button>
+</footer>
+<style>
+
+</style>
