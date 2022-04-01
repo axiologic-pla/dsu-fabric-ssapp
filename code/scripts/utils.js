@@ -218,10 +218,12 @@ function generateRandom(n) {
 
 async function initMessage(msgType) {
   let userDetails = await getUserDetails();
+  const config = require("opendsu").loadAPI("config");
+  const epiProtocol = await $$.promisify(config.getEnv)("epiProtocolVersion");
   let senderId = userDetails && userDetails.username ? userDetails.username : "";
   return {
     messageType: msgType,
-    messageTypeVersion: 0.1,
+    messageTypeVersion: epiProtocol,
     senderId: senderId,
     receiverId: "",
     messageId: generateRandom(13),
