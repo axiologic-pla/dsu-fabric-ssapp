@@ -29,8 +29,8 @@ export default class FeaturesModalController extends WebcController {
     this.onTagClick("submit-window", () => {
       let checkboxes = this.element.querySelectorAll(".features-container input[type='checkbox']:checked");
       let disabledFeatures = "";
-      checkboxes.forEach(checkbox => {
-        disabledFeatures = disabledFeatures + checkbox.name + ","
+      checkboxes.forEach((checkbox, index) => {
+        disabledFeatures = disabledFeatures + (index !== 0 ? "," : "") + checkbox.name;
       })
       config.setEnv("disabledFeatures", disabledFeatures, (err, env) => {
         if (err) {
