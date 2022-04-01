@@ -4,7 +4,6 @@ import Batch from "../models/Batch.js";
 import getSharedStorage from '../services/SharedDBStorageService.js';
 import utils from "../utils.js";
 import MessagesService from "../services/MessagesService.js";
-const LogService = require("gtin-resolver").loadApi("services").LogService;
 import HolderService from "../services/HolderService.js";
 
 const {WebcController} = WebCardinal.controllers;
@@ -25,7 +24,6 @@ export default class addBatchController extends WebcController {
       let batch = new Batch(editData);
       this.model = {};
       this.storageService = getSharedStorage(this.DSUStorage);
-      this.logService = new LogService(this.DSUStorage);
       getCommunicationService(this.DSUStorage).waitForMessage(() => {
       });
       this.versionOffset = 1;
@@ -155,12 +153,13 @@ export default class addBatchController extends WebcController {
 
       //process batch, leaflet & smpc cards
 
-      let cardMessages = await gtinResolver.DSUFabricUtils.createEpiMessages({
-        cards: [...this.model.deletedLanguageTypeCards, ...this.model.languageTypeCards],
-        type: "batch",
-        username: this.model.username,
-        code: message.batch.batch
-      })
+      let leafletMsg = await utils.initMessage("leaflet");
+      leafletMsg.cards = [...this.model.deletedLanguageTypeCards, ...this.model.languageTypeCards];
+      leafletMsg.type = "batch";
+      leafletMsg.username = this.model.username;
+      leafletMsg.code = message.product.productCode;
+      let cardMessages = await gtinResolver.DSUFabricUtils.createEpiMessages(leafletMsg);
+
       if (!this.DSUStorage.directAccessEnabled) {
         this.DSUStorage.enableDirectAccess(async () => {
           await this.sendMessagesToProcess([message, ...cardMessages]);

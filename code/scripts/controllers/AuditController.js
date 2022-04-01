@@ -76,7 +76,6 @@ export default class AuditController extends WebcController {
     super(...props);
 
     this.model = {};
-    // this.logService = new LogService(this.DSUStorage);
     this.storageService = getSharedStorage(this.DSUStorage);
     this.model.auditDataSource = new AuditDataSource({
       storageService: this.storageService,

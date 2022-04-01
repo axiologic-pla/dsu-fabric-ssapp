@@ -11,7 +11,6 @@ const {WebcController} = WebCardinal.controllers;
 const mappings = require("gtin-resolver").loadApi("mappings");
 const gtinResolverUtils = require("gtin-resolver").getMappingsUtils();
 const arrayBufferToBase64 = gtinResolverUtils.arrayBufferToBase64;
-const LogService = require("gtin-resolver").loadApi("services").LogService;
 const ModelMessageService = require("gtin-resolver").loadApi("services").ModelMessageService;
 const gtinMultiplicationArray = [3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3];
 const gtinResolver = require("gtin-resolver");
@@ -24,7 +23,6 @@ export default class ManageProductController extends WebcController {
       this.model.disabledFeatures = disabledFeatures
       this.model = {};
       this.storageService = getSharedStorage(this.DSUStorage);
-      this.logService = new LogService(this.DSUStorage);
       getCommunicationService(this.DSUStorage).waitForMessage(() => {
       });
 
@@ -37,7 +35,7 @@ export default class ManageProductController extends WebcController {
           this.model.product.previousVersion = product.version;
           this.model.product.isCodeEditable = false;
           this.model.product.videos = product.videos || {defaultSource: ""};
-          gtinResolver.DSUFabricUtils.getDSUAttachments(product,disabledFeatures ,(err, attachments) => {
+          gtinResolver.DSUFabricUtils.getDSUAttachments(product, disabledFeatures, (err, attachments) => {
             if (err) {
               this.showErrorModalAndRedirect("Failed to get inherited cards", "products");
             }
@@ -187,13 +185,12 @@ export default class ManageProductController extends WebcController {
       }
 
       //process leaflet & smpc cards
-
-      let cardMessages = await gtinResolver.DSUFabricUtils.createEpiMessages({
-        cards: [...this.model.deletedLanguageTypeCards, ...this.model.languageTypeCards],
-        type: "product",
-        username: this.model.username,
-        code: message.product.productCode
-      })
+      let leafletMsg = await utils.initMessage("leaflet");
+      leafletMsg.cards = [...this.model.deletedLanguageTypeCards, ...this.model.languageTypeCards];
+      leafletMsg.type = "product";
+      leafletMsg.username = this.model.username;
+      leafletMsg.code = message.product.productCode;
+      let cardMessages = await gtinResolver.DSUFabricUtils.createEpiMessages(leafletMsg);
 
       if (!this.DSUStorage.directAccessEnabled) {
         this.DSUStorage.enableDirectAccess(async () => {
