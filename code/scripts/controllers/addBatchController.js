@@ -157,7 +157,7 @@ export default class addBatchController extends WebcController {
       leafletMsg.cards = [...this.model.deletedLanguageTypeCards, ...this.model.languageTypeCards];
       leafletMsg.type = "batch";
       leafletMsg.username = this.model.username;
-      leafletMsg.code = message.product.productCode;
+      leafletMsg.code = message.batch.batch;
       let cardMessages = await gtinResolver.DSUFabricUtils.createEpiMessages(leafletMsg);
 
       if (!this.DSUStorage.directAccessEnabled) {
@@ -286,17 +286,24 @@ export default class addBatchController extends WebcController {
   }
 
   getProductFromGtin(gtin, callback) {
-    this.storageService.filter(constants.PRODUCTS_TABLE, `gtin == ${gtin}`, (err, products) => {
-      if (err) {
-        printOpenDSUError(createOpenDSUErrorWrapper("Failed to get a valid product", err));
+    this.storageService.addIndex(constants.PRODUCTS_TABLE, "gtin", (error) => {
+      if (error) {
+        printOpenDSUError(createOpenDSUErrorWrapper("Failed to get a valid product", error));
         return this.showErrorModalAndRedirect("Failed to get a valid product", "batches");
       }
-      let product = products[0];
-      if (!product) {
-        return callback(new Error(`No product found for gtin ${gtin}`));
-      }
-      callback(undefined, product);
-    });
+      this.storageService.filter(constants.PRODUCTS_TABLE, `gtin == ${gtin}`, (err, products) => {
+        if (err) {
+          printOpenDSUError(createOpenDSUErrorWrapper("Failed to get a valid product", err));
+          return this.showErrorModalAndRedirect("Failed to get a valid product", "batches");
+        }
+        let product = products[0];
+        if (!product) {
+          return callback(new Error(`No product found for gtin ${gtin}`));
+        }
+        callback(undefined, product);
+      });
+    })
+
   }
 
   initBatch() {
@@ -355,7 +362,7 @@ export default class addBatchController extends WebcController {
     }
 
     const serialNumbersLog = {}
-    this.showModalFromTemplate('update-batch-serial-numbers', () => {
+    this.showModalFromTemplate('update-batch-serial-numbers', async() => {
       switch (type) {
         case "update-valid-serial":
           serialNumbersLog.action = "Updated valid serial numbers list";
@@ -385,8 +392,8 @@ export default class addBatchController extends WebcController {
           break
       }
       this.model.serial_update_options.value = "Select an option";
-      this.storageService.insertRecord(this.model.batch.batchNumber, serialNumbersLog.creationTime, serialNumbersLog, () => {
-      })
+      await $$.promisify(this.storageService.addIndex.bind(this.storageService))(this.model.batch.batchNumber, "__timestamp");
+      await $$.promisify(this.storageService.insertRecord.bind(this.storageService))(this.model.batch.batchNumber, serialNumbersLog.creationTime, serialNumbersLog);
     }, () => {
       this.model.serial_update_options.value = "Select an option";
     }, {model: this.model});
