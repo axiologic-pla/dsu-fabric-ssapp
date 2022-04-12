@@ -4,11 +4,7 @@
   "description": "SSApp Template",
   "main": "index.js",
   "scripts": {
-    "postinstall": "node ./node_modules/octopus/scripts/run dependencies devmode",
-    "prebuild": "node ./node_modules/octopus/scripts/run prebuild devmode",
-    "build": "node ./node_modules/octopus/scripts/buildDSU.js",
-    "build_new": "node ./node_modules/octopus/scripts/buildDSU.js ./bin/build.json",
-    "postbuild": "node ./node_modules/octopus/scripts/run postbuild devmode",
+    "build": "node ./../node_modules/octopus/scripts/buildDSU.js",
     "update": "npm install",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -17,7 +13,6 @@
     "url": "git+https://github.com/PrivateSky/ssapp-template.git"
   },
   "dependencies": {
-    "octopus": "git+https://github.com/PrivateSky/octopus.git"
   },
   "keywords": [
     "ssapp"
