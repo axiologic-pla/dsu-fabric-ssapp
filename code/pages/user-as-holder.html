@@ -32,7 +32,10 @@
             <div class="pl-3">
                 <div class="d-flex">
                     <p class="user-label">Wallet settings:</p>
-                    <button class="page-action-btn ml-3" data-tag="edit-settings">EDIT</button>
+                    <div data-if="@editableFeatures">
+                        <button class="page-action-btn ml-3" data-tag="edit-settings" slot="true">EDIT</button>
+                    </div>
+
                 </div>
 
                 <div id="environmentContainer">
