@@ -239,42 +239,9 @@ export default class ManageProductController extends WebcController {
   }
 
   validateGTIN(gtinValue) {
-    this.model.gtinIsValid = false;
-    if (isNaN(gtinValue)) {
-      this.model.invalidGTINMessage = "GTIN should be a numeric value";
-      return;
-    }
-    let gtinDigits = gtinValue.split("");
-
-    // TO DO this check is to cover all types of gtin. For the moment we support just 14 digits length. TO update also in leaflet-ssapp
-    /*
-    if (gtinDigits.length !== 8 && gtinDigits.length !== 12 && gtinDigits.length !== 13 && gtinDigits.length !== 14) {
-      this.model.invalidGTINMessage = "GTIN length should be 8, 12, 13 or 14";
-      return;
-    }
-    */
-
-    if (gtinDigits.length !== 14) {
-      this.model.invalidGTINMessage = "GTIN length should be 14";
-      return;
-    }
-    let j = gtinMultiplicationArray.length - 1;
-    let reszultSum = 0;
-    for (let i = gtinDigits.length - 2; i >= 0; i--) {
-      reszultSum = reszultSum + gtinDigits[i] * gtinMultiplicationArray[j];
-      j--;
-    }
-    let validDigit = Math.floor((reszultSum + 10) / 10) * 10 - reszultSum;
-    if (validDigit === 10) {
-      validDigit = 0;
-    }
-    if (gtinDigits[gtinDigits.length - 1] != validDigit) {
-      this.model.invalidGTINMessage = "Invalid GTIN. Last digit should be " + validDigit;
-      return;
-    }
-    this.model.invalidGTINMessage = "GTIN is valid";
-    this.model.gtinIsValid = true;
-    return;
+    let gtinValidationResult = gtinResolver.validationUtils.validateGTIN(gtinValue);
+    this.model.gtinIsValid = gtinValidationResult.isValid;
+    this.model.invalidGTINMessage = gtinValidationResult.message;
   }
 
   showMessageError(undigestedMessages) {
