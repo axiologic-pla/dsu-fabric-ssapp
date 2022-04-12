@@ -16,6 +16,10 @@ webc-modal {
     --header-button-background: none !important;
 }
 
+webc-modal::part(position) {
+    overflow: auto;
+}
+
 webc-modal .header-color {
     color: #565656 !important;
 }
@@ -75,6 +79,7 @@ psk-page::part(page-main) {
     box-shadow: none;
     outline: none;
 }
+
 .webc-datatable--header {
     background: #F4F5F5;
 }
