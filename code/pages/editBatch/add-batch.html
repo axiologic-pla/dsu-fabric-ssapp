@@ -105,7 +105,8 @@
                     <div class="d-flex flex-row mt-5">
                         <psk-button data-tag="cancel" label="Cancel"></psk-button>
                         <div data-if="@editMode">
-                            <psk-button data-tag="update-batch" label="Update batch" slot="true"></psk-button>
+                            <psk-button data-tag="update-batch" id="submit-batch" label="Update batch"
+                                        slot="true"></psk-button>
                             <psk-button data-tag="add-batch" label="Add batch" slot="false"></psk-button>
                         </div>
 
@@ -137,15 +138,16 @@
                                   rows="3" value="@productDescription"></textarea>
                     </div>
                     <div class="checkbox-container featureCode-07">
-                        <input type="checkbox"
-                               value="@hasAcdcAuthFeature">
+                        <input type="checkbox" value="@hasAcdcAuthFeature">
                         <span class="checkbox-label">Enable Authentication Feature</span>
                     </div>
-                    <psk-condition condition="@hasAcdcAuthFeature">
-                        <div class="col p-0">
-                            <psk-input view-model="@authFeatureFieldModel"></psk-input>
+                    <div data-if="@hasAcdcAuthFeature">
+                        <div class="background-container col mb-3 pl-3" slot="true">
+                            <div class="form-label">Authentication Feature SSI</div>
+                            <input class="form-control" placeholder="Add an authentication feature ssi" type="text"
+                                   value="@batch.acdcAuthFeatureSSI"/>
                         </div>
-                    </psk-condition>
+                    </div>
                     <div class="checkbox-container featureCode-07">
                         <input type="checkbox"
                                value="@batch.serialCheck">

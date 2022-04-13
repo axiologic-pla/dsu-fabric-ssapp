@@ -12,7 +12,6 @@ const mappings = require("gtin-resolver").loadApi("mappings");
 const gtinResolverUtils = require("gtin-resolver").getMappingsUtils();
 const arrayBufferToBase64 = gtinResolverUtils.arrayBufferToBase64;
 const ModelMessageService = require("gtin-resolver").loadApi("services").ModelMessageService;
-const gtinMultiplicationArray = [3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3];
 const gtinResolver = require("gtin-resolver");
 
 export default class ManageProductController extends WebcController {
@@ -27,7 +26,11 @@ export default class ManageProductController extends WebcController {
       });
 
       let state = this.history.location.state;
+      this.model.languageTypeCards = [];
       if (state && state.gtin) {
+        // product already exists, enter in edit mode
+        let submitButton = this.querySelector("#submit-product");
+        submitButton.disabled = true;
         this.storageService.getRecord(constants.PRODUCTS_TABLE, state.gtin, (err, product) => {
           this.model.submitLabel = "Update Product";
           this.model.product = new Product(product);
@@ -41,21 +44,30 @@ export default class ManageProductController extends WebcController {
             }
 
             this.model.languageTypeCards = attachments.languageTypeCards;
+            this.initialCards = JSON.parse(JSON.stringify(this.model.languageTypeCards));
             if (attachments.productPhoto) {
               this.model.product.photo = attachments.productPhoto;
             }
+            this.initialCards = JSON.parse(JSON.stringify(this.model.languageTypeCards));
+            this.initialModel = JSON.parse(JSON.stringify(this.model));
+            this.model.onChange("product", (...props) => {
+              this.manageUpdateButtonState(submitButton);
+            })
+            this.model.onChange("languageTypeCards", (...props) => {
+              this.manageUpdateButtonState(submitButton);
+            })
           });
           // ensureHolderCredential();
           this.model.product.videos.defaultSource = atob(this.model.product.videos.defaultSource);
           this.videoInitialDefaultSource = this.model.product.videos.defaultSource;
           this.validateGTIN(this.model.product.gtin);
+
         });
       } else {
         this.model.submitLabel = "Save Product";
         this.model.product = new Product();
         this.model.product.videos.defaultSource = atob(this.model.product.videos.defaultSource);
         this.videoInitialDefaultSource = this.model.product.videos.defaultSource;
-
         // ensureHolderCredential();
         this.validateGTIN(this.model.product.gtin);
 
@@ -68,7 +80,7 @@ export default class ManageProductController extends WebcController {
       utils.disableFeatures(this);
 
       this.model.videoSourceUpdated = false;
-      this.model.languageTypeCards = [];
+
 
       this.addEventListeners();
     }).catch(e => console.log("Couldn't get disabled features"))
@@ -83,8 +95,11 @@ export default class ManageProductController extends WebcController {
   }
 
 
-  addEventListeners() {
+  manageUpdateButtonState(updateButton) {
+    updateButton.disabled = JSON.stringify(this.model.languageTypeCards) === JSON.stringify(this.initialCards) && JSON.stringify(this.model.product) === JSON.stringify(this.initialModel.product) && !this.productPhoto;
+  }
 
+  addEventListeners() {
     this.onTagEvent("productcode-edit", "focusout", (model, target, event) => {
       this.validateGTIN(target.value);
     })
@@ -134,6 +149,8 @@ export default class ManageProductController extends WebcController {
 
     this.on("product-photo-selected", (event) => {
       this.productPhoto = event.data;
+      let submitButton = this.querySelector("#submit-product");
+      submitButton.disabled = false;
     });
 
     this.on('openFeedback', (e) => {

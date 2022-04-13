@@ -32,12 +32,6 @@ export default class addBatchController extends WebcController {
       this.model.batch = batch;
       // ACDC PATCH START
       this.model.hasAcdcAuthFeature = !!batch.acdcAuthFeatureSSI;
-      this.model.authFeatureFieldModel = {
-        label: "Authentication Feature SSI",
-        type: "text",
-        placeholder: "Add an authentication feature ssi",
-        value: this.model.batch.acdcAuthFeatureSSI
-      }
       // ACDC PATCH END
 
       this.model.batch.videos.defaultSource = atob(this.model.batch.videos.defaultSource);
@@ -62,15 +56,25 @@ export default class addBatchController extends WebcController {
       this.model.videoSourceUpdated = false;
       this.videoInitialDefaultSource = this.model.batch.videos.defaultSource;
 
-
       if (editMode) {
+
         this.gtin = this.model.batch.gtin;
         this.model.batch.version++;
         gtinResolver.DSUFabricUtils.getDSUAttachments(this.model.batch, disabledFeatures, (err, attachments) => {
           if (err) {
             this.showErrorModalAndRedirect("Failed to get inherited cards", "patch");
           }
+          let submitButton = this.querySelector("#submit-batch");
+          submitButton.disabled = true;
           this.model.languageTypeCards = attachments.languageTypeCards;
+          this.initialCards = JSON.parse(JSON.stringify(this.model.languageTypeCards));
+          this.initialModel = JSON.parse(JSON.stringify(this.model));
+          this.model.onChange("batch", (...props) => {
+            this.manageUpdateButtonState();
+          })
+          this.model.onChange("languageTypeCards", (...props) => {
+            this.manageUpdateButtonState();
+          })
         });
         this.model.batch.enableExpiryDay = this.model.batch.expiry.slice(-2) !== "00";
 
@@ -78,6 +82,8 @@ export default class addBatchController extends WebcController {
           this.model.batch.productName = product.name;
           this.model.productDescription = product.description;
         });
+
+
       }
 
       this.storageService.filter(this.model.batch.batchNumber, "__timestamp > 0", (err, logs) => {
@@ -114,10 +120,6 @@ export default class addBatchController extends WebcController {
       return this.showErrorModal("Invalid product code. Please select a valid code");
     }
     let batch = this.initBatch();
-
-    // ACDC PATCH START
-    batch.acdcAuthFeatureSSI = this.model.authFeatureFieldModel.value;
-    // ACDC PATCH END
 
     if (!batch.expiryForDisplay) {
       return this.showErrorModal("Invalid date");
@@ -172,6 +174,12 @@ export default class addBatchController extends WebcController {
       this.showErrorModal(e.message);
     }
   };
+
+  manageUpdateButtonState() {
+    let button = this.querySelector("#submit-batch");
+    let serialIsUpdated = this.model.serialNumbers || this.model.recalledSerialNumbers || this.model.decommissionedSerialNumbers;
+    button.disabled = JSON.stringify(this.model.languageTypeCards) === JSON.stringify(this.initialCards) && JSON.stringify(this.model.batch) === JSON.stringify(this.initialModel.batch) && !serialIsUpdated;
+  }
 
   addEventListeners() {
     this.model.onChange("batch.batchNumber", (event) => {
@@ -362,7 +370,7 @@ export default class addBatchController extends WebcController {
     }
 
     const serialNumbersLog = {}
-    this.showModalFromTemplate('update-batch-serial-numbers', async() => {
+    this.showModalFromTemplate('update-batch-serial-numbers', async () => {
       switch (type) {
         case "update-valid-serial":
           serialNumbersLog.action = "Updated valid serial numbers list";
@@ -371,8 +379,7 @@ export default class addBatchController extends WebcController {
             this.model.batch.snValidReset = true;
           }
           this.model.serialNumbers = this.model.actionModalModel.serialNumbers;
-
-          break
+          break;
         case "update-recalled-serial":
           serialNumbersLog.creationTime = new Date().toUTCString();
           serialNumbersLog.action = "Updated recalled serial numbers list";
@@ -380,7 +387,7 @@ export default class addBatchController extends WebcController {
             this.model.batch.snRecalledReset = true;
           }
           this.model.recalledSerialNumbers = this.model.actionModalModel.serialNumbers;
-          break
+          break;
         case "update-decommissioned-serial":
           serialNumbersLog.action = "Updated decommissioned serial numbers list";
           serialNumbersLog.creationTime = new Date().toUTCString();
@@ -389,8 +396,9 @@ export default class addBatchController extends WebcController {
           }
           this.model.decommissionedSerialNumbers = this.model.actionModalModel.serialNumbers;
           this.model.batch.decommissionReason = this.model.actionModalModel.reason.value;
-          break
+          break;
       }
+      this.manageUpdateButtonState();
       this.model.serial_update_options.value = "Select an option";
       await $$.promisify(this.storageService.addIndex.bind(this.storageService))(this.model.batch.batchNumber, "__timestamp");
       await $$.promisify(this.storageService.insertRecord.bind(this.storageService))(this.model.batch.batchNumber, serialNumbersLog.creationTime, serialNumbersLog);
