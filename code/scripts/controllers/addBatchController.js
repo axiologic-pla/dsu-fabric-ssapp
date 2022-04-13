@@ -192,7 +192,7 @@ export default class addBatchController extends WebcController {
     })
     this.model.onChange("hasAcdcAuthFeature", (event) => {
       if (!this.model.hasAcdcAuthFeature) {
-        this.model.authFeatureFieldModel.value = "";
+        this.model.batch.acdcAuthFeatureSSI = "";
       }
     })
     this.onTagClick("cancel", () => {
