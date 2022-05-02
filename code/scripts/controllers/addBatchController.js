@@ -204,11 +204,12 @@ export default class addBatchController extends WebcController {
     this.model.onChange('batch.videos.defaultSource', async (...props) => {
       this.model.videoSourceUpdated = this.videoInitialDefaultSource !== this.model.batch.videos.defaultSource;
     })
-    this.model.onChange("serial_update_options.value", (event) => {
+    this.model.onChange("serial_update_options.value", async (event) => {
       if (this.model.serial_update_options.value === "update-history") {
         this.showSerialHistoryModal()
       } else {
-        this.updateSerialsModal(this.model.serial_update_options.value);
+        await this.updateSerialsModal(this.model.serial_update_options.value);
+        this.manageUpdateButtonState();
       }
     });
 
@@ -333,7 +334,7 @@ export default class addBatchController extends WebcController {
     }, {model: this.model});
   }
 
-  updateSerialsModal(type) {
+  async updateSerialsModal(type) {
     this.model.actionModalModel = {
       title: "Enter serial numbers separated by comma",
       acceptButtonText: 'Accept',
@@ -366,6 +367,7 @@ export default class addBatchController extends WebcController {
     }
 
     const serialNumbersLog = {}
+
     this.showModalFromTemplate('update-batch-serial-numbers', async () => {
       switch (type) {
         case "update-valid-serial":
@@ -394,12 +396,14 @@ export default class addBatchController extends WebcController {
           this.model.batch.decommissionReason = this.model.actionModalModel.reason.value;
           break;
       }
-      this.manageUpdateButtonState();
+
       this.model.serial_update_options.value = "Select an option";
       await $$.promisify(this.storageService.addIndex.bind(this.storageService))(this.model.batch.batchNumber, "__timestamp");
       await $$.promisify(this.storageService.insertRecord.bind(this.storageService))(this.model.batch.batchNumber, serialNumbersLog.creationTime, serialNumbersLog);
+      return;
     }, () => {
       this.model.serial_update_options.value = "Select an option";
+      return;
     }, {model: this.model});
   }
 
