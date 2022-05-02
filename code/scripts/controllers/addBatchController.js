@@ -259,19 +259,15 @@ export default class addBatchController extends WebcController {
         }
       })
       videoMessage.videos.sources = videoSources
-      MessagesService.processMessages(messageArr, this.DSUStorage, async (undigestedMessages) => {
-        MessagesService.processMessages([videoMessage], this.DSUStorage, (undigestedVideo) => {
-          this.hideModal();
-          this.showMessageError([...undigestedMessages, ...undigestedVideo])
-        });
-      })
 
-    } else {
-      MessagesService.processMessages(messageArr, this.DSUStorage, async (undigestedMessages) => {
-        this.hideModal();
-        this.showMessageError(undigestedMessages)
-      })
+      messageArr.push(videoMessage);
+
     }
+
+    MessagesService.processMessages(messageArr, this.DSUStorage, async (undigestedMessages) => {
+      this.hideModal();
+      this.showMessageError(undigestedMessages)
+    })
   }
 
   showMessageError(undigestedMessages) {

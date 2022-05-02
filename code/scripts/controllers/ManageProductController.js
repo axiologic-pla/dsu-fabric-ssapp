@@ -209,6 +209,7 @@ export default class ManageProductController extends WebcController {
       leafletMsg.code = message.product.productCode;
       let cardMessages = await gtinResolver.DSUFabricUtils.createEpiMessages(leafletMsg);
 
+
       if (!this.DSUStorage.directAccessEnabled) {
         this.DSUStorage.enableDirectAccess(async () => {
           this.sendMessagesToProcess([message, ...photoMessages, ...cardMessages]);
@@ -240,19 +241,15 @@ export default class ManageProductController extends WebcController {
       })
       videoMessage.videos.sources = videoSources
 
+      messageArr.push(videoMessage);
 
-      MessagesService.processMessages(messageArr, this.DSUStorage, async (undigestedMessages) => {
-        MessagesService.processMessages([videoMessage], this.DSUStorage, (videoUndigested) => {
-          this.hideModal();
-          this.showMessageError([...undigestedMessages, ...videoUndigested]);
-        });
-      })
-    } else {
-      MessagesService.processMessages(messageArr, this.DSUStorage, async (undigestedMessages) => {
-        this.hideModal();
-        this.showMessageError(undigestedMessages);
-      })
     }
+
+    MessagesService.processMessages(messageArr, this.DSUStorage, async (undigestedMessages) => {
+      this.hideModal();
+      this.showMessageError(undigestedMessages);
+    })
+
   }
 
   validateGTIN(gtinValue) {
