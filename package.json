@@ -1,26 +1,25 @@
 {
-  "name": "ssapp-template",
-  "version": "1.0.0",
-  "description": "SSApp Template",
-  "main": "index.js",
-  "scripts": {
-    "build": "node ./../node_modules/octopus/scripts/buildDSU.js",
-    "update": "npm install",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/PrivateSky/ssapp-template.git"
-  },
-  "dependencies": {
-  },
-  "keywords": [
-    "ssapp"
-  ],
-  "author": "",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/PrivateSky/ssapp-template/issues"
-  },
-  "homepage": "https://github.com/PrivateSky/ssapp-template#readme"
+    "name": "ssapp-template",
+    "version": "v1.0.1",
+    "description": "SSApp Template",
+    "main": "index.js",
+    "scripts": {
+        "build": "node ./../node_modules/octopus/scripts/buildDSU.js",
+        "update": "npm install",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/PrivateSky/ssapp-template.git"
+    },
+    "dependencies": {},
+    "keywords": [
+        "ssapp"
+    ],
+    "author": "",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/PrivateSky/ssapp-template/issues"
+    },
+    "homepage": "https://github.com/PrivateSky/ssapp-template#readme"
 }
