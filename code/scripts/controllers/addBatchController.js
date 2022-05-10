@@ -177,6 +177,9 @@ export default class addBatchController extends WebcController {
 
   manageUpdateButtonState() {
     let button = this.querySelector("#submit-batch");
+    if (!button) {
+      return;
+    }
     let serialIsUpdated = this.model.serialNumbers || this.model.recalledSerialNumbers || this.model.decommissionedSerialNumbers;
     button.disabled = JSON.stringify(this.model.languageTypeCards) === JSON.stringify(this.initialCards) && JSON.stringify(this.model.batch) === JSON.stringify(this.initialModel.batch) && !serialIsUpdated;
   }
@@ -208,8 +211,7 @@ export default class addBatchController extends WebcController {
       if (this.model.serial_update_options.value === "update-history") {
         this.showSerialHistoryModal()
       } else {
-        await this.updateSerialsModal(this.model.serial_update_options.value);
-        this.manageUpdateButtonState();
+        this.updateSerialsModal(this.model.serial_update_options.value);
       }
     });
 
@@ -334,7 +336,7 @@ export default class addBatchController extends WebcController {
     }, {model: this.model});
   }
 
-  async updateSerialsModal(type) {
+  updateSerialsModal(type) {
     this.model.actionModalModel = {
       title: "Enter serial numbers separated by comma",
       acceptButtonText: 'Accept',
@@ -400,6 +402,7 @@ export default class addBatchController extends WebcController {
       this.model.serial_update_options.value = "Select an option";
       await $$.promisify(this.storageService.addIndex.bind(this.storageService))(this.model.batch.batchNumber, "__timestamp");
       await $$.promisify(this.storageService.insertRecord.bind(this.storageService))(this.model.batch.batchNumber, serialNumbersLog.creationTime, serialNumbersLog);
+      this.manageUpdateButtonState();
       return;
     }, () => {
       this.model.serial_update_options.value = "Select an option";
