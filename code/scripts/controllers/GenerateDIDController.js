@@ -52,7 +52,10 @@ export default class GenerateDIDController extends WebcController {
       if (!did) {
         const userDetails = await getUserDetails();
         const vaultDomain = await $$.promisify(scAPI.getVaultDomain)();
-        let userId = userDetails.username;
+        const openDSU = require("opendsu");
+        const config = openDSU.loadAPI("config");
+        let appName = await $$.promisify(config.getEnv)("appName");
+        let userId = `${appName}/${userDetails.username}`;
         let i = 1;
         do {
           try {
@@ -63,7 +66,7 @@ export default class GenerateDIDController extends WebcController {
             did = null;
           }
           if (did) {
-            userId = userDetails.username + i++;
+            userId = userId + i++;
           }
         } while (did)
 
