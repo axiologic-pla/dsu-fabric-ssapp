@@ -124,3 +124,8 @@ psk-page::part(page-main) {
 .pagination-container .prev-page-btn {
     margin-right: 15px;
 }
+
+*[userwrights="readonly"] {
+    pointer-events: none;
+    opacity: 0.9;
+}

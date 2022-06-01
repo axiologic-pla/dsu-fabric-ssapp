@@ -16,7 +16,7 @@ const gtinResolver = require("gtin-resolver");
 export default class addBatchController extends WebcController {
   constructor(...props) {
     super(...props);
-    gtinResolver.DSUFabricFeatureManager.getDisabledFeatures().then((disabledFeatures) => {
+    gtinResolver.DSUFabricFeatureManager.getDisabledFeatures().then(async (disabledFeatures) => {
       this.model.disabledFeatures = disabledFeatures
       let state = this.history.location.state;
       const editMode = state != null && state.batchData != null;
@@ -26,6 +26,7 @@ export default class addBatchController extends WebcController {
       this.storageService = getSharedStorage(this.DSUStorage);
       getCommunicationService(this.DSUStorage).waitForMessage(() => {
       });
+      this.model.userwrights = await utils.getUserWrights(this.DSUStorage);
       this.versionOffset = 1;
       this.model.languageTypeCards = [];
 

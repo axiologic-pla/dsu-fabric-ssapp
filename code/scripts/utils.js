@@ -1,3 +1,5 @@
+import constants from "./controllers/constants.js";
+
 function convertDateToISO(dateString) {
   const d = new Date(dateString);
   let isoDateString = d.toISOString();
@@ -201,6 +203,24 @@ async function getUserDetails() {
   }
 }
 
+async function getUserWrights(dsuStorage) {
+  let userWrights = "readonly";
+  try {
+    let credential = await $$.promisify(dsuStorage.getObject, dsuStorage)(constants.WALLET_CREDENTIAL_FILE_PATH);
+    let crypto = require("opendsu").loadApi("crypto");
+    let jwtContent = await $$.promisify(crypto.parseJWTSegments)(credential.credential);
+    let bodySubParts = jwtContent.body.sub.split(":");
+    let userEpiGroup = bodySubParts[bodySubParts.length - 1];
+    if (userEpiGroup !== constants.EPI_READ_GROUP) {
+      userWrights = "readwrite"
+    }
+  } catch (e) {
+    //if any error keep readonly wrights for the user
+    console.log("Could not get user wrights", e);
+  }
+  return userWrights;
+}
+
 function generateRandom(n) {
   let add = 1,
     max = 12 - add;
@@ -263,5 +283,6 @@ export default {
   getUserDetails,
   generateRandom,
   initMessage,
-  disableFeatures
+  disableFeatures,
+  getUserWrights
 }

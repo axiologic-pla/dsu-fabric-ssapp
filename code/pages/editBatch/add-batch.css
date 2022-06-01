@@ -1,3 +1,7 @@
+*[userwrights="readonly"] .submit-batch-btn {
+    display: none;
+}
+
 psk-input div input,
 psk-textarea div textarea,
 .context-group {

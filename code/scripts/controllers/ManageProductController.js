@@ -18,15 +18,15 @@ export default class ManageProductController extends WebcController {
   constructor(...props) {
     super(...props);
 
-    gtinResolver.DSUFabricFeatureManager.getDisabledFeatures().then((disabledFeatures) => {
+    gtinResolver.DSUFabricFeatureManager.getDisabledFeatures().then(async (disabledFeatures) => {
       this.model.disabledFeatures = disabledFeatures
       this.model = {};
       this.storageService = getSharedStorage(this.DSUStorage);
-      getCommunicationService(this.DSUStorage).waitForMessage(() => {
-      });
+      getCommunicationService(this.DSUStorage).waitForMessage(() => {});
 
       let state = this.history.location.state;
       this.model.languageTypeCards = [];
+      this.model.userwrights = await utils.getUserWrights(this.DSUStorage);
       if (state && state.gtin) {
         // product already exists, enter in edit mode
         let submitButton = this.querySelector("#submit-product");

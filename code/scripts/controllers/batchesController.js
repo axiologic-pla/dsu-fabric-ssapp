@@ -92,6 +92,10 @@ export default class batchesController extends WebcController {
   constructor(element, history) {
     super(element, history);
     this.model = {};
+    utils.getUserWrights(this.DSUStorage).then((userWrights) => {
+      this.model.userwrights = userWrights;
+    })
+
     this.model.batches = [];
     this.storageService = getSharedStorage(this.DSUStorage);
     getCommunicationService(this.DSUStorage).waitForMessage(() => {
@@ -137,5 +141,4 @@ export default class batchesController extends WebcController {
       {capture: true}
     );
   }
-
 }

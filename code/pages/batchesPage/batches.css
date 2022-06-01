@@ -1,3 +1,7 @@
+*[userwrights="readonly"] button {
+    display: none;
+}
+
 .batches-container .webc-datatable--container {
     display: grid;
     grid-template-columns: repeat(7, 1fr);

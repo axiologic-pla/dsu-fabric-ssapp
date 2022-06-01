@@ -1,6 +1,9 @@
+import utils from "../utils.js";
+
 const {WebcController} = WebCardinal.controllers;
 import constants from "../constants.js";
 import getSharedStorage from "../services/SharedDBStorageService.js";
+
 const LogService = require("gtin-resolver").loadApi("services").LogService;
 import Product from "../models/Product.js";
 import {getCommunicationService} from "../services/CommunicationService.js";
@@ -16,7 +19,6 @@ class ProductsDataSource extends LazyDataSource {
 export default class ProductsController extends WebcController {
   constructor(element, history) {
     super(element, history);
-
     this.model = {};
     this.storageService = getSharedStorage(this.DSUStorage);
     this.logService = new LogService(this.DSUStorage);
@@ -27,6 +29,10 @@ export default class ProductsController extends WebcController {
     });
     getCommunicationService(this.DSUStorage).waitForMessage(() => {
     });
+
+    utils.getUserWrights(this.DSUStorage).then((userWrights) => {
+      this.model.userwrights = userWrights;
+    })
 
     lazyUtils.attachHandlers(this, "prodDataSource")
     this.onTagClick("add-product", async (model, target, event) => {
@@ -113,6 +119,7 @@ export default class ProductsController extends WebcController {
       this.feedbackEmitter = e.detail;
     });
   }
+
 
   addProductToProductsList(product, callback) {
     this.storageService.getRecord(constants.PRODUCTS_TABLE, product.gtin, (err, prod) => {

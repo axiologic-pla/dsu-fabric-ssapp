@@ -1,3 +1,6 @@
+*[userwrights="readonly"] #submit-product {
+    display: none;
+}
 
 psk-form-row {
     padding-left: 10px;
