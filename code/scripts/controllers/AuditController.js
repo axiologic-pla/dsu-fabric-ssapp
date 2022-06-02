@@ -86,7 +86,7 @@ export default class AuditController extends WebcController {
       tableName: constants.LOGS_TABLE,
       searchField: "itemCode"
     });
-    getCommunicationService(this.DSUStorage).waitForMessage(() => {
+    getCommunicationService(this.DSUStorage).waitForMessage(this, () => {
     });
 
     lazyUtils.attachHandlers(this, "auditDataSource");

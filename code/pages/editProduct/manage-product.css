@@ -1,4 +1,4 @@
-*[userwrights="readonly"] #submit-product {
+#submit-product[userwrights="readonly"] {
     display: none;
 }
 

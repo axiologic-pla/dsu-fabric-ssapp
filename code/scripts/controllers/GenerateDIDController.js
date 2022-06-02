@@ -17,33 +17,39 @@ export default class GenerateDIDController extends WebcController {
     const w3cDID = openDSU.loadAPI("w3cdid");
     const scAPI = openDSU.loadAPI("sc");
     const sc = scAPI.getSecurityContext();
+
     const __generateDID = async () => {
+      const mainEnclave = await $$.promisify(scAPI.getMainEnclave)();
       let did;
       try {
-        did = await $$.promisify(
-          this.DSUStorage.getObject.bind(this.DSUStorage)
-        )(constants.WALLET_DID_PATH);
+        did = await $$.promisify(mainEnclave.readKey)("did");
       } catch (e) {
         console.log("Failed to read DID ", e);
       }
 
       const __waitForAuthorization = async () => {
-        const credential = await $$.promisify(
-          this.DSUStorage.getObject.bind(this.DSUStorage)
-        )(constants.WALLET_CREDENTIAL_FILE_PATH);
+        let credential;
+        try {
+          credential = await $$.promisify(mainEnclave.readKey)("credential");
+        } catch (e) {
+
+        }
 
         if (!credential) {
           this.authorizationStillInProgress();
 
           try {
-            await $$.promisify(
-              getCommunicationService(this.DSUStorage).waitForMessage
-            )();
+            await $$.promisify(getCommunicationService(this.DSUStorage).waitForMessage)(this);
           } catch (e) {
             throw e;
           }
           this.authorizationIsDone();
           return;
+        }
+        if (credential === "deleted") {
+          this.authorizationStillInProgress();
+          WebCardinal.root.hidden = false;
+          return this.navigateToPageTag("deleted-account");
         }
 
         this.authorizationIsDone();
@@ -76,13 +82,12 @@ export default class GenerateDIDController extends WebcController {
           userId
         );
         this.model.identity = did.getIdentifier();
-        await $$.promisify(
-          this.DSUStorage.setObject.bind(this.DSUStorage)
-        )(constants.WALLET_DID_PATH, {did: did.getIdentifier()});
+        await $$.promisify(mainEnclave.writeKey)("did", this.model.identity);
+        //await $$.promisify(this.DSUStorage.setObject.bind(this.DSUStorage))(constants.WALLET_DID_PATH, {did: did.getIdentifier()});
         await __waitForAuthorization();
       } else {
-        this.model.identity = did.did;
-        did = await $$.promisify(w3cDID.resolveDID)(did.did);
+        this.model.identity = did;
+        did = await $$.promisify(w3cDID.resolveDID)(did);
         await __waitForAuthorization();
       }
     };

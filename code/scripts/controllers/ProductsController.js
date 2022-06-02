@@ -27,10 +27,10 @@ export default class ProductsController extends WebcController {
       tableName: constants.PRODUCTS_TABLE,
       searchField: "gtin"
     });
-    getCommunicationService(this.DSUStorage).waitForMessage(() => {
+    getCommunicationService(this.DSUStorage).waitForMessage(this, () => {
     });
 
-    utils.getUserWrights(this.DSUStorage).then((userWrights) => {
+    utils.getUserWrights().then((userWrights) => {
       this.model.userwrights = userWrights;
     })
 

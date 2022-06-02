@@ -203,12 +203,15 @@ async function getUserDetails() {
   }
 }
 
-async function getUserWrights(dsuStorage) {
+async function getUserWrights() {
   let userWrights = "readonly";
+  const openDSU = require("opendsu");
+  const scAPI = openDSU.loadAPI("sc");
   try {
-    let credential = await $$.promisify(dsuStorage.getObject, dsuStorage)(constants.WALLET_CREDENTIAL_FILE_PATH);
+    const mainEnclave = await $$.promisify(scAPI.getMainEnclave)();
+    let credential = await $$.promisify(mainEnclave.readKey)("credential");
     let crypto = require("opendsu").loadApi("crypto");
-    let jwtContent = await $$.promisify(crypto.parseJWTSegments)(credential.credential);
+    let jwtContent = await $$.promisify(crypto.parseJWTSegments)(credential);
     let bodySubParts = jwtContent.body.sub.split(":");
     let userEpiGroup = bodySubParts[bodySubParts.length - 1];
     if (userEpiGroup !== constants.EPI_READ_GROUP) {

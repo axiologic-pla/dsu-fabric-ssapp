@@ -17,7 +17,7 @@ export default class HolderController extends WebcController {
     this.model = {displayCredentialArea: true, isInvalidCredential: false};
     this.model.domain = "epi";
 
-    getCommunicationService(this.DSUStorage).waitForMessage(() => {
+    getCommunicationService(this.DSUStorage).waitForMessage(this, () => {
     });
     const setCredential = credential => {
       this.model.credential = credential;
@@ -58,8 +58,26 @@ export default class HolderController extends WebcController {
         await this.renderSettingsContainer();
       });
     }
+    const scAPI = openDSU.loadAPI("sc");
+    scAPI.getMainEnclave(async (err, mainEnclave) => {
+      if (err) {
+        return console.log(err);
+      }
+      try {
+        let did = await $$.promisify(mainEnclave.readKey)("did");
+        this.model.did = did;
+        let credential = await $$.promisify(mainEnclave.readKey)("credential");
+        this.model.displayCredentialArea = !!credential;
+        if (this.model.displayCredentialArea) {
+          setCredential(credential);
+        }
+      } catch (e) {
+        this.model.displayCredentialArea = false;
+      }
 
-    this.DSUStorage.getObject(constants.WALLET_DID_PATH, (err, didObj) => {
+    });
+
+/*    this.DSUStorage.getObject(constants.WALLET_DID_PATH, (err, didObj) => {
       if (err) {
         return console.log(err);
       }
@@ -73,7 +91,7 @@ export default class HolderController extends WebcController {
           setCredential(credential.credential);
         }
       });
-    });
+    });*/
 
     this.on('openFeedback', (e) => {
       this.feedbackEmitter = e.detail;

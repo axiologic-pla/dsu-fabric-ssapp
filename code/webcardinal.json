@@ -67,6 +67,11 @@
       "src": "./importPage/import.html",
       "path": "./import",
       "indexed": false
+    },
+    {
+      "name": "Deleted Account",
+      "tag": "deleted-account",
+      "indexed": false
     }
   ]
 }

@@ -22,11 +22,12 @@ export default class ManageProductController extends WebcController {
       this.model.disabledFeatures = disabledFeatures
       this.model = {};
       this.storageService = getSharedStorage(this.DSUStorage);
-      getCommunicationService(this.DSUStorage).waitForMessage(() => {});
+      getCommunicationService(this.DSUStorage).waitForMessage(this, () => {
+      });
 
       let state = this.history.location.state;
       this.model.languageTypeCards = [];
-      this.model.userwrights = await utils.getUserWrights(this.DSUStorage);
+      this.model.userwrights = await utils.getUserWrights();
       if (state && state.gtin) {
         // product already exists, enter in edit mode
         let submitButton = this.querySelector("#submit-product");

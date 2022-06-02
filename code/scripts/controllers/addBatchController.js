@@ -24,9 +24,9 @@ export default class addBatchController extends WebcController {
       let batch = new Batch(editData);
       this.model = {};
       this.storageService = getSharedStorage(this.DSUStorage);
-      getCommunicationService(this.DSUStorage).waitForMessage(() => {
+      getCommunicationService(this.DSUStorage).waitForMessage(this, () => {
       });
-      this.model.userwrights = await utils.getUserWrights(this.DSUStorage);
+      this.model.userwrights = await utils.getUserWrights();
       this.versionOffset = 1;
       this.model.languageTypeCards = [];
 
