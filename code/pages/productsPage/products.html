@@ -12,7 +12,7 @@
                 <button class="page-action-btn" data-tag="add-product">+ ADD PRODUCT</button>
             </div>
 
-            <div class="products-container">
+            <div class="products-container" userwrights="@userwrights">
                 <webc-datatable datasource="@prodDataSource" hide-pagination>
                     <div class="fist-table-header first-column" slot="header">Brand / invented name</div>
                     <div class="fist-table-header first-column" slot="header">Name of Medicinal Product</div>
@@ -37,9 +37,12 @@
                     <div class="data-item">{{@adverseEventsReportingEnabled}}</div>
                     <div class="data-item">{{@antiCounterfeitingEnabled}}</div>
                     <div class="data-item last-column">
-                        <button class="btn btn-link p-0 col align-self-center text-left" data-tag="edit-product"
+                        <button class="btn btn-link p-0 col align-self-center text-left view-edit-button"
+                                data-tag="edit-product"
                                 gtin="@gtin"
-                                type="button">View/Edit
+                                type="button">
+                            <span class="edit-wrights">View/Edit</span>
+                            <span class="readonly-wrights">View</span>
                         </button>
                     </div>
                     <!--                    <div class="data-item last-column">

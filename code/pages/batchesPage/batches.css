@@ -2,6 +2,24 @@
     display: none;
 }
 
+.batches-container[userwrights="readonly"] button{
+    display: block;
+    pointer-events: all;
+    opacity: 1;
+    line-height: 0.6rem;
+}
+.batches-container[userwrights="readonly"] span.edit-wrights {
+    display: none;
+}
+
+.batches-container span.readonly-wrights {
+    display: none;
+}
+
+.batches-container[userwrights="readonly"] span.readonly-wrights {
+    display: block;
+}
+
 .batches-container .webc-datatable--container {
     display: grid;
     grid-template-columns: repeat(7, 1fr);

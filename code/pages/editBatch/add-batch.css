@@ -1,3 +1,16 @@
+.add-batch-container[userwrights="readonly"]:before {
+    content: "Read only mode";
+    color: #e9510e;
+    font-weight: 700;
+    text-align: left;
+    margin: 0;
+    padding-left: 60px;
+    font-size: 1.802rem;
+    position: absolute;
+    top: 95px;
+    left: 0px;
+    opacity: 0.7;
+}
 *[userwrights="readonly"] .submit-batch-btn {
     display: none;
 }

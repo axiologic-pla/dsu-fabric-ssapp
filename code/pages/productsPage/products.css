@@ -2,6 +2,24 @@
     display: none;
 }
 
+.products-container[userwrights="readonly"] .view-edit-button{
+    display: block;
+    pointer-events: all;
+    opacity: 1;
+}
+.products-container[userwrights="readonly"] .view-edit-button span.edit-wrights {
+    display: none;
+}
+
+.products-container .view-edit-button span.readonly-wrights {
+    display: none;
+}
+
+.products-container[userwrights="readonly"] .view-edit-button span.readonly-wrights {
+    display: block;
+}
+
+
 .products-container .webc-datatable--container {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
