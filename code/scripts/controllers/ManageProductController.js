@@ -264,7 +264,8 @@ export default class ManageProductController extends WebcController {
     if (undigestedMessages.length > 0) {
       undigestedMessages.forEach(msg => {
         if (errors.findIndex((elem) => elem.message === msg.reason.originalMessage || elem.message === msg.reason.debug_message) < 0) {
-          errors.push({message: msg.reason.originalMessage || msg.reason.debug_message});
+          let obj = typeof msg.reason === "object" ? msg.reason : msg.error;
+          errors.push({message: obj.originalMessage || obj.debug_message});
         }
       })
 

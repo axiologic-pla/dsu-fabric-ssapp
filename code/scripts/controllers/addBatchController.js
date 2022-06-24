@@ -161,6 +161,7 @@ export default class addBatchController extends WebcController {
       leafletMsg.type = "batch";
       leafletMsg.username = this.model.username;
       leafletMsg.code = message.batch.batch;
+      leafletMsg.productCode = message.batch.productCode;
       let cardMessages = await gtinResolver.DSUFabricUtils.createEpiMessages(leafletMsg);
 
       if (!this.DSUStorage.directAccessEnabled) {
@@ -279,7 +280,8 @@ export default class addBatchController extends WebcController {
     if (undigestedMessages.length > 0) {
       undigestedMessages.forEach(msg => {
         if (errors.findIndex((elem) => elem.message === msg.reason.originalMessage || elem.message === msg.reason.debug_message) < 0) {
-          errors.push({message: msg.reason.originalMessage || msg.reason.debug_message});
+          let obj = typeof msg.reason === "object" ? msg.reason : msg.error;
+          errors.push({message: obj.originalMessage || obj.debug_message});
         }
       })
 
