@@ -21,7 +21,8 @@ function CommunicationService(dsuStorage) {
       try {
         message = await $$.promisify(did.readMessage)();
       } catch (e) {
-        return this.waitForMessage(dsuStorage);
+        isWaitingForMessage = false;
+        return this.waitForMessage(dsuStorage, callback);
       }
       isWaitingForMessage = false;
       message = JSON.parse(message);
