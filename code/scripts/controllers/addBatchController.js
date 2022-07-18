@@ -134,6 +134,7 @@ export default class addBatchController extends WebcController {
     if (this.model.hasAcdcAuthFeature && !batch.acdcAuthFeatureSSI) {
       return this.showErrorModal("You have enabled Authentication Feature. Please add a value or disable it");
     }
+
     let error = batch.validate();
     if (error) {
       printOpenDSUError(createOpenDSUErrorWrapper("Invalid batch info", err));
@@ -163,19 +164,33 @@ export default class addBatchController extends WebcController {
       leafletMsg.code = message.batch.batch;
       leafletMsg.productCode = message.batch.productCode;
       let cardMessages = await gtinResolver.DSUFabricUtils.createEpiMessages(leafletMsg);
+      let messages = [];
+      if (this.batchWasUpdated()) {
+        messages = [message, ...cardMessages];
+      } else {
+        messages = [...cardMessages]
+      }
 
       if (!this.DSUStorage.directAccessEnabled) {
         this.DSUStorage.enableDirectAccess(async () => {
-          await this.sendMessagesToProcess([message, ...cardMessages]);
-        })
+          await this.sendMessagesToProcess(messages);
+        });
       } else {
-        await this.sendMessagesToProcess([message, ...cardMessages]);
+        await this.sendMessagesToProcess(messages);
       }
 
     } catch (e) {
       this.showErrorModal(e.message);
     }
   };
+
+  batchWasUpdated(){
+    if (!this.model.editMode) {
+      return true;
+    }
+    let serialIsUpdated = this.model.serialNumbers || this.model.recalledSerialNumbers || this.model.decommissionedSerialNumbers;
+    return !(JSON.stringify(this.model.batch) === JSON.stringify(this.initialModel.batch) && !serialIsUpdated);
+  }
 
   manageUpdateButtonState() {
     let button = this.querySelector("#submit-batch");

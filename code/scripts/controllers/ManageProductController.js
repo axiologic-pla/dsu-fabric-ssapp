@@ -26,6 +26,7 @@ export default class ManageProductController extends WebcController {
       });
 
       let state = this.history.location.state;
+      this.state = state;
       this.model.languageTypeCards = [];
       this.model.userwrights = await utils.getUserWrights();
       if (state && state.gtin) {
@@ -95,6 +96,12 @@ export default class ManageProductController extends WebcController {
     })
   }
 
+  productWasUpdated(){
+    if (!(this.state && this.state.gtin)) {
+      return true;
+    }
+    return JSON.stringify(this.model.product) !== JSON.stringify(this.initialModel.product);
+  }
 
   manageUpdateButtonState(updateButton) {
     updateButton.disabled = JSON.stringify(this.model.languageTypeCards) === JSON.stringify(this.initialCards) && JSON.stringify(this.model.product) === JSON.stringify(this.initialModel.product) && !this.productPhoto;
@@ -210,13 +217,19 @@ export default class ManageProductController extends WebcController {
       leafletMsg.code = message.product.productCode;
       let cardMessages = await gtinResolver.DSUFabricUtils.createEpiMessages(leafletMsg);
 
+      let messages = [];
+      if (this.productWasUpdated()) {
+        messages = [message, ...photoMessages, ...cardMessages];
+      }else{
+        messages = [...photoMessages, ...cardMessages];
+      }
 
       if (!this.DSUStorage.directAccessEnabled) {
         this.DSUStorage.enableDirectAccess(async () => {
-          this.sendMessagesToProcess([message, ...photoMessages, ...cardMessages]);
-        })
+          this.sendMessagesToProcess(messages);
+        });
       } else {
-        this.sendMessagesToProcess([message, ...photoMessages, ...cardMessages]);
+        this.sendMessagesToProcess(messages);
       }
 
     } catch (e) {
