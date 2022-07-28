@@ -27,13 +27,13 @@ function CommunicationService(dsuStorage) {
       isWaitingForMessage = false;
       message = JSON.parse(message);
       const mainDSU = await $$.promisify(scAPI.getMainDSU)();
-      if (message.messageType === "RemoveMembersFromGroup") {
+      if (message.messageType === "RemoveMembersFromGroup" || message.messageType === "DeactivateMember") {
         try {
           await $$.promisify(mainEnclave.writeKey)("credential", "deleted");
           await $$.promisify(scAPI.deleteSharedEnclave)();
           await $$.promisify(mainDSU.refresh)();
           scAPI.refreshSecurityContext();
-          return pageContext.history.go("deleted-account");
+          return pageContext.history.go("generate-did");
           callback(undefined);
         } catch (err) {
           console.log("Error on delete wallet ", err);
