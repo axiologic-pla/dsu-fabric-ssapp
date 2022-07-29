@@ -4,6 +4,8 @@
     <h6>
         <webc-container controller="addBatchController">
 
+            <div class="form-label batch-version"> Version {{@batch.version}}</div>
+
             <div class="d-flex flex-row justify-content-around mt-5 add-batch-container" userwrights="@userwrights">
                 <div class="col-5 align-self-start p-0">
                     <div class="col p-0">
@@ -91,14 +93,6 @@
                                       placeholder="This text will be displayed to user after Barcode is scanned if batch is recalled"
                                       required
                                       rows="3" slot="true" value="@batch.recalledMessage"></textarea>
-                        </div>
-                    </div>
-
-                    <div class="d-flex flex-row">
-                        <div class="read-only-container pl-3">
-                            <div class="form-label">Batch version</div>
-                            <input class="form-control" readonly type="text" value="@batch.version"/>
-
                         </div>
                     </div>
 

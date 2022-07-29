@@ -27,10 +27,6 @@
     border-radius: 7px;
 }
 
-.products-container .webc-datatable--header {
-    background: #F4F5F5;
-}
-
 .fist-table-header {
     border-top-left-radius: 7px;
 }
@@ -39,18 +35,6 @@
     border-top-right-radius: 7px;
 }
 
-#code-search {
-    border-radius: 4px;
-    margin-top: 5px;
-    padding: 3px;
-    border: 1px solid #e9510e;
-    font-size: 0.8rem;
-    width: 75%;
-}
-
-#code-search:focus {
-    outline: none;
-}
 
 .validity .fa-ban,
 .validity .fa-check {

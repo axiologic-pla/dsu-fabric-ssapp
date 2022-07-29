@@ -7,25 +7,23 @@
         <webc-container controller="ProductsController">
             <div class="d-flex justify-content-end" userwrights="@userwrights">
                 <button class="page-action-btn" data-tag="import">IMPORT</button>
-<!--                <button class="page-action-btn" data-tag="get-transferred-product">GET TRANSFERRED PRODUCT
-                </button>-->
+                <!--                <button class="page-action-btn" data-tag="get-transferred-product">GET TRANSFERRED PRODUCT
+                                </button>-->
                 <button class="page-action-btn" data-tag="add-product">+ ADD PRODUCT</button>
             </div>
 
             <div class="products-container" userwrights="@userwrights">
+                <div class="search-container">
+                    Search by product code <input id="code-search" placeholder="Search by code" type="search">
+                    <span class="validity">
+                                <i aria-hidden="true" class="fa fa-ban"></i>
+                                <i class="fa fa-check"></i>
+                             </span>
+                </div>
                 <webc-datatable datasource="@prodDataSource" hide-pagination>
                     <div class="fist-table-header first-column" slot="header">Brand / invented name</div>
-                    <div class="fist-table-header first-column" slot="header">Name of Medicinal Product</div>
-                    <div slot="header">
-                        <div>Product Code</div>
-                        <div class="search-container">
-                            <input id="code-search" placeholder="Search by code" type="search">
-                            <span class="validity">
-                    <i aria-hidden="true" class="fa fa-ban"></i>
-                    <i class="fa fa-check"></i>
-                </span>
-                        </div>
-                    </div>
+                    <div slot="header">Name of Medicinal Product</div>
+                    <div slot="header">Product Code</div>
                     <div slot="header">AE Report Enabled</div>
                     <div slot="header">AC Check Enabled</div>
                     <div class="last-table-header last-column" slot="header">View details</div>

@@ -2,12 +2,13 @@
     display: none;
 }
 
-.batches-container[userwrights="readonly"] button{
+.batches-container[userwrights="readonly"] button {
     display: block;
     pointer-events: all;
     opacity: 1;
     line-height: 0.6rem;
 }
+
 .batches-container[userwrights="readonly"] span.edit-wrights {
     display: none;
 }
@@ -27,33 +28,12 @@
     border-radius: 7px;
 }
 
-.batches-container .webc-datatable--header {
-    background: #F4F5F5;
-}
-
-.btn-link {
-    display: contents;
-}
-
 .fist-table-header {
     border-top-left-radius: 7px;
 }
 
 .last-table-header {
     border-top-right-radius: 7px;
-}
-
-#code-search {
-    border-radius: 4px;
-    margin-top: 5px;
-    padding: 3px;
-    border: 1px solid #e9510e;
-    font-size: 0.8rem;
-    width: 75%;
-}
-
-#code-search:focus {
-    outline: none;
 }
 
 .validity .fa-ban,

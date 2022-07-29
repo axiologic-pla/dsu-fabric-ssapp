@@ -36,19 +36,19 @@ a:hover {
 }
 
 .menu webc-link:nth-child(1) span {
-    background: linear-gradient(225deg, #FEE140 0%, #fa9570 100%);
+    background: linear-gradient(225deg, #9ACFBD 0%, #328569 100%);
 }
 
 .menu webc-link:nth-child(1):hover span {
-    background: linear-gradient(150deg, #FEE140 0%, #fa9570 100%);
+    background: linear-gradient(150deg, #9ACFBD 0%, #328569 100%);
 }
 
 .menu webc-link:nth-child(2) span {
-    background: linear-gradient(225deg, #FEE140 0%, #fa9570 100%);
+    background: linear-gradient(225deg, #9ACFBD 0%, #328569 100%);
 }
 
 .menu webc-link:nth-child(2):hover span {
-    background: linear-gradient(150deg, #FEE140 0%, #fa9570 100%);
+    background: linear-gradient(150deg, #9ACFBD 0%, #328569 100%);
 }
 
 .menu webc-link:nth-child(3) span {

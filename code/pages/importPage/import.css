@@ -16,10 +16,10 @@
 
 .prev-page-btn,
 .next-page-btn {
-    background-color: #e9510e;
+    background-color: #328569;
     border-style: none;
     box-shadow: none;
-    border: 1px solid #e9510e;
+    border: 1px solid #328569;
     color: white;
     padding: 8px 16px;
     margin-right: 10px;
@@ -36,7 +36,7 @@
     border-radius: 4px;
     margin: 10px;
     padding: 3px 8px;
-    border: 1px solid #e9510e;
+    border: 1px solid #328569;
     max-width: 250px;
 }
 

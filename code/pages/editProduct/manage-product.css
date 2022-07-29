@@ -1,6 +1,6 @@
 .manage-product-container[userwrights="readonly"]:before {
     content: "Read only mode";
-    color: #e9510e;
+    color: #328569;
     font-weight: 700;
     text-align: left;
     margin: 0;
@@ -10,6 +10,12 @@
     top: 95px;
     left: 0px;
     opacity: 0.7;
+}
+
+.product-version {
+    position: absolute;
+    top: 32px;
+    right: 145px;
 }
 
 #submit-product[userwrights="readonly"] {
@@ -45,7 +51,7 @@ input[type="checkbox"] {
 
 .read-only-container,
 .background-container {
-    border-bottom: 1.5px solid #E75222;
+    border-bottom: 1.5px solid #328569;
 }
 
 .background-container input,
@@ -70,7 +76,7 @@ input[type="checkbox"] {
 
 .form-label,
 .form-button {
-    color: #E75222;
+    color: #328569;
 }
 
 .editable-icon {
@@ -80,14 +86,14 @@ input[type="checkbox"] {
 }
 
 .form-button {
-    border: 1px solid #E75222;
+    border: 1px solid #328569;
     border-radius: 3px;
     padding: 7px;
     background: none;
 }
 
 .epi-card {
-    border: 1.5px solid #E75222;
+    border: 1.5px solid #328569;
     width: fit-content;
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.6);
     border-radius: 4px;

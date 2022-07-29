@@ -10,18 +10,16 @@
                 <button class="page-action-btn" data-tag="add-batch">ADD BATCH</button>
             </div>
             <div class="batches-container" userwrights="@userwrights">
+                <div class="search-container">
+                    Search by product code <input id="code-search" placeholder="Search by code" type="search">
+                    <span class="validity">
+                                 <i aria-hidden="true" class="fa fa-ban"></i>
+                                 <i class="fa fa-check"></i>
+                             </span>
+                </div>
                 <webc-datatable datasource="@batchesDataSource" hide-pagination>
                     <div class="fist-table-header" slot="header">Brand / invented name</div>
-                    <div slot="header">
-                        <div>Product Code</div>
-                        <div class="search-container">
-                            <input id="code-search" placeholder="Search by code" type="search">
-                            <span class="validity">
-                    <i aria-hidden="true" class="fa fa-ban"></i>
-                    <i class="fa fa-check"></i>
-                </span>
-                        </div>
-                    </div>
+                    <div slot="header"> Product Code</div>
                     <div slot="header">Batch</div>
                     <div slot="header">Expiry date</div>
                     <div slot="header">2D Data Matrix</div>
@@ -49,7 +47,8 @@
                     </div>
                     <div class="data-item">{{@version}}</div>
                     <div class="data-item">
-                        <button class="btn btn-link col align-self-center text-left edit-batch-button" data-tag="edit-batch"
+                        <button class="btn btn-link col align-self-center text-left edit-batch-button"
+                                data-tag="edit-batch"
                                 event-data="@batchNumber" type="button">
                             <span class="edit-wrights">Edit</span>
                             <span class="readonly-wrights">View</span>

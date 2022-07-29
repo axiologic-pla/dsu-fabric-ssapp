@@ -7,21 +7,19 @@
     <div class="test" slot="page-content">
         <webc-container controller="AuditController">
             <div class="audit-logs-container">
-                <webc-datatable datasource="@auditDataSource" hide-pagination>
-                    <div class="fist-table-header" slot="header">
-                        <div>Target</div>
-                        <div class="search-container">
-                            <input id="code-search" placeholder="Search by code" type="search">
-                            <span class="validity">
+                <div class="search-container">
+                    Search by product code <input id="code-search" placeholder="Search by code" type="search">
+                    <span class="validity">
                                     <i aria-hidden="true" class="fa fa-ban"></i>
                                     <i class="fa fa-check"></i>
                                 </span>
-                        </div>
-                    </div>
+                </div>
+                <webc-datatable datasource="@auditDataSource" hide-pagination>
+                    <div class="fist-table-header" slot="header">Target</div>
                     <div slot="header">Action</div>
                     <div slot="header">User</div>
                     <div slot="header">Creation Time</div>
-                    <div slot="header">Data</div>
+                    <div slot="header" class="last-table-header">Data</div>
 
                     <div class="data-item">{{@target}}</div>
                     <div class="data-item">{{@action}}</div>

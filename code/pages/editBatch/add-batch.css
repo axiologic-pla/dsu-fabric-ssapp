@@ -1,6 +1,6 @@
 .add-batch-container[userwrights="readonly"]:before {
     content: "Read only mode";
-    color: #e9510e;
+    color: #328569;
     font-weight: 700;
     text-align: left;
     margin: 0;
@@ -11,9 +11,17 @@
     left: 0px;
     opacity: 0.7;
 }
+
 *[userwrights="readonly"] .submit-batch-btn {
     display: none;
 }
+
+.batch-version {
+    position: absolute;
+    top: 32px;
+    right: 145px;
+}
+
 
 psk-input div input,
 psk-textarea div textarea,
@@ -27,7 +35,7 @@ psk-checkbox input {
 }
 
 psk-checkbox input:checked {
-    color: #E75222;
+    color: #328569;
 }
 
 psk-checkbox .form-check-inline {
@@ -40,7 +48,7 @@ psk-checkbox .form-check-inline {
 
 .read-only-container,
 .background-container {
-    border-bottom: 1.5px solid #E75222;
+    border-bottom: 1.5px solid #328569;
 }
 
 .background-container input,
@@ -80,7 +88,7 @@ psk-select .form-control:focus {
 
 .form-label,
 .form-button {
-    color: #E75222;
+    color: #328569;
 }
 
 .editable-icon {
@@ -90,15 +98,15 @@ psk-select .form-control:focus {
 }
 
 .form-button {
-    border: 1px solid #E75222;
+    border: 1px solid #328569;
     border-radius: 3px;
     padding: 7px;
     background: none;
 }
 
 .select-label {
-    border: 1px solid #E75222;
-    color: #E75222;
+    border: 1px solid #328569;
+    color: #328569;
     height: auto;
     border-bottom-left-radius: 3px;
     border-top-left-radius: 3px;
@@ -163,7 +171,7 @@ psk-date-input .formated-date:before {
     height: 100%;
     background: none;
     overflow: hidden;
-    border: 1px solid #E75222;
+    border: 1px solid #328569;
     border-bottom-right-radius: 3px;
     border-top-right-radius: 3px;
     border-bottom-left-radius: 0px;
@@ -181,7 +189,7 @@ psk-date-input .formated-date:before {
     -webkit-transition: .25s all ease;
     -o-transition: .25s all ease;
     transition: .25s all ease;
-    color: #E75222;
+    color: #328569;
     width: 100%;
     height: 100%;
     display: flex;
