@@ -34,7 +34,7 @@ export default class ProductsController extends WebcController {
       this.model.userwrights = userWrights;
     })
 
-    lazyUtils.attachHandlers(this, "prodDataSource")
+    lazyUtils.attachHandlers(this, "prodDataSource");
     this.onTagClick("add-product", async (model, target, event) => {
       event.stopImmediatePropagation();
       this.navigateToPageTag("manage-product");

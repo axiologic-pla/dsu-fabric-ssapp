@@ -67,7 +67,7 @@ export class LazyDataSource extends DataSource {
       resultData = this.dataSourceRezults.slice(startOffset, startOffset + dataLengthForCurrentPage);
       this.hasMoreLogs = this.dataSourceRezults.length >= startOffset + dataLengthForCurrentPage + 1;
 
-     if (!this.hasMoreLogs) {
+      if (!this.hasMoreLogs) {
         document.querySelector(".pagination-container .next-page-btn").disabled = true;
       } else {
         document.querySelector(".pagination-container .next-page-btn").disabled = false;
@@ -77,6 +77,9 @@ export class LazyDataSource extends DataSource {
       console.log("Eroor on get async page data  ", e);
     }
 
+    if(resultData.length === 0){
+      document.querySelector(".search-container").hidden = true;
+    }
     return this.getMappedResult(resultData);
   }
 
