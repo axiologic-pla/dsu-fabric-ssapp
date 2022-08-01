@@ -15,7 +15,7 @@ a:hover {
 
 .menu {
     gap: 2em;
-    padding: 170px 2em 2em 2em;
+    padding: 170px 2em 2em 80px;
     width: 100%;
     position: absolute;
     top: 0;
@@ -30,10 +30,13 @@ a:hover {
     gap: 1em;
     padding: 2em 1em;
     border-radius: 5px;
-    color: #FFFFFF;
+    color: #097C55;
+    font-size: 24px;
+    font-weight: 800;
     min-width: 230px;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.25);
 }
+
+/*
 
 .menu webc-link:nth-child(1) span {
     background: linear-gradient(225deg, #9ACFBD 0%, #328569 100%);
@@ -66,14 +69,21 @@ a:hover {
 .menu webc-link:nth-child(4):hover span {
     background: linear-gradient(175deg, #976ff9 0%, #784BA0 1%, #2B86C5 99%);
 }
+*/
+.menu webc-link {
+    background: #ffffff;
+    width: 420px;
+    box-shadow: 0px 0px 8px -1px rgba(0, 0, 0, 0.25);
+    border-radius: 18px;
+}
 
 .menu webc-link span img {
-    height: 50px;
-    filter: invert(1);
+    height: 41px;
 }
 
 .menu webc-link span p {
     font-size: 110%;
+    margin-bottom: 0px;
 }
 
 @media screen and (max-width: 900px) {

@@ -1,3 +1,7 @@
+body{
+    background: url("../assets/images/background.svg");
+}
+
 webc-app-container {
     --background: transparent;
     position: relative;
@@ -52,9 +56,9 @@ psk-page::part(page-main) {
     padding: 0.75rem;
 }
 
-.page-action-btn {
+.page-action-btn,
+.btn-secondary {
     background-color: #328569;
-    border-style: none;
     box-shadow: none;
     border: 1px solid #328569;
     color: white;
@@ -120,7 +124,7 @@ psk-page::part(page-main) {
 .data-item .btn-link {
     color: #328569;
     font-weight: bold;
-
+    padding: 0px;
 }
 
 .data-item .btn-link:hover {
@@ -150,4 +154,10 @@ psk-page::part(page-main) {
 
 .webc-datatable--header {
     background: #9ACFBD;
+}
+
+button.btn.btn-primary:disabled {
+    border: 1px solid #dee2e6;
+    background: #dee2e6;
+    color: grey;
 }
