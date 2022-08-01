@@ -35,7 +35,7 @@ export default class GenerateDIDController extends WebcController {
 
         }
 
-        if (!credential) {
+        if (!credential || credential === "deleted") {
           this.authorizationStillInProgress();
 
           try {
@@ -45,11 +45,6 @@ export default class GenerateDIDController extends WebcController {
           }
           this.authorizationIsDone();
           return;
-        }
-        if (credential === "deleted") {
-          this.authorizationStillInProgress();
-          WebCardinal.root.hidden = false;
-          return this.navigateToPageTag("deleted-account");
         }
 
         this.authorizationIsDone();
