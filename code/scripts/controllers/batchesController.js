@@ -97,48 +97,54 @@ export default class batchesController extends WebcController {
     })
 
     this.model.batches = [];
-    this.storageService = getSharedStorage(this.DSUStorage);
-    getCommunicationService(this.DSUStorage).waitForMessage(this, () => {
-    });
-    this.model.batchesDataSource = new BatchesDataSource({
-      storageService: this.storageService,
-      tableName: constants.BATCHES_STORAGE_TABLE,
-      searchField: "gtin"
-    });
+    getSharedStorage((err, storageService)=> {
+      if (err) {
+        throw err;
+      }
 
-    lazyUtils.attachHandlers(this, "batchesDataSource");
-    this.onTagClick("view-2DMatrix", (model, target, event) => {
-      let eventData = JSON.parse(target.firstElementChild.innerText);
-      this.model.actionModalModel = {
-        title: "2DMatrix",
-        batchData: eventData,
-        acceptButtonText: "Close",
-      };
+      this.storageService = storageService;
+      getCommunicationService(this.DSUStorage).waitForMessage(this, () => {
+      });
+      this.model.batchesDataSource = new BatchesDataSource({
+        storageService: this.storageService,
+        tableName: constants.BATCHES_STORAGE_TABLE,
+        searchField: "gtin"
+      });
 
-      this.showModalFromTemplate("modal2DMatrix", () => {
-          return;
-        }, () => {
-          return;
-        },
-        {model: this.model}
+      lazyUtils.attachHandlers(this, "batchesDataSource");
+      this.onTagClick("view-2DMatrix", (model, target, event) => {
+        let eventData = JSON.parse(target.firstElementChild.innerText);
+        this.model.actionModalModel = {
+          title: "2DMatrix",
+          batchData: eventData,
+          acceptButtonText: "Close",
+        };
+
+        this.showModalFromTemplate("modal2DMatrix", () => {
+              return;
+            }, () => {
+              return;
+            },
+            {model: this.model}
+        );
+      });
+      this.onTagClick("import-batch", (model, target, event) => {
+        event.stopImmediatePropagation();
+        this.navigateToPageTag("import");
+      });
+      this.onTagClick("add-batch", () => {
+        this.navigateToPageTag("add-batch");
+      });
+
+      this.onTagClick("edit-batch", async (model, target, event) => {
+            let eventData = target.getAttribute("event-data");
+            const batchData = this.model.batchesDataSource.dataSourceRezults.find((element) => element.batchNumber === eventData);
+            this.navigateToPageTag("add-batch", {
+              batchData: JSON.stringify(batchData)
+            });
+          },
+          {capture: true}
       );
     });
-    this.onTagClick("import-batch", (model, target, event) => {
-      event.stopImmediatePropagation();
-      this.navigateToPageTag("import");
-    });
-    this.onTagClick("add-batch", () => {
-      this.navigateToPageTag("add-batch");
-    });
-
-    this.onTagClick("edit-batch", async (model, target, event) => {
-        let eventData = target.getAttribute("event-data");
-        const batchData = this.model.batchesDataSource.dataSourceRezults.find((element) => element.batchNumber === eventData);
-        this.navigateToPageTag("add-batch", {
-          batchData: JSON.stringify(batchData)
-        });
-      },
-      {capture: true}
-    );
   }
 }

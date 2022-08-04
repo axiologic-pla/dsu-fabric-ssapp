@@ -1,7 +1,6 @@
 import {getCommunicationService} from "../services/CommunicationService.js";
 
 const {WebcController} = WebCardinal.controllers;
-import constants from "./constants.js";
 import {copyToClipboard} from "../helpers/document-utils.js";
 
 let crypto = require("opendsu").loadApi("crypto");
@@ -74,24 +73,7 @@ export default class HolderController extends WebcController {
       } catch (e) {
         this.model.displayCredentialArea = false;
       }
-
     });
-
-/*    this.DSUStorage.getObject(constants.WALLET_DID_PATH, (err, didObj) => {
-      if (err) {
-        return console.log(err);
-      }
-
-      this.model.did = didObj.did;
-      this.DSUStorage.getObject(constants.WALLET_CREDENTIAL_FILE_PATH, (err, credential) => {
-        if (err || !credential) {
-          this.model.displayCredentialArea = false;
-        } else {
-          this.model.displayCredentialArea = true;
-          setCredential(credential.credential);
-        }
-      });
-    });*/
 
     this.on('openFeedback', (e) => {
       this.feedbackEmitter = e.detail;
@@ -104,7 +86,7 @@ export default class HolderController extends WebcController {
     this.onTagClick("edit-settings", (model, target, event) => {
       this.showModalFromTemplate("manage-available-features", () => {
           this.renderSettingsContainer().then(() => {
-            let logService = new LogService(this.DSUStorage);
+            let logService = new LogService();
             let useData = this.model.did.split(":");
             logService.log({
                 logInfo: this.model.envData,

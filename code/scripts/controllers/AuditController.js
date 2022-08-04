@@ -80,40 +80,45 @@ export default class AuditController extends WebcController {
     super(...props);
 
     this.model = {};
-    this.storageService = getSharedStorage(this.DSUStorage);
-    this.model.auditDataSource = new AuditDataSource({
-      storageService: this.storageService,
-      tableName: constants.LOGS_TABLE,
-      searchField: "itemCode"
+    getSharedStorage((err, storageService)=>{
+        if (err) {
+          throw err;
+        }
+
+        this.storageService = storageService;
+      this.model.auditDataSource = new AuditDataSource({
+        storageService: this.storageService,
+        tableName: constants.LOGS_TABLE,
+        searchField: "itemCode"
+      });
+      getCommunicationService(this.DSUStorage).waitForMessage(this, () => {
+      });
+
+      lazyUtils.attachHandlers(this, "auditDataSource");
+      this.onTagClick('show-audit-entry', (model, target, event) => {
+
+        const formattedJSON = JSON.stringify(JSON.parse(model.allInfo.all), null, 4);
+        this.model.actionModalModel = {
+          title: "Audit Entry",
+          messageData: formattedJSON,
+          denyButtonText: 'Close',
+          acceptButtonText: "Download"
+        }
+
+        this.showModalFromTemplate('show-audit-entry',
+          () => {
+            let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(formattedJSON);
+            let downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", model.action + ".json");
+            document.body.appendChild(downloadAnchorNode); // required for firefox
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+          }, () => {
+
+          }, {model: this.model});
+
+      });
     });
-    getCommunicationService(this.DSUStorage).waitForMessage(this, () => {
-    });
-
-    lazyUtils.attachHandlers(this, "auditDataSource");
-    this.onTagClick('show-audit-entry', (model, target, event) => {
-
-      const formattedJSON = JSON.stringify(JSON.parse(model.allInfo.all), null, 4);
-      this.model.actionModalModel = {
-        title: "Audit Entry",
-        messageData: formattedJSON,
-        denyButtonText: 'Close',
-        acceptButtonText: "Download"
-      }
-
-      this.showModalFromTemplate('show-audit-entry',
-        () => {
-          let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(formattedJSON);
-          let downloadAnchorNode = document.createElement('a');
-          downloadAnchorNode.setAttribute("href", dataStr);
-          downloadAnchorNode.setAttribute("download", model.action + ".json");
-          document.body.appendChild(downloadAnchorNode); // required for firefox
-          downloadAnchorNode.click();
-          downloadAnchorNode.remove();
-        }, () => {
-
-        }, {model: this.model});
-
-    });
-
   }
 }

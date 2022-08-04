@@ -21,70 +21,76 @@ export default class ManageProductController extends WebcController {
     gtinResolver.DSUFabricFeatureManager.getDisabledFeatures().then(async (disabledFeatures) => {
       this.model.disabledFeatures = disabledFeatures
       this.model = {};
-      this.storageService = getSharedStorage(this.DSUStorage);
-      getCommunicationService(this.DSUStorage).waitForMessage(this, () => {
-      });
+      getSharedStorage(async (err, storageService)=> {
+        if (err) {
+          throw err;
+        }
 
-      let state = this.history.location.state;
-      this.state = state;
-      this.model.languageTypeCards = [];
-      this.model.userwrights = await utils.getUserWrights();
-      if (state && state.gtin) {
-        // product already exists, enter in edit mode
-        let submitButton = this.querySelector("#submit-product");
-        submitButton.disabled = true;
-        this.storageService.getRecord(constants.PRODUCTS_TABLE, state.gtin, (err, product) => {
-          this.model.submitLabel = "Update Product";
-          this.model.product = new Product(product);
-          this.model.product.version++;
-          this.model.product.previousVersion = product.version;
-          this.model.product.isCodeEditable = false;
-          this.model.product.videos = product.videos || {defaultSource: ""};
-          gtinResolver.DSUFabricUtils.getDSUAttachments(product, disabledFeatures, (err, attachments) => {
-            if (err) {
-              this.showErrorModalAndRedirect("Failed to get inherited cards", "products");
-            }
+        this.storageService = storageService;
+        getCommunicationService(this.DSUStorage).waitForMessage(this, () => {
+        });
 
-            this.model.languageTypeCards = attachments.languageTypeCards;
-            this.initialCards = JSON.parse(JSON.stringify(this.model.languageTypeCards));
-            if (attachments.productPhoto) {
-              this.model.product.photo = attachments.productPhoto;
-            }
-            this.initialCards = JSON.parse(JSON.stringify(this.model.languageTypeCards));
-            this.initialModel = JSON.parse(JSON.stringify(this.model));
-            this.model.onChange("product", (...props) => {
-              this.manageUpdateButtonState(submitButton);
-            })
-            this.model.onChange("languageTypeCards", (...props) => {
-              this.manageUpdateButtonState(submitButton);
-            })
+        let state = this.history.location.state;
+        this.state = state;
+        this.model.languageTypeCards = [];
+        this.model.userwrights = await utils.getUserWrights();
+        if (state && state.gtin) {
+          // product already exists, enter in edit mode
+          let submitButton = this.querySelector("#submit-product");
+          submitButton.disabled = true;
+          this.storageService.getRecord(constants.PRODUCTS_TABLE, state.gtin, (err, product) => {
+            this.model.submitLabel = "Update Product";
+            this.model.product = new Product(product);
+            this.model.product.version++;
+            this.model.product.previousVersion = product.version;
+            this.model.product.isCodeEditable = false;
+            this.model.product.videos = product.videos || {defaultSource: ""};
+            gtinResolver.DSUFabricUtils.getDSUAttachments(product, disabledFeatures, (err, attachments) => {
+              if (err) {
+                this.showErrorModalAndRedirect("Failed to get inherited cards", "products");
+              }
+
+              this.model.languageTypeCards = attachments.languageTypeCards;
+              this.initialCards = JSON.parse(JSON.stringify(this.model.languageTypeCards));
+              if (attachments.productPhoto) {
+                this.model.product.photo = attachments.productPhoto;
+              }
+              this.initialCards = JSON.parse(JSON.stringify(this.model.languageTypeCards));
+              this.initialModel = JSON.parse(JSON.stringify(this.model));
+              this.model.onChange("product", (...props) => {
+                this.manageUpdateButtonState(submitButton);
+              })
+              this.model.onChange("languageTypeCards", (...props) => {
+                this.manageUpdateButtonState(submitButton);
+              })
+            });
+            // ensureHolderCredential();
+            this.model.product.videos.defaultSource = atob(this.model.product.videos.defaultSource);
+            this.videoInitialDefaultSource = this.model.product.videos.defaultSource;
+            this.validateGTIN(this.model.product.gtin);
+
           });
-          // ensureHolderCredential();
+        } else {
+          this.model.submitLabel = "Save Product";
+          this.model.product = new Product();
           this.model.product.videos.defaultSource = atob(this.model.product.videos.defaultSource);
           this.videoInitialDefaultSource = this.model.product.videos.defaultSource;
+          // ensureHolderCredential();
           this.validateGTIN(this.model.product.gtin);
 
-        });
-      } else {
-        this.model.submitLabel = "Save Product";
-        this.model.product = new Product();
-        this.model.product.videos.defaultSource = atob(this.model.product.videos.defaultSource);
-        this.videoInitialDefaultSource = this.model.product.videos.defaultSource;
-        // ensureHolderCredential();
-        this.validateGTIN(this.model.product.gtin);
+        }
 
-      }
+        setTimeout(() => {
+          this.setUpCheckboxes();
+        }, 0);
 
-      setTimeout(() => {
-        this.setUpCheckboxes();
-      }, 0);
+        utils.disableFeatures(this);
 
-      utils.disableFeatures(this);
-
-      this.model.videoSourceUpdated = false;
+        this.model.videoSourceUpdated = false;
 
 
-      this.addEventListeners();
+        this.addEventListeners();
+      });
     }).catch(e => console.log("Couldn't get disabled features"))
 
   }

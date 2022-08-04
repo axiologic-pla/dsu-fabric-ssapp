@@ -23,95 +23,101 @@ export default class addBatchController extends WebcController {
       const editData = editMode ? JSON.parse(state.batchData) : undefined;
       let batch = new Batch(editData);
       this.model = {};
-      this.storageService = getSharedStorage(this.DSUStorage);
-      getCommunicationService(this.DSUStorage).waitForMessage(this, () => {
-      });
-      this.model.userwrights = await utils.getUserWrights();
-      this.versionOffset = 1;
-      this.model.languageTypeCards = [];
+      getSharedStorage(async (err, storageService)=> {
+        if (err) {
+          throw err;
+        }
 
-      this.model.batch = batch;
-      // ACDC PATCH START
-      this.model.hasAcdcAuthFeature = !!batch.acdcAuthFeatureSSI;
-      // ACDC PATCH END
+        this.storageService = storageService;
+        getCommunicationService(this.DSUStorage).waitForMessage(this, () => {
+        });
+        this.model.userwrights = await utils.getUserWrights();
+        this.versionOffset = 1;
+        this.model.languageTypeCards = [];
 
-      this.model.batch.videos.defaultSource = atob(this.model.batch.videos.defaultSource);
-      this.model.batch.productName = "";
-      this.model.productDescription = "";
-      this.model.editMode = editMode;
-      this.model.serialNumbersLogs = [];
-      this.model.products = {
-        placeholder: "Select a product"
-      }
+        this.model.batch = batch;
+        // ACDC PATCH START
+        this.model.hasAcdcAuthFeature = !!batch.acdcAuthFeatureSSI;
+        // ACDC PATCH END
 
-      this.model.serial_update_options = {
-        options: [
-          {label: "Update Valid", value: "update-valid-serial"},
-          {label: "Update Recalled", value: "update-recalled-serial"},
-          {label: "Update decommissioned", value: "update-decommissioned-serial"},
-          {label: "See update history", value: "update-history"}
-        ],
-        placeholder: "Select an option"
-      }
+        this.model.batch.videos.defaultSource = atob(this.model.batch.videos.defaultSource);
+        this.model.batch.productName = "";
+        this.model.productDescription = "";
+        this.model.editMode = editMode;
+        this.model.serialNumbersLogs = [];
+        this.model.products = {
+          placeholder: "Select a product"
+        }
 
-      this.model.videoSourceUpdated = false;
-      this.videoInitialDefaultSource = this.model.batch.videos.defaultSource;
+        this.model.serial_update_options = {
+          options: [
+            {label: "Update Valid", value: "update-valid-serial"},
+            {label: "Update Recalled", value: "update-recalled-serial"},
+            {label: "Update decommissioned", value: "update-decommissioned-serial"},
+            {label: "See update history", value: "update-history"}
+          ],
+          placeholder: "Select an option"
+        }
 
-      if (editMode) {
+        this.model.videoSourceUpdated = false;
+        this.videoInitialDefaultSource = this.model.batch.videos.defaultSource;
 
-        this.gtin = this.model.batch.gtin;
-        this.model.batch.version++;
-        gtinResolver.DSUFabricUtils.getDSUAttachments(this.model.batch, disabledFeatures, (err, attachments) => {
-          if (err) {
-            this.showErrorModalAndRedirect("Failed to get inherited cards", "patch");
+        if (editMode) {
+
+          this.gtin = this.model.batch.gtin;
+          this.model.batch.version++;
+          gtinResolver.DSUFabricUtils.getDSUAttachments(this.model.batch, disabledFeatures, (err, attachments) => {
+            if (err) {
+              this.showErrorModalAndRedirect("Failed to get inherited cards", "patch");
+            }
+            let submitButton = this.querySelector("#submit-batch");
+            submitButton.disabled = true;
+            this.model.languageTypeCards = attachments.languageTypeCards;
+            this.initialCards = JSON.parse(JSON.stringify(this.model.languageTypeCards));
+            this.initialModel = JSON.parse(JSON.stringify(this.model));
+            this.model.onChange("batch", (...props) => {
+              this.manageUpdateButtonState();
+            })
+            this.model.onChange("languageTypeCards", (...props) => {
+              this.manageUpdateButtonState();
+            })
+          });
+          this.model.batch.enableExpiryDay = this.model.batch.expiry.slice(-2) !== "00";
+
+          this.getProductFromGtin(this.gtin, (err, product) => {
+            this.model.batch.productName = product.name;
+            this.model.productDescription = product.description;
+          });
+
+
+        }
+
+        this.storageService.filter(this.model.batch.batchNumber, "__timestamp > 0", (err, logs) => {
+          if (err || typeof logs === "undefined") {
+            logs = [];
           }
-          let submitButton = this.querySelector("#submit-batch");
-          submitButton.disabled = true;
-          this.model.languageTypeCards = attachments.languageTypeCards;
-          this.initialCards = JSON.parse(JSON.stringify(this.model.languageTypeCards));
-          this.initialModel = JSON.parse(JSON.stringify(this.model));
-          this.model.onChange("batch", (...props) => {
-            this.manageUpdateButtonState();
-          })
-          this.model.onChange("languageTypeCards", (...props) => {
-            this.manageUpdateButtonState();
-          })
-        });
-        this.model.batch.enableExpiryDay = this.model.batch.expiry.slice(-2) !== "00";
-
-        this.getProductFromGtin(this.gtin, (err, product) => {
-          this.model.batch.productName = product.name;
-          this.model.productDescription = product.description;
+          this.model.serialNumbersLogs = logs;
         });
 
+        this.storageService.filter(constants.PRODUCTS_TABLE, "__timestamp > 0", (err, products) => {
+          if (err || !products) {
+            printOpenDSUError(createOpenDSUErrorWrapper("Failed to retrieve products list!", err));
+            return this.showErrorModalAndRedirect("Failed to retrieve products list! Create a product first!", "products", 5000);
+          }
+          const options = [];
+          Object.values(products).forEach(prod => options.push({
+            label: prod.gtin + ' - ' + prod.name,
+            value: prod.gtin
+          }));
+          this.model.products.options = options;
+        });
 
-      }
-
-      this.storageService.filter(this.model.batch.batchNumber, "__timestamp > 0", (err, logs) => {
-        if (err || typeof logs === "undefined") {
-          logs = [];
-        }
-        this.model.serialNumbersLogs = logs;
+        this.addEventListeners();
+        utils.disableFeatures(this);
+        setTimeout(() => {
+          this.setUpCheckboxes();
+        }, 0)
       });
-
-      this.storageService.filter(constants.PRODUCTS_TABLE, "__timestamp > 0", (err, products) => {
-        if (err || !products) {
-          printOpenDSUError(createOpenDSUErrorWrapper("Failed to retrieve products list!", err));
-          return this.showErrorModalAndRedirect("Failed to retrieve products list! Create a product first!", "products", 5000);
-        }
-        const options = [];
-        Object.values(products).forEach(prod => options.push({
-          label: prod.gtin + ' - ' + prod.name,
-          value: prod.gtin
-        }));
-        this.model.products.options = options;
-      });
-
-      this.addEventListeners();
-      utils.disableFeatures(this);
-      setTimeout(() => {
-        this.setUpCheckboxes();
-      }, 0)
     }).catch(e => console.log("Couldn't get disabled features"));
 
   }

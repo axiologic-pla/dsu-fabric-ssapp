@@ -6,7 +6,7 @@ async function processMessages(messages, dsuStorage, callback) {
     return;
   }
   const LogService = require("gtin-resolver").loadApi("services").LogService
-  let logService = new LogService(dsuStorage);
+  let logService = new LogService();
   const openDSU = require("opendsu");
   const config = openDSU.loadAPI("config");
   const domain = await $$.promisify(config.getEnv)("epiDomain");
@@ -18,7 +18,7 @@ async function processMessages(messages, dsuStorage, callback) {
       domain,
       subdomain
     }
-    mappingEngine = mappings.getEPIMappingEngine(dsuStorage, {
+    mappingEngine = await $$.promisify(mappings.getEPIMappingEngine)({
       holderInfo: holderInfo,
       logService: logService
     });
