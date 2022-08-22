@@ -63,7 +63,8 @@ export class LazyDataSource extends DataSource {
         await $$.promisify(this.storageService.refresh.bind(this.storageService))();
         this.dataSourceRezults = await $$.promisify(this.storageService.filter.bind(this.storageService))(this.tableName, "__timestamp > 0", "dsc", this.itemsOnPage * 2);
       }
-      this.dataSourceRezults.length > this.itemsOnPage ? document.querySelector(".pagination-container").hidden = false : document.querySelector(".pagination-container").hidden = true;
+
+
       resultData = this.dataSourceRezults.slice(startOffset, startOffset + dataLengthForCurrentPage);
       this.hasMoreLogs = this.dataSourceRezults.length >= startOffset + dataLengthForCurrentPage + 1;
 
@@ -77,9 +78,14 @@ export class LazyDataSource extends DataSource {
       console.log("Eroor on get async page data  ", e);
     }
 
-    if(resultData.length === 0){
-      document.querySelector(".search-container").hidden = true;
-    }
+    document.querySelectorAll(".pagination-container").forEach(item => {
+      item.hidden = this.dataSourceRezults.length <= this.itemsOnPage
+    })
+
+    document.querySelectorAll(".search-container").forEach(item => {
+      item.hidden = resultData.length === 0;
+    })
+
     return this.getMappedResult(resultData);
   }
 
