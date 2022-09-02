@@ -27,15 +27,11 @@
                         </div>
                     </div>
 
-                    <div data-if="@product.isCodeEditable">
-                        <div class="read-only-container col-12 mb-3 mt-2 pl-3" slot="false">
-                            <div class="form-label">Brand/invented name</div>
-                            <div class="pt-2 pb-2">{{@product.name}}</div>
-                        </div>
-                        <i class="fa fa-pencil-square-o editable-icon" slot="true"></i>
-                        <div class="background-container col-12 pl-3 mb-3" slot="true">
-                            <div class="form-label">Brand/invented name</div>
-                            <input class="form-control" placeholder="Add product name" slot="true"
+                    <div class="background-container col-12 pl-3 mb-3">
+                        <div class="form-label">Brand/invented name</div>
+                        <div>
+                            <i class="fa fa-pencil-square-o editable-icon"></i>
+                            <input class="form-control" placeholder="Add product name"
                                    type="text"
                                    value="@product.name"/>
                         </div>
