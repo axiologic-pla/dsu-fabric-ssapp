@@ -21,7 +21,7 @@ export default class ManageProductController extends WebcController {
     gtinResolver.DSUFabricFeatureManager.getDisabledFeatures().then(async (disabledFeatures) => {
       this.model.disabledFeatures = disabledFeatures
       this.model = {};
-      getSharedStorage(async (err, storageService)=> {
+      getSharedStorage(async (err, storageService) => {
         if (err) {
           throw err;
         }
@@ -102,7 +102,7 @@ export default class ManageProductController extends WebcController {
     })
   }
 
-  productWasUpdated(){
+  productWasUpdated() {
     if (!(this.state && this.state.gtin)) {
       return true;
     }
@@ -226,7 +226,7 @@ export default class ManageProductController extends WebcController {
       let messages = [];
       if (this.productWasUpdated()) {
         messages = [message, ...photoMessages, ...cardMessages];
-      }else{
+      } else {
         messages = [...photoMessages, ...cardMessages];
       }
 
@@ -265,7 +265,7 @@ export default class ManageProductController extends WebcController {
 
     }
 
-    MessagesService.processMessages(messageArr, this.DSUStorage, async (undigestedMessages) => {
+    MessagesService.processMessages(messageArr, this.storageService, async (undigestedMessages) => {
       this.hideModal();
       this.showMessageError(undigestedMessages);
     })
@@ -282,8 +282,13 @@ export default class ManageProductController extends WebcController {
     let errors = [];
     if (undigestedMessages.length > 0) {
       undigestedMessages.forEach(msg => {
-        if (errors.findIndex((elem) => elem.message === msg.reason.originalMessage || elem.message === msg.reason.debug_message) < 0) {
-          let obj = typeof msg.reason === "object" ? msg.reason : msg.error;
+        if (errors.findIndex((elem) => elem.message === msg.reason.originalMessage || elem.message === msg.reason.debug_message || elem.message === msg.reason) < 0) {
+          let obj;
+          if (typeof msg.reason === "object") {
+            obj = msg.reason
+          } else {
+            obj = msg.error || {originalMessage: msg.reason};
+          }
           errors.push({message: obj.originalMessage || obj.debug_message});
         }
       })

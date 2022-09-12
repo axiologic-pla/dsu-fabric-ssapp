@@ -290,7 +290,7 @@ export default class addBatchController extends WebcController {
 
     }
 
-    MessagesService.processMessages(messageArr, this.DSUStorage, async (undigestedMessages) => {
+    MessagesService.processMessages(messageArr, this.storageService, async (undigestedMessages) => {
       this.hideModal();
       this.showMessageError(undigestedMessages)
     })

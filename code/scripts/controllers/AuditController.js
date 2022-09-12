@@ -13,11 +13,10 @@ class AuditDataSource extends LazyDataSource {
 
   basicLogProcessing(item) {
     return {
-      action: item.action,
+      reason: item.reason,
       username: item.username,
       creationTime: item.creationTime || new Date(item.timestamp).toLocaleString(),
       allInfo: {
-        keySSI: item.keySSI,
         all: JSON.stringify(item),
       }
     };
@@ -32,7 +31,6 @@ class AuditDataSource extends LazyDataSource {
   productLogProcessing(item) {
     let le = this.basicLogProcessing(item);
     le.target = `${item.logInfo.name} [${item.logInfo.gtin}] v. ${item.logInfo.version}`
-    le.keySSI = item.logInfo.keySSI;
 
     return le;
   }
@@ -80,12 +78,12 @@ export default class AuditController extends WebcController {
     super(...props);
 
     this.model = {};
-    getSharedStorage((err, storageService)=>{
-        if (err) {
-          throw err;
-        }
+    getSharedStorage((err, storageService) => {
+      if (err) {
+        throw err;
+      }
 
-        this.storageService = storageService;
+      this.storageService = storageService;
       this.model.auditDataSource = new AuditDataSource({
         storageService: this.storageService,
         tableName: constants.LOGS_TABLE,
@@ -97,7 +95,17 @@ export default class AuditController extends WebcController {
       lazyUtils.attachHandlers(this, "auditDataSource");
       this.onTagClick('show-audit-entry', (model, target, event) => {
 
-        const formattedJSON = JSON.stringify(JSON.parse(model.allInfo.all), null, 4);
+        let cleanObject = function JSONstringifyOrder(obj) {
+          const objToDisplay = {};
+          let displayKeys = ["username", "reason", "itemCode", "diffs", "anchorId", "hashLink", "logInfo", "metadata"];
+          displayKeys.forEach(key => {
+            objToDisplay[key] = obj[key];
+          })
+
+          return objToDisplay
+        }
+
+        const formattedJSON = JSON.stringify(cleanObject(JSON.parse(model.allInfo.all)), null, 4);
         this.model.actionModalModel = {
           title: "Audit Entry",
           messageData: formattedJSON,
@@ -110,7 +118,7 @@ export default class AuditController extends WebcController {
             let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(formattedJSON);
             let downloadAnchorNode = document.createElement('a');
             downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", model.action + ".json");
+            downloadAnchorNode.setAttribute("download", model.reason + ".json");
             document.body.appendChild(downloadAnchorNode); // required for firefox
             downloadAnchorNode.click();
             downloadAnchorNode.remove();

@@ -1,5 +1,6 @@
 import utils from "../utils.js";
 import MessagesService from "../services/MessagesService.js";
+
 const {WebcController} = WebCardinal.controllers;
 const {DataSource} = WebCardinal.dataSources;
 
@@ -182,14 +183,7 @@ export default class importController extends WebcController {
         }
 
         window.WebCardinal.loader.hidden = false;
-        if (!this.DSUStorage.directAccessEnabled) {
-          this.DSUStorage.enableDirectAccess(async () => {
-            await MessagesService.processMessages(messages, this.DSUStorage, this.manageProcessedMessages.bind(this));
-          })
-        } else {
-          await MessagesService.processMessages(messages, this.DSUStorage, this.manageProcessedMessages.bind(this));
-        }
-
+        await MessagesService.processMessages(messages, enclaveDB, this.manageProcessedMessages.bind(this));
       });
 
       this.onTagClick("view-all", async () => {
@@ -332,13 +326,9 @@ export default class importController extends WebcController {
         if (messages.length > 0) {
           this.model.selectedTab = 1;
           window.WebCardinal.loader.hidden = false;
-          if (!this.DSUStorage.directAccessEnabled) {
-            this.DSUStorage.enableDirectAccess(async () => {
-              await MessagesService.processMessages(messages, this.DSUStorage, this.manageProcessedMessages.bind(this));
-            })
-          } else {
-            await MessagesService.processMessages(messages, this.DSUStorage, this.manageProcessedMessages.bind(this));
-          }
+
+          await MessagesService.processMessages(messages, enclaveDB, this.manageProcessedMessages.bind(this));
+
           this.model.retryAll = false;
           this.querySelector("#retry-all-checkbox").checked = false;
         }

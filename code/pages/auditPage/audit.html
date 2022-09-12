@@ -16,13 +16,13 @@
                 </div>
                 <webc-datatable datasource="@auditDataSource" hide-pagination>
                     <div class="fist-table-header" slot="header">Target</div>
-                    <div slot="header">Action</div>
+                    <div slot="header">Reason</div>
                     <div slot="header">User</div>
                     <div slot="header">Creation Time</div>
                     <div slot="header" class="last-table-header">Data</div>
 
                     <div class="data-item">{{@target}}</div>
-                    <div class="data-item">{{@action}}</div>
+                    <div class="data-item">{{@reason}}</div>
                     <div class="data-item">{{@username}}</div>
                     <div class="data-item">{{@creationTime}}</div>
                     <div class="data-item">
