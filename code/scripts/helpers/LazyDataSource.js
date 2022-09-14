@@ -26,8 +26,8 @@ export class LazyDataSource extends DataSource {
     notFoundIcon.style.display = "none";
     foundIcon.style.display = "none";
     if (inputValue) {
-      await $$.promisify(this.storageService.refresh.bind(this.storageService))();
-      let result = await $$.promisify(this.storageService.filter.bind(this.storageService))(this.tableName, `${this.searchField} == ${inputValue}`, "dsc");
+      await $$.promisify(this.storageService.refresh, this.storageService)();
+      let result = await $$.promisify(this.storageService.filter, this.storageService)(this.tableName, `${this.searchField} == ${inputValue}`, "dsc");
 
       if (result && result.length > 0) {
         foundIcon.style.display = "inline";
@@ -46,6 +46,8 @@ export class LazyDataSource extends DataSource {
     return data;
   }
 
+
+
   async getPageDataAsync(startOffset, dataLengthForCurrentPage) {
     if (this.filterResult.length > 0) {
       document.querySelector(".pagination-container").hidden = true;
@@ -55,13 +57,13 @@ export class LazyDataSource extends DataSource {
 
     try {
       if (this.dataSourceRezults.length > 0) {
-        let moreItems = await $$.promisify(this.storageService.filter.bind(this.storageService))(this.tableName, `__timestamp < ${this.dataSourceRezults[this.dataSourceRezults.length - 1].__timestamp}`, "dsc", this.itemsOnPage);
+        let moreItems = await $$.promisify(this.storageService.filter, this.storageService)(this.tableName, `__timestamp < ${this.dataSourceRezults[this.dataSourceRezults.length - 1].__timestamp}`, "dsc", this.itemsOnPage);
         if (moreItems && moreItems.length > 0 && moreItems[moreItems.length - 1].pk !== this.dataSourceRezults[this.dataSourceRezults.length - 1].pk) {
           this.dataSourceRezults = [...this.dataSourceRezults, ...moreItems,];
         }
       } else {
-        await $$.promisify(this.storageService.refresh.bind(this.storageService))();
-        this.dataSourceRezults = await $$.promisify(this.storageService.filter.bind(this.storageService))(this.tableName, "__timestamp > 0", "dsc", this.itemsOnPage * 2);
+        await $$.promisify(this.storageService.refresh, this.storageService)();
+        this.dataSourceRezults = await $$.promisify(this.storageService.filter, this.storageService)(this.tableName, "__timestamp > 0", "dsc", this.itemsOnPage * 2);
       }
 
 

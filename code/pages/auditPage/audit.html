@@ -6,6 +6,7 @@
 
     <div class="test" slot="page-content">
         <webc-container controller="AuditController">
+            <psk-button data-tag="audit-export" label="Export as CSV"></psk-button>
             <div class="audit-logs-container">
                 <div class="search-container">
                     Search by product code <input id="code-search" placeholder="Search by code" type="search">
@@ -15,13 +16,15 @@
                                 </span>
                 </div>
                 <webc-datatable datasource="@auditDataSource" hide-pagination>
-                    <div class="fist-table-header" slot="header">Target</div>
+                    <div class="fist-table-header" slot="header">GTIN</div>
+                    <div slot="header">Batch</div>
                     <div slot="header">Reason</div>
                     <div slot="header">User</div>
                     <div slot="header">Creation Time</div>
                     <div slot="header" class="last-table-header">Data</div>
 
-                    <div class="data-item">{{@target}}</div>
+                    <div class="data-item">{{@gtin}}</div>
+                    <div class="data-item">{{@batch}}</div>
                     <div class="data-item">{{@reason}}</div>
                     <div class="data-item">{{@username}}</div>
                     <div class="data-item">{{@creationTime}}</div>

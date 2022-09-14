@@ -51,7 +51,7 @@ async function processMessages(messages, dsuStorage, callback) {
               if (undigestedMessage.error && undigestedMessage.error.otherErrors && undigestedMessage.error.otherErrors.details.length) {
                 mappingLogService.logFailAction(undigestedMessage.message, undigestedMessage.error.otherErrors.details, errorStatus)
               } else {
-                mappingLogService.logFailAction(undigestedMessages[i].message, undigestedMessages[i].error, errorStatus)
+                mappingLogService.logFailAction(undigestedMessage.message, undigestedMessage.error, errorStatus)
               }
             } else {
               let auditId = messages[i].messageId + "|" + messages[i].senderId + "|" + messages[i].messageDateTime;

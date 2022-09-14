@@ -11,12 +11,53 @@ class AuditDataSource extends LazyDataSource {
     super(...props);
   }
 
+  async exportToCSV(data) {
+    let exportData = data;
+    if (!exportData) {
+      let allData = await $$.promisify(this.storageService.filter, this.storageService)(this.tableName, `__timestamp > 0`, "dsc");
+      exportData = this.getMappedResult(allData);
+    }
+    //prepare column titles
+    let titles = Object.keys(exportData[0]);
+    let columnTitles = titles.join(",") + "\n";
+    let rows = "";
+    exportData.forEach(item => {
+      let row = "";
+      titles.forEach(colTitle => {
+        if ("details" === colTitle) {
+          let details = JSON.parse(item[colTitle].all);
+          if (details.diffs && Object.keys(details.diffs).length > 0) {
+            row += "diffs: " + JSON.stringify(details.diffs).replace(/,/g, ";") + ";";
+          }
+          if (details.logInfo && Object.keys(details.logInfo).length > 0) {
+            row += "logInfo: " + JSON.stringify(details.logInfo).replace(/,/g, ";") + ";";
+          }
+          if (details.anchorId) {
+            row += "anchorId:" + details.anchorId + ";";
+          }
+          if (details.hashLink) {
+            row += "hashLink:" + details.hashLink + ";";
+          }
+          row += ",";
+        } else {
+          row += item[colTitle] + ",";
+        }
+      })
+      rows += row + "\n";
+    })
+
+    let csvContent = "data:text/csv;charset=utf-8," + columnTitles + rows;
+    return encodeURI(csvContent);
+  }
+
   basicLogProcessing(item) {
     return {
+      gtin: item.metadata.gtin || "-",
+      batch: "-",
       reason: item.reason,
       username: item.username,
-      creationTime: item.creationTime || new Date(item.timestamp).toLocaleString(),
-      allInfo: {
+      creationTime: item.creationTime || new Date(item.timestamp).toISOString(),
+      details: {
         all: JSON.stringify(item),
       }
     };
@@ -24,25 +65,25 @@ class AuditDataSource extends LazyDataSource {
 
   attachmentLogProcessing(item) {
     let attachmentLog = this.basicLogProcessing(item);
-    attachmentLog.target = `${item.metadata.attachedTo} - ${item.metadata.itemCode}`;
+    if (item.metadata.attachedTo === "BATCH") {
+      attachmentLog.batch = `${item.itemCode}`;
+    }
     return attachmentLog;
   }
 
   productLogProcessing(item) {
     let le = this.basicLogProcessing(item);
-    le.target = `${item.logInfo.name} [${item.logInfo.gtin}] v. ${item.logInfo.version}`
-
     return le;
   }
 
   batchLogProcessing(item) {
     let le = this.productLogProcessing(item);
-    le.target = `${item.logInfo.batchNumber} [${item.logInfo.gtin}] v. ${item.logInfo.version}`
+    le.batch = `${item.itemCode}`
     return le;
   }
 
   getMappedResult(data) {
-    return data.map((item, index) => {
+    this.currentViewData = data.map((item, index) => {
       let viewLog;
       try {
         switch (item.logType) {
@@ -59,7 +100,6 @@ class AuditDataSource extends LazyDataSource {
             break;
           case "FAILED_LOG":
             viewLog = this.basicLogProcessing(item);
-            viewLog.target = item.itemCode;
             break;
           default:
             viewLog = this.basicLogProcessing(item);
@@ -69,6 +109,7 @@ class AuditDataSource extends LazyDataSource {
       }
       return viewLog;
     });
+    return this.currentViewData;
   }
 
 }
@@ -87,12 +128,18 @@ export default class AuditController extends WebcController {
       this.model.auditDataSource = new AuditDataSource({
         storageService: this.storageService,
         tableName: constants.LOGS_TABLE,
-        searchField: "itemCode"
+        searchField: "gtin"
       });
       getCommunicationService(this.DSUStorage).waitForMessage(this, () => {
       });
 
       lazyUtils.attachHandlers(this, "auditDataSource");
+
+      this.onTagClick("audit-export", async (model, target, event) => {
+        let csvResult = await this.model.auditDataSource.exportToCSV();
+        window.open(csvResult);
+      })
+
       this.onTagClick('show-audit-entry', (model, target, event) => {
 
         let cleanObject = function JSONstringifyOrder(obj) {
@@ -105,7 +152,7 @@ export default class AuditController extends WebcController {
           return objToDisplay
         }
 
-        const formattedJSON = JSON.stringify(cleanObject(JSON.parse(model.allInfo.all)), null, 4);
+        const formattedJSON = JSON.stringify(cleanObject(JSON.parse(model.details.all)), null, 4);
         this.model.actionModalModel = {
           title: "Audit Entry",
           messageData: formattedJSON,
