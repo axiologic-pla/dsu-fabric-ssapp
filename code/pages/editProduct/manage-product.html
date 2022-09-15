@@ -9,9 +9,10 @@
                  userwrights="@userwrights">
                 <div class="col-5 align-self-start p-0">
                     <div data-if="@product.isCodeEditable">
-                        <div class="read-only-container col-12 mb-3 mt-2 pl-3" slot="false">
+                        <div class="read-only-container gtin-container col-12 mb-3 mt-2 pl-3" slot="false">
                             <div class="form-label">Product Code</div>
                             <div class="pt-2 pb-2">{{@product.gtin}}</div>
+
                         </div>
                         <i class="fa fa-pencil-square-o editable-icon" slot="true"></i>
                         <div class="background-container prod-code-container col-12 pl-3 mb-3 pl-3"
@@ -71,16 +72,52 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="featureCode-06">
+                        <div class="checkbox-container">
+                            <input type="checkbox"
+                                   value="@product.adverseEventsReportingEnabled">
+                            <span class="checkbox-label">Enable Adverse Events Reporting</span>
+                        </div>
+                        <div data-if="@product.adverseEventsReportingEnabled">
+                            <div class="background-container col-12">
+                                <div class="form-label">Adverse Events Reporting URL</div>
+                                <i class="fa fa-pencil-square-o editable-icon"></i>
+                                <input class="form-control" placeholder="Add Adverse Events Reporting URL"
+                                       type="text" value="@product.reportURL"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="featureCode-07 mb-3">
+                        <div class="checkbox-container">
+                            <input type="checkbox"
+                                   value="@product.antiCounterfeitingEnabled">
+                            <span class="checkbox-label">Enable Anti-Counterfeiting check for this product</span>
+                        </div>
+                        <div data-if="@product.antiCounterfeitingEnabled">
+                            <div class="background-container col-12">
+                                <div class="form-label">Anti-Counterfieting End Point URL</div>
+                                <i class="fa fa-pencil-square-o editable-icon"></i>
+                                <input class="form-control" placeholder="Add Anti-Counterfeiting End Point URL"
+                                       type="text" value="@product.antiCounterfeitingURL"/>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-5 align-self-start">
+
                     <div class="background-container col-12 pl-3 mb-3 featureCode-05">
                         <div class="form-label">Video source</div>
                         <div>
                             <i class="fa fa-pencil-square-o editable-icon"></i>
                             <textarea class="w-100 mt-2 overflow-hidden"
                                       placeholder="Add video source"
-                                      rows="3" value="@product.videos.defaultSource"></textarea>
+                                      rows="2" value="@product.videos.defaultSource"></textarea>
                         </div>
                     </div>
-
                     <div class="background-container col-12 pl-3 mb-3 featureCode-01">
                         <div class="form-label">Patient Specific Information Leaflet</div>
                         <div>
@@ -98,6 +135,7 @@
                         </div>
 
                     </div>
+
                     <psk-tab-navigator default="0" id="orange-tab-navigator">
                         <psk-tab title="Leaflets Management">
                             <dsu-leaflet></dsu-leaflet>
@@ -132,80 +170,6 @@
                             </div>
                         </psk-tab>
                     </psk-tab-navigator>
-
-                </div>
-
-                <div class="col-5 align-self-start">
-                    <div class="featureCode-06">
-
-                        <!--                        <psk-checkbox checkbox-label="Enable Adverse Events Reporting"
-                                                              checked="@product.adverseEventsReportingEnabled"
-                                                              name="adverseEventsReportingEnabled"
-                                                              value="@product.adverseEventsReportingEnabled"></psk-checkbox>-->
-                        <div class="checkbox-container">
-                            <input type="checkbox"
-                                   value="@product.adverseEventsReportingEnabled">
-                            <span class="checkbox-label">Enable Adverse Events Reporting</span>
-                        </div>
-                        <div data-if="@product.adverseEventsReportingEnabled">
-                            <div class="background-container col-12">
-                                <div class="form-label">Adverse Events Reporting URL</div>
-                                <i class="fa fa-pencil-square-o editable-icon"></i>
-                                <input class="form-control" placeholder="Add Adverse Events Reporting URL"
-                                       type="text" value="@product.reportURL"/>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="featureCode-07">
-                        <div class="checkbox-container">
-                            <input type="checkbox"
-                                   value="@product.antiCounterfeitingEnabled">
-                            <span class="checkbox-label">Enable Anti-Counterfeiting check for this product</span>
-                        </div>
-                        <div data-if="@product.antiCounterfeitingEnabled">
-                            <div class="background-container col-12">
-                                <div class="form-label">Anti-Counterfieting End Point URL</div>
-                                <i class="fa fa-pencil-square-o editable-icon"></i>
-                                <input class="form-control" placeholder="Add Anti-Counterfeiting End Point URL"
-                                       type="text" value="@product.antiCounterfeitingURL"/>
-                            </div>
-                        </div>
-
-                    </div>
-                    <div>
-                        <div class="form-label mt-5 mb-3 ml-1">Display ePI when:</div>
-                        <div>
-                            <div class="checkbox-container featureCode-08">
-                                <input type="checkbox" value="@product.showEPIOnBatchRecalled">
-                                <span class="checkbox-label">Batch is recalled</span>
-                            </div>
-                            <div class="checkbox-container featureCode-07">
-                                <input type="checkbox" value="@product.showEPIOnIncorrectExpiryDate">
-                                <span class="checkbox-label">Expiration Date is incorrect</span>
-                            </div>
-                            <div class="checkbox-container featureCode-02">
-                                <input type="checkbox" value="@product.showEPIOnBatchExpired">
-                                <span class="checkbox-label">Batch is expired</span>
-                            </div>
-                            <div class="checkbox-container featureCode-07">
-                                <input type="checkbox" value="@product.showEPIOnSNRecalled">
-                                <span class="checkbox-label">SN is in Recall list</span>
-                            </div>
-                            <div class="checkbox-container featureCode-07">
-                                <input type="checkbox" value="@product.showEPIOnSNDecommissioned">
-                                <span class="checkbox-label">SN is in Decommissioned list</span>
-                            </div>
-                            <div class="checkbox-container featureCode-07">
-                                <input type="checkbox" value="@product.showEPIOnSNUnknown">
-                                <span class="checkbox-label">SN is unknown</span>
-                            </div>
-                            <div class="checkbox-container featureCode-03">
-                                <input type="checkbox" value="@product.showEPIOnUnknownBatchNumber">
-                                <span class="checkbox-label">Batch number unknown</span>
-                            </div>
-
-                        </div>
-                    </div>
                 </div>
             </div>
             <div class="d-flex flex-row justify-content-around mt-5">

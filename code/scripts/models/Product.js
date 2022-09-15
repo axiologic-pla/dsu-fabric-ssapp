@@ -18,13 +18,6 @@ export default class Product {
   isCodeEditable = true;
   adverseEventsReportingEnabled = true;
   antiCounterfeitingEnabled = true;
-  showEPIOnBatchRecalled = false;
-  showEPIOnUnknownBatchNumber = true;
-  showEPIOnSNRecalled = false;
-  showEPIOnSNDecommissioned = false;
-  showEPIOnSNUnknown = false;
-  showEPIOnIncorrectExpiryDate = false;
-  showEPIOnBatchExpired = true;
   practitionerInfo = "SmPC";
   patientLeafletInfo = "Patient Information";
   strength = "";

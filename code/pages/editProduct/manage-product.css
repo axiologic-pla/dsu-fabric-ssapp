@@ -74,6 +74,18 @@ input[type="checkbox"] {
     font-size: smaller;
 }
 
+.background-container textarea {
+    margin-bottom: 6px;
+}
+
+.background-container.col-lg-5 {
+    padding-right: 25px;
+}
+
+.gtin-container {
+    padding-bottom: 14px;
+}
+
 .form-label,
 .form-button {
     color: #328569;
