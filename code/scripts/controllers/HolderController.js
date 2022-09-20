@@ -114,7 +114,7 @@ export default class HolderController extends WebcController {
 
   async renderSettingsContainer() {
     let envFile = await $$.promisify(config.readEnvFile)();
-    this.model.editableFeatures = !!envFile.lockFeatures;
+    this.model.editableFeatures = !(!!envFile.lockFeatures);
     this.model.envData = envFile;
     const environmentContainer = this.element.querySelector('#environmentContainer');
     let environmentDataElement = environmentContainer.querySelector('#environmentData');
