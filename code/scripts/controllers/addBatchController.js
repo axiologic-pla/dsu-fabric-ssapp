@@ -23,7 +23,7 @@ export default class addBatchController extends WebcController {
       const editData = editMode ? JSON.parse(state.batchData) : undefined;
       let batch = new Batch(editData);
       this.model = {};
-      getSharedStorage(async (err, storageService)=> {
+      getSharedStorage(async (err, storageService) => {
         if (err) {
           throw err;
         }
@@ -143,8 +143,8 @@ export default class addBatchController extends WebcController {
 
     let error = batch.validate();
     if (error) {
-      printOpenDSUError(createOpenDSUErrorWrapper("Invalid batch info", err));
-      return this.showErrorModalAndRedirect("Invalid batch info" + err.message, "batches");
+      printOpenDSUError(createOpenDSUErrorWrapper("Invalid batch info ", error));
+      return this.showErrorModal(error);
     }
     this.createWebcModal({
       disableExpanding: true,
@@ -190,7 +190,7 @@ export default class addBatchController extends WebcController {
     }
   };
 
-  batchWasUpdated(){
+  batchWasUpdated() {
     if (!this.model.editMode) {
       return true;
     }
