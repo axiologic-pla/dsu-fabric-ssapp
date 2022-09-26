@@ -51,17 +51,8 @@
                                           value="@batch.enableExpiryDay"></psk-checkbox>
                         </div>
                     </div>
-                    <div class="col p-0 featureCode-05">
-                        <i class="fa fa-pencil-square-o editable-icon"></i>
-                        <div class="background-container col mb-3 pl-3">
-                            <div class="form-label">Video source</div>
-                            <textarea class="w-100 mt-2 overflow-hidden"
-                                      placeholder="Add video source"
-                                      rows="3" value="@batch.videos.defaultSource"></textarea>
-                        </div>
-                    </div>
                     <div>
-                        <div class="checkbox-container featureCode-07">
+                        <div class="checkbox-container">
                             <input type="checkbox"
                                    value="@batch.incorrectDateCheck">
                             <span class="checkbox-label">Enable Incorrect Expiration Date Verification</span>
@@ -71,6 +62,15 @@
                             <input type="checkbox"
                                    value="@batch.expiredDateCheck">
                             <span class="checkbox-label">Enable Expired Expiration Date Verification</span>
+                        </div>
+                    </div>
+                    <div class="col p-0 featureCode-05">
+                        <i class="fa fa-pencil-square-o editable-icon"></i>
+                        <div class="background-container col mb-3 pl-3">
+                            <div class="form-label">Video source</div>
+                            <textarea class="w-100 mt-2 overflow-hidden"
+                                      placeholder="Add video source"
+                                      rows="3" value="@batch.videos.defaultSource"></textarea>
                         </div>
                     </div>
                     <div class="background-container col pl-3 mb-3 pl-3 featureCode-09">

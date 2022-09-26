@@ -16,8 +16,8 @@ export default class Product {
   antiCounterfeitingURL = `${window.top.location.origin}/borest/scan`;
   // END acdc patch
   isCodeEditable = true;
-  adverseEventsReportingEnabled = true;
-  antiCounterfeitingEnabled = true;
+  adverseEventsReportingEnabled = false;
+  antiCounterfeitingEnabled = false;
   practitionerInfo = "SmPC";
   patientLeafletInfo = "Patient Information";
   strength = "";
@@ -35,20 +35,20 @@ export default class Product {
         this[prop] = product[prop];
       }
     }
-
-    if (this.gtin === "") {
-      this.gtin = '05290931025615';
-    }
   }
 
   validate() {
     const errors = [];
-    if (!this.name) {
-      errors.push('Name is required.');
-    }
 
     if (!this.gtin) {
       errors.push('GTIN is required.');
+    }
+
+    if (!this.name) {
+      errors.push('Brand/invented name is required.');
+    }
+    if (!this.description) {
+      errors.push('Name of Medicinal Product is required.');
     }
 
     return errors.length === 0 ? true : errors;

@@ -1,7 +1,7 @@
 import Utils from "./Utils.js";
 
 export default class Batch {
-  batchNumber;
+  batchNumber = "";
   expiryForDisplay;
   version = 1;
   versionLabel = "";
@@ -11,10 +11,10 @@ export default class Batch {
   defaultSerialNumber = "";
   bloomFilterSerialisations = [];
   bloomFilterRecalledSerialisations = [];
-  bloomFilterDecommissionedSerialisations= [];
+  bloomFilterDecommissionedSerialisations = [];
   decommissionReason = "";
   recalled = false;
-  serialCheck = true;
+  serialCheck = false;
   incorrectDateCheck = true;
   expiredDateCheck = true;
   recalledMessage = "";
@@ -32,6 +32,7 @@ export default class Batch {
 
   // ACDC PATCH START
   acdcAuthFeatureSSI = "";
+
   // ACDC PATCH END
 
   constructor(batch) {
@@ -39,9 +40,6 @@ export default class Batch {
       for (let prop in batch) {
         this[prop] = batch[prop];
       }
-    }
-    if (!this.batchNumber) {
-      this.batchNumber = Utils.generateSerialNumber(6);
     }
   }
 

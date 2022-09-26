@@ -310,18 +310,19 @@ export default class ManageProductController extends WebcController {
   }
 
   isValid(product) {
+
+    let validationResult = product.validate();
+
+    if (Array.isArray(validationResult)) {
+      this.showErrorModal(validationResult[0]);
+      return false;
+    }
+
     if (!this.model.gtinIsValid) {
       this.showErrorModal("Invalid GTIN.");
       return false;
     }
-    let validationResult = product.validate();
-    if (Array.isArray(validationResult)) {
-      for (let i = 0; i < validationResult.length; i++) {
-        let err = validationResult[i];
-        this.showErrorModal(err);
-      }
-      return false;
-    }
+
     return true;
   }
 
