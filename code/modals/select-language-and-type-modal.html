@@ -14,11 +14,15 @@
 
 
     <psk-label>Video source</psk-label>
-
-    <textarea class="w-100 mt-2 overflow-hidden"
-              placeholder="Add video source"
-              rows="3" value="@modalData.product.videoSource"></textarea>
-
+    <div data-if="@modalData.videoDisabled">
+        <textarea class="w-100 mt-2 overflow-hidden"
+                  placeholder="Add video source"
+                  disabled
+                  rows="3" value="@modalData.product.videoSource" slot="true"></textarea>
+        <textarea class="w-100 mt-2 overflow-hidden"
+                  placeholder="Add video source"
+                  rows="3" value="@modalData.product.videoSource" slot="false"></textarea>
+    </div>
     <psk-card class="language-leaflet-card">
         <div class="language-leaflet-card-header">
         </div>

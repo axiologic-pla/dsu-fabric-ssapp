@@ -57,6 +57,7 @@ export default class LeafletController extends WebcController {
       denyButtonText: 'Cancel',
       languages: languages,
       types: types,
+      videoDisabled: this.model.disabledFeatures.find(item => item.trim() === "05"),
       product: {
         language: "en",
         type: "leaflet",

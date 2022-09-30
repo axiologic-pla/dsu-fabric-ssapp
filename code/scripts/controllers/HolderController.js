@@ -84,11 +84,14 @@ export default class HolderController extends WebcController {
     });
 
     this.onTagClick("edit-settings", (model, target, event) => {
+      let oldValue = this.model.envData;
       this.showModalFromTemplate("manage-available-features", () => {
           this.renderSettingsContainer().then(() => {
             let logService = new LogService();
             let useData = this.model.did.split(":");
+            let diffs = {oldValue: oldValue.disabledFeatures, newValue: this.model.envData.disabledFeatures}
             logService.log({
+                diffs,
                 logInfo: this.model.envData,
                 username: useData[useData.length - 1],
                 action: `Changed features`,
@@ -100,10 +103,8 @@ export default class HolderController extends WebcController {
             return;
           }).catch(err => {
             console.log(err);
-
             return;
           })
-
         }, () => {
           return;
         },
