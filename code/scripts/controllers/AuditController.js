@@ -52,7 +52,7 @@ class AuditDataSource extends LazyDataSource {
 
   basicLogProcessing(item) {
     return {
-      gtin: item.metadata.gtin || "-",
+      gtin: item.metadata ? item.metadata.gtin || "-" : "-",
       batch: "-",
       reason: item.reason,
       username: item.username,
@@ -65,7 +65,7 @@ class AuditDataSource extends LazyDataSource {
 
   attachmentLogProcessing(item) {
     let attachmentLog = this.basicLogProcessing(item);
-    if (item.metadata.attachedTo === "BATCH") {
+    if (item.metadata && item.metadata.attachedTo && item.metadata.attachedTo === "BATCH") {
       attachmentLog.batch = `${item.itemCode}`;
     }
     return attachmentLog;
