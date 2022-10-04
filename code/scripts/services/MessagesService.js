@@ -53,20 +53,6 @@ async function processMessages(messages, dsuStorage, callback) {
               } else {
                 mappingLogService.logFailAction(undigestedMessage.message, undigestedMessage.error, errorStatus)
               }
-            } else {
-              let auditId = messages[i].messageId + "|" + messages[i].senderId + "|" + messages[i].messageDateTime;
-              let auditRecord = {hashLink: "unknown hashLink"}
-              try {
-                let dbResult = await $$.promisify(dsuStorage.filter, dsuStorage)(constants.LOGS_TABLE, `auditId == ${auditId}`, "dsc");
-                if (dbResult && dbResult.length > 0) {
-                  auditRecord = dbResult[0];
-                  auditRecord.hashLink = await $$.promisify(anchoringx.getLastVersion)(auditRecord.anchorId);
-                }
-              } catch (e) {
-                auditRecord.hashLink = "error on getting hashLink: " + e.message;
-              }
-              await $$.promisify(dsuStorage.updateRecord, dsuStorage)(constants.LOGS_TABLE, auditRecord.pk, auditRecord);
-
             }
           }
 
