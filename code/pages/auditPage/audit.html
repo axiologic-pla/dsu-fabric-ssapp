@@ -6,14 +6,17 @@
 
     <div class="test" slot="page-content">
         <webc-container controller="AuditController">
-            <psk-button data-tag="audit-export" label="Export as CSV"></psk-button>
+
             <div class="audit-logs-container">
                 <div class="search-container">
-                    Search by product code <input id="code-search" placeholder="Search by code" type="search">
-                    <span class="validity">
+                    <div>
+                        Search by product code <input id="code-search" placeholder="Search by code" type="search">
+                        <span class="validity">
                                     <i aria-hidden="true" class="fa fa-ban"></i>
                                     <i class="fa fa-check"></i>
                                 </span>
+                    </div>
+                    <psk-button data-tag="audit-export" label="Export as CSV"></psk-button>
                 </div>
                 <webc-datatable datasource="@auditDataSource" hide-pagination>
                     <div class="fist-table-header" slot="header">GTIN</div>

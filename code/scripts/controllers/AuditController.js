@@ -21,6 +21,7 @@ class AuditDataSource extends LazyDataSource {
     let titles = Object.keys(exportData[0]);
     let columnTitles = titles.join(",") + "\n";
     let rows = "";
+
     exportData.forEach(item => {
       let row = "";
       titles.forEach(colTitle => {
@@ -46,8 +47,8 @@ class AuditDataSource extends LazyDataSource {
       rows += row + "\n";
     })
 
-    let csvContent = "data:text/csv;charset=utf-8," + columnTitles + rows;
-    return encodeURI(csvContent);
+    let csvBlob = new Blob([columnTitles + rows], {type: "text/csv"});
+    return csvBlob;
   }
 
   basicLogProcessing(item) {
@@ -126,9 +127,7 @@ export default class AuditController extends WebcController {
 
       this.storageService = storageService;
       this.model.auditDataSource = new AuditDataSource({
-        storageService: this.storageService,
-        tableName: constants.LOGS_TABLE,
-        searchField: "gtin"
+        storageService: this.storageService, tableName: constants.LOGS_TABLE, searchField: "gtin"
       });
       getCommunicationService(this.DSUStorage).waitForMessage(this, () => {
       });
@@ -137,7 +136,13 @@ export default class AuditController extends WebcController {
 
       this.onTagClick("audit-export", async (model, target, event) => {
         let csvResult = await this.model.auditDataSource.exportToCSV();
-        window.open(csvResult);
+        let url = window.URL.createObjectURL(csvResult);
+        let anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = "audit.csv";
+        anchor.click();
+        window.URL.revokeObjectURL(url);
+        anchor.remove();
       })
 
       this.onTagClick('show-audit-entry', (model, target, event) => {
@@ -154,24 +159,20 @@ export default class AuditController extends WebcController {
 
         const formattedJSON = JSON.stringify(cleanObject(JSON.parse(model.details.all)), null, 4);
         this.model.actionModalModel = {
-          title: "Audit Entry",
-          messageData: formattedJSON,
-          denyButtonText: 'Close',
-          acceptButtonText: "Download"
+          title: "Audit Entry", messageData: formattedJSON, denyButtonText: 'Close', acceptButtonText: "Download"
         }
 
-        this.showModalFromTemplate('show-audit-entry',
-          () => {
-            let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(formattedJSON);
-            let downloadAnchorNode = document.createElement('a');
-            downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", model.reason + ".json");
-            document.body.appendChild(downloadAnchorNode); // required for firefox
-            downloadAnchorNode.click();
-            downloadAnchorNode.remove();
-          }, () => {
+        this.showModalFromTemplate('show-audit-entry', () => {
+          let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(formattedJSON);
+          let downloadAnchorNode = document.createElement('a');
+          downloadAnchorNode.setAttribute("href", dataStr);
+          downloadAnchorNode.setAttribute("download", model.reason + ".json");
+          document.body.appendChild(downloadAnchorNode); // required for firefox
+          downloadAnchorNode.click();
+          downloadAnchorNode.remove();
+        }, () => {
 
-          }, {model: this.model});
+        }, {model: this.model});
 
       });
     });

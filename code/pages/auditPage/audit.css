@@ -4,3 +4,9 @@
     border: 1px solid #dee2e6;
     border-radius: 7px;
 }
+
+.audit-logs-container .search-container {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 10px 0px;
+}
