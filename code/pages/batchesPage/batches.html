@@ -19,6 +19,7 @@
                 </div>
                 <webc-datatable datasource="@batchesDataSource" hide-pagination>
                     <div class="fist-table-header" slot="header">Brand / invented name</div>
+                    <div slot="header">Name of Medicinal Product</div>
                     <div slot="header"> Product Code</div>
                     <div slot="header">Batch</div>
                     <div slot="header">Expiry date</div>
@@ -30,6 +31,7 @@
                     </div>
 
                     <div class="data-item">{{@productName}}</div>
+                    <div class="data-item">{{@productDescription}}</div>
                     <div class="data-item">{{@gtin}}</div>
                     <div class="data-item">{{@batchNumber}}</div>
                     <div class="data-item">{{@formatedDate}}</div>

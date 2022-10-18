@@ -23,7 +23,7 @@
 
 .batches-container .webc-datatable--container {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    grid-template-columns: repeat(8, 1fr);
     border: 1px solid #dee2e6;
     border-radius: 7px;
 }
