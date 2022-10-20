@@ -1,5 +1,3 @@
-import constants from "../controllers/constants.js";
-
 function CommunicationService(dsuStorage) {
   let isWaitingForMessage = false;
 
