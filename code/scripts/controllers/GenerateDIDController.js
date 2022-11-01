@@ -111,7 +111,9 @@ export default class GenerateDIDController extends WebcController {
     const openDSU = require("opendsu");
     const w3cdid = openDSU.loadAPI("w3cdid");
     const scAPI = openDSU.loadAPI("sc");
-    const groupDIDDocument = await $$.promisify(w3cdid.resolveDID)("did:ssi:group:vault:ePI_Administration_Group");
+    const didDomain = await $$.promisify(scAPI.getDIDDomain)();
+
+    const groupDIDDocument = await $$.promisify(w3cdid.resolveDID)(`did:ssi:group:${didDomain}:ePI_Administration_Group`);
     let adminUserList;
     const dsuMainEnclave = await $$.promisify(scAPI.getMainEnclave)();
     let did;
