@@ -15,7 +15,7 @@ export default class Batch {
   decommissionReason = "";
   recalled = false;
   serialCheck = false;
-  incorrectDateCheck = true;
+  incorrectDateCheck = false;
   expiredDateCheck = true;
   recalledMessage = "";
   defaultMessage = "";
