@@ -203,17 +203,14 @@ async function getUserDetails() {
   }
 }
 
-async function getUserWrights() {
+async function getUserRights() {
   let userWrights = "readonly";
   const openDSU = require("opendsu");
   const scAPI = openDSU.loadAPI("sc");
   try {
     const mainEnclave = await $$.promisify(scAPI.getMainEnclave)();
     let credential = await $$.promisify(mainEnclave.readKey)("credential");
-    let crypto = require("opendsu").loadApi("crypto");
-    let jwtContent = await $$.promisify(crypto.parseJWTSegments)(credential);
-    let bodySubParts = jwtContent.body.sub.split(":");
-    let userEpiGroup = bodySubParts[bodySubParts.length - 1];
+    let userEpiGroup = credential.tags[0];
     if (userEpiGroup !== constants.EPI_READ_GROUP) {
       userWrights = "readwrite"
     }
@@ -287,5 +284,5 @@ export default {
   generateRandom,
   initMessage,
   disableFeatures,
-  getUserWrights
+  getUserRights
 }

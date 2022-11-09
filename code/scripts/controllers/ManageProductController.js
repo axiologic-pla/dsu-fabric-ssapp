@@ -33,7 +33,7 @@ export default class ManageProductController extends WebcController {
         let state = this.history.location.state;
         this.state = state;
         this.model.languageTypeCards = [];
-        this.model.userwrights = await utils.getUserWrights();
+        this.model.userwrights = await utils.getUserRights();
         if (state && state.gtin) {
           // product already exists, enter in edit mode
           let submitButton = this.querySelector("#submit-product");

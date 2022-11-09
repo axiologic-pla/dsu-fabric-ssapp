@@ -35,7 +35,7 @@ export default class ProductsController extends WebcController {
         getCommunicationService(this.DSUStorage).waitForMessage(this, () => {
         });
 
-        utils.getUserWrights().then((userWrights) => {
+        utils.getUserRights().then((userWrights) => {
           this.model.userwrights = userWrights;
         })
 

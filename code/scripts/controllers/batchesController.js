@@ -92,7 +92,7 @@ export default class batchesController extends WebcController {
   constructor(element, history) {
     super(element, history);
     this.model = {};
-    utils.getUserWrights().then((userWrights) => {
+    utils.getUserRights().then((userWrights) => {
       this.model.userwrights = userWrights;
     })
 

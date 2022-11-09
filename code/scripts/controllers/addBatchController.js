@@ -31,7 +31,7 @@ export default class addBatchController extends WebcController {
         this.storageService = storageService;
         getCommunicationService(this.DSUStorage).waitForMessage(this, () => {
         });
-        this.model.userwrights = await utils.getUserWrights();
+        this.model.userwrights = await utils.getUserRights();
         this.versionOffset = 1;
         this.model.languageTypeCards = [];
 
