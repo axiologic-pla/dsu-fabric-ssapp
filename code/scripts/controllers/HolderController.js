@@ -2,9 +2,9 @@ import {copyToClipboard} from "../helpers/document-utils.js";
 
 const {FwController} = WebCardinal.controllers;
 
-let crypto = require("opendsu").loadApi("crypto");
 const openDSU = require("opendsu");
 const config = openDSU.loadAPI("config");
+const credentialsAPI = openDSU.loadAPI("credentials");
 const LogService = require("gtin-resolver").loadApi("services").LogService;
 
 export default class HolderController extends FwController {
@@ -19,14 +19,14 @@ export default class HolderController extends FwController {
       this.model.credential = credential;
       this.model.isInvalidCredential = false;
 
-      crypto.parseJWTSegments(this.model.credential, async (parseError, jwtContent) => {
+      credentialsAPI.parseJWTSegments(this.model.credential.token, async (parseError, jwtContent) => {
         if (parseError) {
           this.model.isInvalidCredential = true;
           return console.log('Error parsing user credential', parseError);
         }
         //console.log('Parsed credential', jwtContent);
-        const {header, body} = jwtContent;
-        this.model.readableCredential = JSON.stringify({header, body}, null, 4);
+        const {jwtHeader, jwtPayload} = jwtContent;
+        this.model.readableCredential = JSON.stringify({jwtHeader, jwtPayload}, null, 4);
 
         const readableContainer = this.element.querySelector('#readableContainer');
         let readableCredentialElement = readableContainer.querySelector('#readableCredential');
@@ -96,14 +96,10 @@ export default class HolderController extends FwController {
               }, () => {
               }
             );
-
-            return;
           }).catch(err => {
-            console.log(err);
-            return;
-          })
-        }, () => {
-          return;
+              console.log(err)
+            })
+          }, () => {
         },
         {controller: "FeaturesModalController"}
       );
@@ -124,7 +120,5 @@ export default class HolderController extends FwController {
     environmentDataElement.language = "json";
     environmentDataElement.innerHTML = JSON.stringify(envFile, null, 4);
     environmentContainer.appendChild(environmentDataElement);
-    return;
-
   }
 }
