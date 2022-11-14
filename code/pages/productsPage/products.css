@@ -1,21 +1,21 @@
-*[userwrights="readonly"] button {
+*[userrights="readonly"] button {
     display: none;
 }
 
-.products-container[userwrights="readonly"] .view-edit-button{
+.products-container[userrights="readonly"] .view-edit-button{
     display: block;
     pointer-events: all;
     opacity: 1;
 }
-.products-container[userwrights="readonly"] .view-edit-button span.edit-wrights {
+.products-container[userrights="readonly"] .view-edit-button span.edit-rights {
     display: none;
 }
 
-.products-container .view-edit-button span.readonly-wrights {
+.products-container .view-edit-button span.readonly-rights {
     display: none;
 }
 
-.products-container[userwrights="readonly"] .view-edit-button span.readonly-wrights {
+.products-container[userrights="readonly"] .view-edit-button span.readonly-rights {
     display: block;
 }
 

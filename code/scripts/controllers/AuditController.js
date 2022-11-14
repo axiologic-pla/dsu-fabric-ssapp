@@ -1,10 +1,8 @@
-import {getCommunicationService} from "../services/CommunicationService.js";
-import getSharedStorage from "../services/SharedDBStorageService.js";
 import constants from "../constants.js";
 import {LazyDataSource} from "../helpers/LazyDataSource.js";
 import lazyUtils from "../helpers/lazy-data-source-utils.js"
 
-const {WebcController} = WebCardinal.controllers;
+const {FwController} = WebCardinal.controllers;
 
 class AuditDataSource extends LazyDataSource {
   constructor(...props) {
@@ -115,66 +113,58 @@ class AuditDataSource extends LazyDataSource {
 
 }
 
-export default class AuditController extends WebcController {
+export default class AuditController extends FwController {
   constructor(...props) {
     super(...props);
 
     this.model = {};
-    getSharedStorage((err, storageService) => {
-      if (err) {
-        throw err;
+
+    this.model.auditDataSource = new AuditDataSource({
+      storageService: this.storageService, tableName: constants.LOGS_TABLE, searchField: "gtin"
+    });
+
+    lazyUtils.attachHandlers(this, "auditDataSource");
+
+    this.onTagClick("audit-export", async (model, target, event) => {
+      let csvResult = await this.model.auditDataSource.exportToCSV();
+      let url = window.URL.createObjectURL(csvResult);
+      let anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "audit.csv";
+      anchor.click();
+      window.URL.revokeObjectURL(url);
+      anchor.remove();
+    })
+
+    this.onTagClick('show-audit-entry', (model, target, event) => {
+
+      let cleanObject = function JSONstringifyOrder(obj) {
+        const objToDisplay = {};
+        let displayKeys = ["username", "reason", "itemCode", "diffs", "anchorId", "hashLink", "logInfo", "metadata"];
+        displayKeys.forEach(key => {
+          objToDisplay[key] = obj[key];
+        })
+
+        return objToDisplay
       }
 
-      this.storageService = storageService;
-      this.model.auditDataSource = new AuditDataSource({
-        storageService: this.storageService, tableName: constants.LOGS_TABLE, searchField: "gtin"
-      });
-      getCommunicationService(this.DSUStorage).waitForMessage(this, () => {
-      });
+      const formattedJSON = JSON.stringify(cleanObject(JSON.parse(model.details.all)), null, 4);
+      this.model.actionModalModel = {
+        title: "Audit Entry", messageData: formattedJSON, denyButtonText: 'Close', acceptButtonText: "Download"
+      }
 
-      lazyUtils.attachHandlers(this, "auditDataSource");
+      this.showModalFromTemplate('show-audit-entry', () => {
+        let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(formattedJSON);
+        let downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", model.reason + ".json");
+        document.body.appendChild(downloadAnchorNode); // required for firefox
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+      }, () => {
 
-      this.onTagClick("audit-export", async (model, target, event) => {
-        let csvResult = await this.model.auditDataSource.exportToCSV();
-        let url = window.URL.createObjectURL(csvResult);
-        let anchor = document.createElement("a");
-        anchor.href = url;
-        anchor.download = "audit.csv";
-        anchor.click();
-        window.URL.revokeObjectURL(url);
-        anchor.remove();
-      })
+      }, {model: this.model});
 
-      this.onTagClick('show-audit-entry', (model, target, event) => {
-
-        let cleanObject = function JSONstringifyOrder(obj) {
-          const objToDisplay = {};
-          let displayKeys = ["username", "reason", "itemCode", "diffs", "anchorId", "hashLink", "logInfo", "metadata"];
-          displayKeys.forEach(key => {
-            objToDisplay[key] = obj[key];
-          })
-
-          return objToDisplay
-        }
-
-        const formattedJSON = JSON.stringify(cleanObject(JSON.parse(model.details.all)), null, 4);
-        this.model.actionModalModel = {
-          title: "Audit Entry", messageData: formattedJSON, denyButtonText: 'Close', acceptButtonText: "Download"
-        }
-
-        this.showModalFromTemplate('show-audit-entry', () => {
-          let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(formattedJSON);
-          let downloadAnchorNode = document.createElement('a');
-          downloadAnchorNode.setAttribute("href", dataStr);
-          downloadAnchorNode.setAttribute("download", model.reason + ".json");
-          document.body.appendChild(downloadAnchorNode); // required for firefox
-          downloadAnchorNode.click();
-          downloadAnchorNode.remove();
-        }, () => {
-
-        }, {model: this.model});
-
-      });
     });
   }
 }

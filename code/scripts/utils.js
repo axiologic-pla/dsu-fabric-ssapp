@@ -1,4 +1,5 @@
 import constants from "./controllers/constants.js";
+const {FwController} = await import("./controllers/FwController.js");
 
 function convertDateToISO(dateString) {
   const d = new Date(dateString);
@@ -204,7 +205,7 @@ async function getUserDetails() {
 }
 
 async function getUserRights() {
-  let userWrights = "readonly";
+  let userRights = "readonly";
   const openDSU = require("opendsu");
   const scAPI = openDSU.loadAPI("sc");
   try {
@@ -212,13 +213,13 @@ async function getUserRights() {
     let credential = await $$.promisify(mainEnclave.readKey)("credential");
     let userEpiGroup = credential.tags[0];
     if (userEpiGroup !== constants.EPI_READ_GROUP) {
-      userWrights = "readwrite"
+      userRights = "readwrite"
     }
   } catch (e) {
-    //if any error keep readonly wrights for the user
-    console.log("Could not get user wrights", e);
+    //if any error keep readonly rights for the user
+    console.log("Could not get user rights", e);
   }
-  return userWrights;
+  return userRights;
 }
 
 function generateRandom(n) {
@@ -267,7 +268,6 @@ function disableFeatures(thisObj) {
 
   })
 }
-
 export default {
   convertDateFromISOToGS1Format,
   convertDateToISO,

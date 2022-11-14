@@ -1,97 +1,80 @@
-import {getCommunicationService} from "../services/CommunicationService.js";
 import Product from '../models/Product.js';
 import MessagesService from '../services/MessagesService.js';
 import constants from '../constants.js';
-import getSharedStorage from '../services/SharedDBStorageService.js';
 import utils from "../utils.js";
 import Countries from "../models/Countries.js";
 
 
-const {WebcController} = WebCardinal.controllers;
+const {FwController} = WebCardinal.controllers;
 const mappings = require("gtin-resolver").loadApi("mappings");
 const gtinResolverUtils = require("gtin-resolver").getMappingsUtils();
 const arrayBufferToBase64 = gtinResolverUtils.arrayBufferToBase64;
 const ModelMessageService = require("gtin-resolver").loadApi("services").ModelMessageService;
 const gtinResolver = require("gtin-resolver");
 
-export default class ManageProductController extends WebcController {
+export default class ManageProductController extends FwController {
   constructor(...props) {
     super(...props);
+    this.model = {disabledFeatures: this.disabledFeatures, userrights: this.userRights, languageTypeCards: []};
+    let state = this.history.location.state;
+    this.state = state;
 
-    gtinResolver.DSUFabricFeatureManager.getDisabledFeatures().then(async (disabledFeatures) => {
-      this.model.disabledFeatures = disabledFeatures
-      this.model = {};
-      getSharedStorage(async (err, storageService) => {
-        if (err) {
-          throw err;
-        }
+    if (state && state.gtin) {
+      // product already exists, enter in edit mode
+      let submitButton = this.querySelector("#submit-product");
+      submitButton.disabled = true;
+      this.storageService.getRecord(constants.PRODUCTS_TABLE, state.gtin, (err, product) => {
+        this.model.submitLabel = "Update Product";
+        this.model.product = new Product(product);
+        this.model.product.version++;
+        this.model.product.previousVersion = product.version;
+        this.model.product.isCodeEditable = false;
+        this.model.product.videos = product.videos || {defaultSource: ""};
+        gtinResolver.DSUFabricUtils.getDSUAttachments(product, this.disabledFeatures, (err, attachments) => {
+          if (err) {
+            this.showErrorModalAndRedirect("Failed to get inherited cards", "products");
+          }
 
-        this.storageService = storageService;
-        getCommunicationService(this.DSUStorage).waitForMessage(this, () => {
+          this.model.languageTypeCards = attachments.languageTypeCards;
+          this.initialCards = JSON.parse(JSON.stringify(this.model.languageTypeCards));
+          if (attachments.productPhoto) {
+            this.model.product.photo = attachments.productPhoto;
+          }
+          this.initialCards = JSON.parse(JSON.stringify(this.model.languageTypeCards));
+          this.initialModel = JSON.parse(JSON.stringify(this.model));
+          this.model.onChange("product", (...props) => {
+            this.manageUpdateButtonState(submitButton);
+          })
+          this.model.onChange("languageTypeCards", (...props) => {
+            this.manageUpdateButtonState(submitButton);
+          })
         });
+        // ensureHolderCredential();
+        this.model.product.videos.defaultSource = atob(this.model.product.videos.defaultSource);
+        this.videoInitialDefaultSource = this.model.product.videos.defaultSource;
+        this.validateGTIN(this.model.product.gtin);
 
-        let state = this.history.location.state;
-        this.state = state;
-        this.model.languageTypeCards = [];
-        this.model.userwrights = await utils.getUserRights();
-        if (state && state.gtin) {
-          // product already exists, enter in edit mode
-          let submitButton = this.querySelector("#submit-product");
-          submitButton.disabled = true;
-          this.storageService.getRecord(constants.PRODUCTS_TABLE, state.gtin, (err, product) => {
-            this.model.submitLabel = "Update Product";
-            this.model.product = new Product(product);
-            this.model.product.version++;
-            this.model.product.previousVersion = product.version;
-            this.model.product.isCodeEditable = false;
-            this.model.product.videos = product.videos || {defaultSource: ""};
-            gtinResolver.DSUFabricUtils.getDSUAttachments(product, disabledFeatures, (err, attachments) => {
-              if (err) {
-                this.showErrorModalAndRedirect("Failed to get inherited cards", "products");
-              }
-
-              this.model.languageTypeCards = attachments.languageTypeCards;
-              this.initialCards = JSON.parse(JSON.stringify(this.model.languageTypeCards));
-              if (attachments.productPhoto) {
-                this.model.product.photo = attachments.productPhoto;
-              }
-              this.initialCards = JSON.parse(JSON.stringify(this.model.languageTypeCards));
-              this.initialModel = JSON.parse(JSON.stringify(this.model));
-              this.model.onChange("product", (...props) => {
-                this.manageUpdateButtonState(submitButton);
-              })
-              this.model.onChange("languageTypeCards", (...props) => {
-                this.manageUpdateButtonState(submitButton);
-              })
-            });
-            // ensureHolderCredential();
-            this.model.product.videos.defaultSource = atob(this.model.product.videos.defaultSource);
-            this.videoInitialDefaultSource = this.model.product.videos.defaultSource;
-            this.validateGTIN(this.model.product.gtin);
-
-          });
-        } else {
-          this.model.submitLabel = "Save Product";
-          this.model.product = new Product();
-          this.model.product.videos.defaultSource = atob(this.model.product.videos.defaultSource);
-          this.videoInitialDefaultSource = this.model.product.videos.defaultSource;
-          // ensureHolderCredential();
-          this.validateGTIN(this.model.product.gtin);
-
-        }
-
-        setTimeout(() => {
-          this.setUpCheckboxes();
-        }, 0);
-
-        utils.disableFeatures(this);
-
-        this.model.videoSourceUpdated = false;
-
-
-        this.addEventListeners();
       });
-    }).catch(e => console.log("Couldn't get disabled features"))
+    } else {
+      this.model.submitLabel = "Save Product";
+      this.model.product = new Product();
+      this.model.product.videos.defaultSource = atob(this.model.product.videos.defaultSource);
+      this.videoInitialDefaultSource = this.model.product.videos.defaultSource;
+      // ensureHolderCredential();
+      this.validateGTIN(this.model.product.gtin);
+
+    }
+
+    setTimeout(() => {
+      this.setUpCheckboxes();
+    }, 0);
+
+    utils.disableFeatures(this);
+
+    this.model.videoSourceUpdated = false;
+
+
+    this.addEventListeners();
 
   }
 

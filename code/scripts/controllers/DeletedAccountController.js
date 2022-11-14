@@ -1,12 +1,8 @@
-import {getCommunicationService} from "../services/CommunicationService.js";
+const {FwController} = WebCardinal.controllers;
 
-const {WebcController} = WebCardinal.controllers;
-
-export default class DeletedAccountController extends WebcController {
+export default class DeletedAccountController extends FwController {
   constructor(...props) {
     super(...props);
-    getCommunicationService(this.DSUStorage).waitForMessage(this, () => {
-    });
     document.getElementsByTagName("body")[0].style.pointerEvents = "none";
   }
 }

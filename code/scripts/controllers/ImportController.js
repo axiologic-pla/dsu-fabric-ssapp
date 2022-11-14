@@ -1,7 +1,7 @@
 import utils from "../utils.js";
 import MessagesService from "../services/MessagesService.js";
 
-const {WebcController} = WebCardinal.controllers;
+const {FwController} = WebCardinal.controllers;
 const {DataSource} = WebCardinal.dataSources;
 
 class SuccessLogDataSource extends DataSource {
@@ -133,206 +133,200 @@ class FailedLogDataSource extends DataSource {
   }
 }
 
-export default class importController extends WebcController {
+export default class importController extends FwController {
 
   constructor(...props) {
 
     super(...props);
     this.filesArray = [];
     const dbAPI = require("opendsu").loadAPI("db");
-    dbAPI.getSharedEnclaveDB((err, enclaveDB) => {
-      if (err) {
-        return console.log(err);
+
+    this.model = {
+      selectedTab: 0,
+      filesChooser: {
+        label: "Select files",
+        accept: "json",
+        listFiles: true,
+        filesAppend: true,
+        "event-name": "uploadProducts",
+        "list-files": true
+      },
+      importIsDisabled: true,
+      retryBtnIsDisabled: true,
+      successfullyImportedLogs: [],
+      failedImportedLogs: [],
+      retryAll: false,
+      successDataSource: new SuccessLogDataSource(this.storageService),
+      failedDataSource: new FailedLogDataSource(this.storageService),
+    };
+
+    this.on('uploadProducts', (event) => {
+      this.filesArray = event.data || [];
+      this.model.importIsDisabled = this.filesArray.length === 0;
+    });
+
+    this.onTagClick("import", async () => {
+      if (this.filesArray.length === 0) {
+        return;
       }
-      this.enclaveDB = enclaveDB;
+      let messages
+      try {
+        messages = await this.getMessagesFromFiles(this.filesArray);
+      } catch (err) {
+        this.showErrorModal(`Could not import file. ${err.message}`, "Error");
+        return;
+      }
 
-      this.model = {
-        selectedTab: 0,
-        filesChooser: {
-          label: "Select files",
-          accept: "json",
-          listFiles: true,
-          filesAppend: true,
-          "event-name": "uploadProducts",
-          "list-files": true
-        },
-        importIsDisabled: true,
-        retryBtnIsDisabled: true,
-        successfullyImportedLogs: [],
-        failedImportedLogs: [],
-        retryAll: false,
-        successDataSource: new SuccessLogDataSource(enclaveDB),
-        failedDataSource: new FailedLogDataSource(enclaveDB),
-      };
+      window.WebCardinal.loader.hidden = false;
+      await MessagesService.processMessages(messages, this.storageService, this.manageProcessedMessages.bind(this));
+    });
 
-      this.on('uploadProducts', (event) => {
-        this.filesArray = event.data || [];
-        this.model.importIsDisabled = this.filesArray.length === 0;
-      });
-
-      this.onTagClick("import", async () => {
-        if (this.filesArray.length === 0) {
-          return;
-        }
-        let messages
-        try {
-          messages = await this.getMessagesFromFiles(this.filesArray);
-        } catch (err) {
-          this.showErrorModal(`Could not import file. ${err.message}`, "Error");
-          return;
-        }
-
-        window.WebCardinal.loader.hidden = false;
-        await MessagesService.processMessages(messages, enclaveDB, this.manageProcessedMessages.bind(this));
-      });
-
-      this.onTagClick("view-all", async () => {
-        const openDSU = require("opendsu");
-        const config = openDSU.loadAPI("config");
-        const domain = await $$.promisify(config.getEnv)("epiDomain");
-        window.open(`${window.location.origin}/mappingEngine/${domain}/logs`, '_blank');
-      })
+    this.onTagClick("view-all", async () => {
+      const openDSU = require("opendsu");
+      const config = openDSU.loadAPI("config");
+      const domain = await $$.promisify(config.getEnv)("epiDomain");
+      window.open(`${window.location.origin}/mappingEngine/${domain}/logs`, '_blank');
+    })
 
 
-      this.onTagClick("prev-page", (model, target, event) => {
-        let dataSource;
-        if (target.getAttribute("msgType") === "success") {
-          dataSource = this.model.successDataSource;
-        } else {
-          dataSource = this.model.failedDataSource;
-        }
-        target.parentElement.querySelector(".next-page-btn").disabled = false;
-        if (dataSource.getCurrentPageIndex() > 0) {
-          target.disabled = false;
-          dataSource.goToPreviousPage();
-        } else {
-          target.disabled = true;
-          return;
-        }
+    this.onTagClick("prev-page", (model, target, event) => {
+      let dataSource;
+      if (target.getAttribute("msgType") === "success") {
+        dataSource = this.model.successDataSource;
+      } else {
+        dataSource = this.model.failedDataSource;
+      }
+      target.parentElement.querySelector(".next-page-btn").disabled = false;
+      if (dataSource.getCurrentPageIndex() > 0) {
+        target.disabled = false;
+        dataSource.goToPreviousPage();
+      } else {
+        target.disabled = true;
+        return;
+      }
 
-      })
-      this.onTagClick("next-page", (model, target, event) => {
-        let dataSource;
-        if (target.getAttribute("msgType") === "success") {
-          dataSource = this.model.successDataSource;
-        } else {
-          dataSource = this.model.failedDataSource;
-        }
-        target.parentElement.querySelector(".prev-page-btn").disabled = false;
-        if (dataSource.hasMoreLogs) {
-          dataSource.goToNextPage();
-        }
+    })
+    this.onTagClick("next-page", (model, target, event) => {
+      let dataSource;
+      if (target.getAttribute("msgType") === "success") {
+        dataSource = this.model.successDataSource;
+      } else {
+        dataSource = this.model.failedDataSource;
+      }
+      target.parentElement.querySelector(".prev-page-btn").disabled = false;
+      if (dataSource.hasMoreLogs) {
+        dataSource.goToNextPage();
+      }
 
-      })
+    })
 
-      let searchInput = this.querySelector("#code-search");
-      let foundIcon = this.querySelector(".fa-check");
-      let notFoundIcon = this.querySelector(".fa-ban");
-      if (searchInput) {
-        searchInput.addEventListener("search", async (event) => {
-          notFoundIcon.style.display = "none";
-          foundIcon.style.display = "none";
-          if (event.target.value) {
-            let results = await $$.promisify(this.enclaveDB.filter)('import-logs', `itemCode == ${event.target.value}`);
-            if (results && results.length > 0) {
-              foundIcon.style.display = "inline";
-              this.model.successDataSource.filterResult = results.filter(item => item.status === "success");
-              this.model.failedDataSource.filterResult = results.filter(item => item.status !== "success");
-              if (results[0].status === "success") {
-                this.model.selectedTab = 0;
-              } else {
-                this.model.selectedTab = 1;
-              }
+    let searchInput = this.querySelector("#code-search");
+    let foundIcon = this.querySelector(".fa-check");
+    let notFoundIcon = this.querySelector(".fa-ban");
+    if (searchInput) {
+      searchInput.addEventListener("search", async (event) => {
+        notFoundIcon.style.display = "none";
+        foundIcon.style.display = "none";
+        if (event.target.value) {
+          let results = await $$.promisify(this.storageService.filter)('import-logs', `itemCode == ${event.target.value}`);
+          if (results && results.length > 0) {
+            foundIcon.style.display = "inline";
+            this.model.successDataSource.filterResult = results.filter(item => item.status === "success");
+            this.model.failedDataSource.filterResult = results.filter(item => item.status !== "success");
+            if (results[0].status === "success") {
+              this.model.selectedTab = 0;
             } else {
-              notFoundIcon.style.display = "inline";
+              this.model.selectedTab = 1;
             }
+          } else {
+            notFoundIcon.style.display = "inline";
           }
-          this.model.successDataSource.goToPageByIndex(0);
-          this.model.failedDataSource.goToPageByIndex(0);
-        })
+        }
+        this.model.successDataSource.goToPageByIndex(0);
+        this.model.failedDataSource.goToPageByIndex(0);
+      })
+    }
+
+    this.onTagClick("view-message", (model, target, event) => {
+      let secondMessage;
+      this.model.actionModalModel = {
+        title: "Message",
+        denyButtonText: 'Close',
+        acceptButtonText: "Download message"
+      }
+      if (model.message.invalidFields) {
+        secondMessage = model.message.invalidFields;
+        delete model.message.invalidFields
+        this.model.actionModalModel.secondMessageData = secondMessage;
+        this.model.actionModalModel.showSecondMessage = true;
       }
 
-      this.onTagClick("view-message", (model, target, event) => {
-        let secondMessage;
-        this.model.actionModalModel = {
-          title: "Message",
-          denyButtonText: 'Close',
-          acceptButtonText: "Download message"
-        }
-        if (model.message.invalidFields) {
-          secondMessage = model.message.invalidFields;
-          delete model.message.invalidFields
-          this.model.actionModalModel.secondMessageData = secondMessage;
-          this.model.actionModalModel.showSecondMessage = true;
-        }
+      const formattedJSON = JSON.stringify(model.message, null, 4);
 
-        const formattedJSON = JSON.stringify(model.message, null, 4);
-
-        this.model.actionModalModel.messageData = formattedJSON;
+      this.model.actionModalModel.messageData = formattedJSON;
 
 
-        this.showModalFromTemplate('view-message-modal',
-          () => {
-            let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(formattedJSON);
-            let downloadAnchorNode = document.createElement('a');
-            downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", model.itemType + "_" + model.itemCode + ".json");
-            document.body.appendChild(downloadAnchorNode); // required for firefox
-            downloadAnchorNode.click();
-            downloadAnchorNode.remove();
-          }, () => {
-            return
-          }, {model: this.model});
-      })
+      this.showModalFromTemplate('view-message-modal',
+        () => {
+          let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(formattedJSON);
+          let downloadAnchorNode = document.createElement('a');
+          downloadAnchorNode.setAttribute("href", dataStr);
+          downloadAnchorNode.setAttribute("download", model.itemType + "_" + model.itemCode + ".json");
+          document.body.appendChild(downloadAnchorNode); // required for firefox
+          downloadAnchorNode.click();
+          downloadAnchorNode.remove();
+        }, () => {
+          return
+        }, {model: this.model});
+    })
 
-      this.onTagEvent("retry-all-click", "change", (model, target, evt) => {
-        this.querySelectorAll(".failed-message").forEach((elem) => {
-          elem.checked = target.checked;
-          elem.value = target.checked;
+    this.onTagEvent("retry-all-click", "change", (model, target, evt) => {
+      this.querySelectorAll(".failed-message").forEach((elem) => {
+        elem.checked = target.checked;
+        elem.value = target.checked;
+      });
+
+      if (target.checked) {
+        this.model.failedImportedLogs = model.data.map(item => {
+          item.retry = true;
+          return item
         });
+      } else {
+        this.model.failedImportedLogs = [];
+      }
 
-        if (target.checked) {
-          this.model.failedImportedLogs = model.data.map(item => {
-            item.retry = true;
-            return item
-          });
-        } else {
-          this.model.failedImportedLogs = [];
+      this.updateRetryBtnState();
+
+    })
+
+    this.onTagEvent("retry-item-click", "change", (model, target, evt) => {
+      model.retry = target.checked;
+      if (!target.checked) {
+        this.model.failedImportedLogs.splice(this.model.failedImportedLogs.indexOf(model), 1);
+        document.querySelector("#retry-all-checkbox").checked = target.checked;
+      } else {
+        this.model.failedImportedLogs.push(model);
+      }
+
+      this.updateRetryBtnState();
+    })
+
+    this.onTagClick("retry-failed", async (model, target, event) => {
+      let messages = [];
+      this.model.failedImportedLogs.forEach(elem => {
+        if (elem.retry) {
+          messages.push(elem.message);
         }
+      });
+      if (messages.length > 0) {
+        this.model.selectedTab = 1;
+        window.WebCardinal.loader.hidden = false;
 
-        this.updateRetryBtnState();
+        await MessagesService.processMessages(messages, this.storageService, this.manageProcessedMessages.bind(this));
 
-      })
-
-      this.onTagEvent("retry-item-click", "change", (model, target, evt) => {
-        model.retry = target.checked;
-        if (!target.checked) {
-          this.model.failedImportedLogs.splice(this.model.failedImportedLogs.indexOf(model), 1);
-          document.querySelector("#retry-all-checkbox").checked = target.checked;
-        } else {
-          this.model.failedImportedLogs.push(model);
-        }
-
-        this.updateRetryBtnState();
-      })
-
-      this.onTagClick("retry-failed", async (model, target, event) => {
-        let messages = [];
-        this.model.failedImportedLogs.forEach(elem => {
-          if (elem.retry) {
-            messages.push(elem.message);
-          }
-        });
-        if (messages.length > 0) {
-          this.model.selectedTab = 1;
-          window.WebCardinal.loader.hidden = false;
-
-          await MessagesService.processMessages(messages, enclaveDB, this.manageProcessedMessages.bind(this));
-
-          this.model.retryAll = false;
-          this.querySelector("#retry-all-checkbox").checked = false;
-        }
-      })
+        this.model.retryAll = false;
+        this.querySelector("#retry-all-checkbox").checked = false;
+      }
     })
 
   }

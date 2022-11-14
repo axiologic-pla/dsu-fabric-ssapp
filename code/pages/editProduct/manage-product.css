@@ -1,4 +1,4 @@
-.manage-product-container[userwrights="readonly"]:before {
+.manage-product-container[userrights="readonly"]:before {
     content: "Read only mode";
     color: #328569;
     font-weight: 700;
@@ -18,7 +18,7 @@
     right: 145px;
 }
 
-#submit-product[userwrights="readonly"] {
+#submit-product[userrights="readonly"] {
     display: none;
 }
 

@@ -1,4 +1,3 @@
-import constants from "./constants.js";
 import {copyToClipboard} from "../helpers/document-utils.js";
 import utils from "../utils.js";
 import {getCommunicationService} from "../services/CommunicationService.js";
@@ -24,7 +23,8 @@ export default class GenerateDIDController extends WebcController {
       try {
         did = await $$.promisify(mainEnclave.readKey)("did");
       } catch (e) {
-        console.log("Failed to read DID ", e);
+        //console.log("Failed to read DID ", e);
+        console.log("DID not yet created");
       }
 
       const __waitForAuthorization = async () => {
@@ -60,9 +60,7 @@ export default class GenerateDIDController extends WebcController {
         let i = 1;
         do {
           try {
-            did = await $$.promisify(w3cDID.resolveDID)(
-              `did:ssi:name:${vaultDomain}:${userId}`
-            );
+            did = await $$.promisify(w3cDID.resolveDID)(`did:ssi:name:${vaultDomain}:${userId}`);
           } catch (e) {
             did = null;
           }
@@ -71,11 +69,7 @@ export default class GenerateDIDController extends WebcController {
           }
         } while (did)
 
-        did = await $$.promisify(w3cDID.createIdentity)(
-          "ssi:name",
-          vaultDomain,
-          userId
-        );
+        did = await $$.promisify(w3cDID.createIdentity)("ssi:name", vaultDomain, userId);
         this.model.identity = did.getIdentifier();
         await $$.promisify(mainEnclave.writeKey)("did", this.model.identity);
         //await $$.promisify(this.DSUStorage.setObject.bind(this.DSUStorage))(constants.WALLET_DID_PATH, {did: did.getIdentifier()});
@@ -128,10 +122,7 @@ export default class GenerateDIDController extends WebcController {
       adminUserList = await $$.promisify(groupDIDDocument.listMembersByIdentity)();
       const memberDID_Document = await $$.promisify(w3cdid.resolveDID)(did);
       const msg = {
-        messageType: "UserLogin",
-        userDID: did,
-        userType: "epiWrite",
-        messageId: `${new Date().getTime()}|${did}`
+        messageType: "UserLogin", userDID: did, userType: "epiWrite", messageId: `${new Date().getTime()}|${did}`
       };
       for (let i = 0; i < adminUserList.length; i++) {
         let adminDID_Document = await $$.promisify(w3cdid.resolveDID)(adminUserList[i]);
@@ -140,6 +131,7 @@ export default class GenerateDIDController extends WebcController {
     } catch (e) {
       console.log("Error sending login message to admins: ", e);
     }
+
     this.navigateToPageTag("home");
   }
 

@@ -1,23 +1,23 @@
-*[userwrights="readonly"] button {
+*[userrights="readonly"] button {
     display: none;
 }
 
-.batches-container[userwrights="readonly"] button {
+.batches-container[userrights="readonly"] button {
     display: block;
     pointer-events: all;
     opacity: 1;
     line-height: 0.6rem;
 }
 
-.batches-container[userwrights="readonly"] span.edit-wrights {
+.batches-container[userrights="readonly"] span.edit-rights {
     display: none;
 }
 
-.batches-container span.readonly-wrights {
+.batches-container span.readonly-rights {
     display: none;
 }
 
-.batches-container[userwrights="readonly"] span.readonly-wrights {
+.batches-container[userrights="readonly"] span.readonly-rights {
     display: block;
 }
 

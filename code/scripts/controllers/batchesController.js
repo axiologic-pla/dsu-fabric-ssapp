@@ -1,7 +1,5 @@
-import {getCommunicationService} from "../services/CommunicationService.js";
+const {FwController} = WebCardinal.controllers;
 
-const {WebcController} = WebCardinal.controllers;
-import getSharedStorage from "../services/SharedDBStorageService.js";
 import constants from "../constants.js";
 import utils from "../utils.js";
 import {LazyDataSource} from "../helpers/LazyDataSource.js";
@@ -88,63 +86,51 @@ class BatchesDataSource extends LazyDataSource {
   }
 }
 
-export default class batchesController extends WebcController {
+export default class batchesController extends FwController {
   constructor(element, history) {
     super(element, history);
-    this.model = {};
-    utils.getUserRights().then((userWrights) => {
-      this.model.userwrights = userWrights;
-    })
+    this.model = {userrights: this.userRights, batches: []};
 
-    this.model.batches = [];
-    getSharedStorage((err, storageService)=> {
-      if (err) {
-        throw err;
-      }
+    this.model.batchesDataSource = new BatchesDataSource({
+      storageService: this.storageService,
+      tableName: constants.BATCHES_STORAGE_TABLE,
+      searchField: "gtin"
+    });
 
-      this.storageService = storageService;
-      getCommunicationService(this.DSUStorage).waitForMessage(this, () => {
-      });
-      this.model.batchesDataSource = new BatchesDataSource({
-        storageService: this.storageService,
-        tableName: constants.BATCHES_STORAGE_TABLE,
-        searchField: "gtin"
-      });
+    lazyUtils.attachHandlers(this, "batchesDataSource");
+    this.onTagClick("view-2DMatrix", (model, target, event) => {
+      let eventData = JSON.parse(target.firstElementChild.innerText);
+      this.model.actionModalModel = {
+        title: "2DMatrix",
+        batchData: eventData,
+        acceptButtonText: "Close",
+      };
 
-      lazyUtils.attachHandlers(this, "batchesDataSource");
-      this.onTagClick("view-2DMatrix", (model, target, event) => {
-        let eventData = JSON.parse(target.firstElementChild.innerText);
-        this.model.actionModalModel = {
-          title: "2DMatrix",
-          batchData: eventData,
-          acceptButtonText: "Close",
-        };
-
-        this.showModalFromTemplate("modal2DMatrix", () => {
-              return;
-            }, () => {
-              return;
-            },
-            {model: this.model}
-        );
-      });
-      this.onTagClick("import-batch", (model, target, event) => {
-        event.stopImmediatePropagation();
-        this.navigateToPageTag("import");
-      });
-      this.onTagClick("add-batch", () => {
-        this.navigateToPageTag("add-batch");
-      });
-
-      this.onTagClick("edit-batch", async (model, target, event) => {
-            let eventData = target.getAttribute("event-data");
-            const batchData = this.model.batchesDataSource.dataSourceRezults.find((element) => element.batchNumber === eventData);
-            this.navigateToPageTag("add-batch", {
-              batchData: JSON.stringify(batchData)
-            });
-          },
-          {capture: true}
+      this.showModalFromTemplate("modal2DMatrix", () => {
+          return;
+        }, () => {
+          return;
+        },
+        {model: this.model}
       );
     });
+    this.onTagClick("import-batch", (model, target, event) => {
+      event.stopImmediatePropagation();
+      this.navigateToPageTag("import");
+    });
+    this.onTagClick("add-batch", () => {
+      this.navigateToPageTag("add-batch");
+    });
+
+    this.onTagClick("edit-batch", async (model, target, event) => {
+        let eventData = target.getAttribute("event-data");
+        const batchData = this.model.batchesDataSource.dataSourceRezults.find((element) => element.batchNumber === eventData);
+        this.navigateToPageTag("add-batch", {
+          batchData: JSON.stringify(batchData)
+        });
+      },
+      {capture: true}
+    );
+
   }
 }

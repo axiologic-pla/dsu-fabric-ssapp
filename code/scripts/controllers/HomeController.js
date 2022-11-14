@@ -1,11 +1,7 @@
-import {getCommunicationService} from "../services/CommunicationService.js";
+const {FwController} = WebCardinal.controllers;
 
-const { WebcController } = WebCardinal.controllers;
-
-export default class HomeController extends WebcController {
-    constructor(...props) {
-        super(...props);
-        getCommunicationService(this.DSUStorage).waitForMessage(this, () => {
-        });
-    }
+export default class HomeController extends FwController {
+  constructor(...props) {
+    super(...props);
+  }
 }

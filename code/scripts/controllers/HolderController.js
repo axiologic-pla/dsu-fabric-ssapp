@@ -1,14 +1,13 @@
-import {getCommunicationService} from "../services/CommunicationService.js";
-
-const {WebcController} = WebCardinal.controllers;
 import {copyToClipboard} from "../helpers/document-utils.js";
+
+const {FwController} = WebCardinal.controllers;
 
 let crypto = require("opendsu").loadApi("crypto");
 const openDSU = require("opendsu");
 const config = openDSU.loadAPI("config");
 const LogService = require("gtin-resolver").loadApi("services").LogService;
 
-export default class HolderController extends WebcController {
+export default class HolderController extends FwController {
   constructor(element, history) {
     super(element, history);
 
@@ -16,8 +15,6 @@ export default class HolderController extends WebcController {
     this.model = {displayCredentialArea: true, isInvalidCredential: false};
     this.model.domain = "epi";
 
-    getCommunicationService(this.DSUStorage).waitForMessage(this, () => {
-    });
     const setCredential = credential => {
       this.model.credential = credential;
       this.model.isInvalidCredential = false;

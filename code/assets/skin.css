@@ -116,7 +116,7 @@ psk-page::part(page-main) {
     margin-right: 15px;
 }
 
-*[userwrights="readonly"] {
+*[userrights="readonly"] {
     pointer-events: none;
     opacity: 0.9;
 }

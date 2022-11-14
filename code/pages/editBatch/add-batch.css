@@ -1,4 +1,4 @@
-.add-batch-container[userwrights="readonly"]:before {
+.add-batch-container[userrights="readonly"]:before {
     content: "Read only mode";
     color: #328569;
     font-weight: 700;
@@ -12,7 +12,7 @@
     opacity: 0.7;
 }
 
-*[userwrights="readonly"] .submit-batch-btn {
+*[userrights="readonly"] .submit-batch-btn {
     display: none;
 }
 

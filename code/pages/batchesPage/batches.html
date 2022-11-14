@@ -5,11 +5,11 @@
         </span>
     <h6 slot="page-content">
         <webc-container controller="batchesController">
-            <div class="d-flex justify-content-end" userwrights="@userwrights">
+            <div class="d-flex justify-content-end" userrights="@userrights">
                 <button class="page-action-btn" data-tag="import-batch">IMPORT</button>
                 <button class="page-action-btn" data-tag="add-batch">ADD BATCH</button>
             </div>
-            <div class="batches-container" userwrights="@userwrights">
+            <div class="batches-container" userrights="@userrights">
                 <div class="search-container">
                     Search by product code <input id="code-search" placeholder="Search by code" type="search">
                     <span class="validity">
@@ -26,8 +26,8 @@
                     <div slot="header">2D Data Matrix</div>
                     <div slot="header">Batch version</div>
                     <div class="last-table-header" slot="header">
-                        <span class="edit-wrights">Edit Batch</span>
-                        <span class="readonly-wrights">View Batch</span>
+                        <span class="edit-rights">Edit Batch</span>
+                        <span class="readonly-rights">View Batch</span>
                     </div>
 
                     <div class="data-item">{{@productName}}</div>
@@ -52,8 +52,8 @@
                         <button class="btn btn-link col align-self-center text-left edit-batch-button"
                                 data-tag="edit-batch"
                                 event-data="@batchNumber" type="button">
-                            <span class="edit-wrights">Edit</span>
-                            <span class="readonly-wrights">View</span>
+                            <span class="edit-rights">Edit</span>
+                            <span class="readonly-rights">View</span>
                         </button>
                     </div>
                     <div slot="no-data">
