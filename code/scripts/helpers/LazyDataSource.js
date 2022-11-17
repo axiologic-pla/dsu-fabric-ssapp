@@ -47,7 +47,6 @@ export class LazyDataSource extends DataSource {
   }
 
 
-
   async getPageDataAsync(startOffset, dataLengthForCurrentPage) {
     if (this.filterResult.length > 0) {
       document.querySelector(".pagination-container").hidden = true;
@@ -69,12 +68,6 @@ export class LazyDataSource extends DataSource {
 
       resultData = this.dataSourceRezults.slice(startOffset, startOffset + dataLengthForCurrentPage);
       this.hasMoreLogs = this.dataSourceRezults.length >= startOffset + dataLengthForCurrentPage + 1;
-
-      if (!this.hasMoreLogs) {
-        document.querySelector(".pagination-container .next-page-btn").disabled = true;
-      } else {
-        document.querySelector(".pagination-container .next-page-btn").disabled = false;
-      }
 
     } catch (e) {
       console.log("Eroor on get async page data  ", e);

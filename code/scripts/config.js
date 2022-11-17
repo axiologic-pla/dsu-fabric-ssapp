@@ -1,4 +1,5 @@
 import utils from "./utils.js";
+import constants from "./constants.js";
 import getSharedStorage from "./services/SharedDBStorageService.js";
 
 const {define} = WebCardinal.components;
@@ -33,20 +34,59 @@ addHook("beforeAppLoads", async () => {
 })
 
 addHook("beforePageLoads", "home", async () => {
+  const gtinResolver = require("gtin-resolver");
+  const openDSU = require("opendsu");
+  const scAPI = openDSU.loadAPI("sc");
+  const w3cdid = openDSU.loadAPI("w3cdid");
+  const LogService = gtinResolver.loadApi("services").LogService;
+  let userRights = await utils.getUserRights();
+  let userGroupName = "-";
+  FwController.prototype.userRights = userRights;
   try {
     let storageService = await $$.promisify(getSharedStorage)();
     FwController.prototype.storageService = storageService;
+
+    const mainEnclave = await $$.promisify(scAPI.getMainEnclave)();
+    let credential = await $$.promisify(mainEnclave.readKey)("credential");
+    let did = await $$.promisify(mainEnclave.readKey)("did");
+    userGroupName = constants.DID_GROUP_MAP[credential.groupDID.slice(credential.groupDID.lastIndexOf(":") + 1)];
+    let loginData = {
+      userId: config.identity.name,
+      action: "Access wallet",
+      userDID: did,
+      userGroup: userGroupName
+    }
+
+    let logService = new LogService(constants.LOGIN_LOGS_TABLE);
+    logService.loginLog(loginData, (err, result) => {
+      if (err) {
+        console.log("Failed to audit wallet access:", err);
+      }
+    })
+
+    const didDomain = await $$.promisify(scAPI.getDIDDomain)();
+    const groupDIDDocument = await $$.promisify(w3cdid.resolveDID)(`did:ssi:group:${didDomain}:ePI_Administration_Group`);
+    let adminUserList;
+
+    try {
+      adminUserList = await $$.promisify(groupDIDDocument.listMembersByIdentity)();
+      const memberDID_Document = await $$.promisify(w3cdid.resolveDID)(did);
+      loginData.messageType = "UserLogin";
+      loginData.messageId = `${new Date().getTime()}|${did}`;
+      for (let i = 0; i < adminUserList.length; i++) {
+        let adminDID_Document = await $$.promisify(w3cdid.resolveDID)(adminUserList[i]);
+        await $$.promisify(memberDID_Document.sendMessage)(JSON.stringify(loginData), adminDID_Document);
+      }
+    } catch (e) {
+      console.log("Error sending login message to admins: ", e);
+    }
+
   } catch (e) {
     console.log("Could not initialise properly FwController", e);
   }
+
   try {
-    let userRights = await utils.getUserRights();
-    FwController.prototype.userRights = userRights;
-  } catch (e) {
-    console.log("Could not initialise properly FwController", e);
-  }
-  try {
-    const gtinResolver = require("gtin-resolver");
+
     let disabledFeatures = await gtinResolver.DSUFabricFeatureManager.getDisabledFeatures();
     FwController.prototype.disabledFeatures = disabledFeatures;
   } catch (e) {

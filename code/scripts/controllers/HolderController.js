@@ -91,15 +91,15 @@ export default class HolderController extends FwController {
                 diffs,
                 logInfo: this.model.envData,
                 username: useData[useData.length - 1],
-                action: `Changed features`,
+                reason: `Changed features`,
                 metadata: ""
               }, () => {
               }
             );
           }).catch(err => {
-              console.log(err)
-            })
-          }, () => {
+            console.log(err)
+          })
+        }, () => {
         },
         {controller: "FeaturesModalController"}
       );

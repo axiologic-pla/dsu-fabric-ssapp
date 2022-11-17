@@ -1,8 +1,15 @@
 .audit-logs-container .webc-datatable--container {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
     border: 1px solid #dee2e6;
     border-radius: 7px;
+}
+
+.edit-actions-tab .webc-datatable--container {
+    grid-template-columns: repeat(6, 1fr);
+}
+
+.login-actions-tab .webc-datatable--container {
+    grid-template-columns: repeat(5, 1fr);
 }
 
 .audit-logs-container .search-container {

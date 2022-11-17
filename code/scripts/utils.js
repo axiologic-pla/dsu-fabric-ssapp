@@ -1,5 +1,5 @@
-import constants from "./controllers/constants.js";
-const {FwController} = await import("./controllers/FwController.js");
+import constants from "./constants.js";
+
 
 function convertDateToISO(dateString) {
   const d = new Date(dateString);
@@ -212,7 +212,7 @@ async function getUserRights() {
     const mainEnclave = await $$.promisify(scAPI.getMainEnclave)();
     let credential = await $$.promisify(mainEnclave.readKey)("credential");
     let userEpiGroup = credential.tags[0];
-    if (userEpiGroup !== constants.EPI_READ_GROUP) {
+    if (userEpiGroup !== constants.DID_GROUP_MAP.ePI_Read_Group) {
       userRights = "readwrite"
     }
   } catch (e) {

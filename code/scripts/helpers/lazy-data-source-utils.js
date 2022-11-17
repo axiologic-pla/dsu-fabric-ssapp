@@ -1,5 +1,5 @@
-function attachHandlers(controller, datasource) {
-  let searchInput = controller.querySelector("#code-search");
+function attachHandlers(controller, datasource, searchInputSelector = "#code-search", prevPageTag = "prev-page", nextPageTag = "next-page") {
+  let searchInput = controller.querySelector(searchInputSelector || "#code-search");
   let foundIcon = controller.querySelector(".fa-check");
   let notFoundIcon = controller.querySelector(".fa-ban");
   if (searchInput) {
@@ -8,22 +8,22 @@ function attachHandlers(controller, datasource) {
     })
   }
 
-
-  controller.onTagClick("prev-page", (model, target, event) => {
+  controller.onTagClick(prevPageTag, async (model, target, event) => {
     target.parentElement.querySelector(".next-page-btn").disabled = false;
-    controller.model[datasource].goToPreviousPage();
-    if (controller.model[datasource].getCurrentPageIndex() === 1) {
+    await controller.model[datasource].goToPreviousPage();
+    if (controller.model[datasource].getCurrentPageIndex() === 0) {
       target.parentElement.querySelector(".prev-page-btn").disabled = true;
     }
 
   })
-  controller.onTagClick("next-page", (model, target, event) => {
-
+  controller.onTagClick(nextPageTag, async (model, target, event) => {
     target.parentElement.querySelector(".prev-page-btn").disabled = false;
     if (controller.model[datasource].hasMoreLogs) {
-      controller.model[datasource].goToNextPage();
+      await controller.model[datasource].goToNextPage();
+      if (!controller.model[datasource].hasMoreLogs) {
+        target.parentElement.querySelector(".next-page-btn").disabled = true;
+      }
     }
-
   })
 }
 

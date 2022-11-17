@@ -102,36 +102,6 @@ export default class GenerateDIDController extends WebcController {
   async authorizationIsDone() {
     this.hideSpinner();
     WebCardinal.root.hidden = false;
-    const openDSU = require("opendsu");
-    const w3cdid = openDSU.loadAPI("w3cdid");
-    const scAPI = openDSU.loadAPI("sc");
-    const didDomain = await $$.promisify(scAPI.getDIDDomain)();
-
-    const groupDIDDocument = await $$.promisify(w3cdid.resolveDID)(`did:ssi:group:${didDomain}:ePI_Administration_Group`);
-    let adminUserList;
-    const dsuMainEnclave = await $$.promisify(scAPI.getMainEnclave)();
-    let did;
-    try {
-      did = await $$.promisify(dsuMainEnclave.readKey)("did");
-    } catch (e) {
-      console.log("Failed to read DID for logging logged in user ", e);
-      return;
-    }
-
-    try {
-      adminUserList = await $$.promisify(groupDIDDocument.listMembersByIdentity)();
-      const memberDID_Document = await $$.promisify(w3cdid.resolveDID)(did);
-      const msg = {
-        messageType: "UserLogin", userDID: did, userType: "epiWrite", messageId: `${new Date().getTime()}|${did}`
-      };
-      for (let i = 0; i < adminUserList.length; i++) {
-        let adminDID_Document = await $$.promisify(w3cdid.resolveDID)(adminUserList[i]);
-        await $$.promisify(memberDID_Document.sendMessage)(JSON.stringify(msg), adminDID_Document);
-      }
-    } catch (e) {
-      console.log("Error sending login message to admins: ", e);
-    }
-
     this.navigateToPageTag("home");
   }
 

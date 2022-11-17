@@ -4,6 +4,12 @@ import lazyUtils from "../helpers/lazy-data-source-utils.js"
 
 const {FwController} = WebCardinal.controllers;
 
+class LoginDataSource extends LazyDataSource {
+  constructor(...props) {
+    super(...props);
+  }
+}
+
 class AuditDataSource extends LazyDataSource {
   constructor(...props) {
     super(...props);
@@ -119,14 +125,16 @@ export default class AuditController extends FwController {
 
     this.model = {};
 
-    this.model.auditDataSource = new AuditDataSource({
+    this.model.auditActionsDataSource = new AuditDataSource({
       storageService: this.storageService, tableName: constants.LOGS_TABLE, searchField: "gtin"
     });
-
-    lazyUtils.attachHandlers(this, "auditDataSource");
-
+    this.model.auditLoginDataSource = new LoginDataSource({
+      storageService: this.storageService, tableName: constants.LOGIN_LOGS_TABLE, searchField: "userId"
+    });
+    lazyUtils.attachHandlers(this, "auditActionsDataSource", null, "actionsTab-prev-page", "actionsTab-next-page");
+    lazyUtils.attachHandlers(this, "auditLoginDataSource", "#user-search", "loginTab-prev-page", "loginTab-next-page");
     this.onTagClick("audit-export", async (model, target, event) => {
-      let csvResult = await this.model.auditDataSource.exportToCSV();
+      let csvResult = await this.model.auditActionsDataSource.exportToCSV();
       let url = window.URL.createObjectURL(csvResult);
       let anchor = document.createElement("a");
       anchor.href = url;

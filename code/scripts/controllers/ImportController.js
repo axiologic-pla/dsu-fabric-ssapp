@@ -103,11 +103,7 @@ class FailedLogDataSource extends DataSource {
 
       importLogs = this.importLogs.slice(startOffset, startOffset + dataLengthForCurrentPage);
       this.hasMoreLogs = this.importLogs.length >= startOffset + dataLengthForCurrentPage + 1;
-      if (!this.hasMoreLogs) {
-        document.querySelector(".failed-messages-page-btn .next-page-btn").disabled = true;
-      } else {
-        document.querySelector(".failed-messages-page-btn .next-page-btn").disabled = false;
-      }
+
       let now = Date.now();
       importLogs = importLogs.map(log => {
         if (log.message) {
@@ -189,7 +185,7 @@ export default class importController extends FwController {
     })
 
 
-    this.onTagClick("prev-page", (model, target, event) => {
+    this.onTagClick("prev-page", async (model, target, event) => {
       let dataSource;
       if (target.getAttribute("msgType") === "success") {
         dataSource = this.model.successDataSource;
@@ -197,16 +193,13 @@ export default class importController extends FwController {
         dataSource = this.model.failedDataSource;
       }
       target.parentElement.querySelector(".next-page-btn").disabled = false;
-      if (dataSource.getCurrentPageIndex() > 0) {
-        target.disabled = false;
-        dataSource.goToPreviousPage();
-      } else {
+      await dataSource.goToPreviousPage();
+      if (dataSource.getCurrentPageIndex() === 0) {
         target.disabled = true;
-        return;
       }
-
     })
-    this.onTagClick("next-page", (model, target, event) => {
+
+    this.onTagClick("next-page", async (model, target, event) => {
       let dataSource;
       if (target.getAttribute("msgType") === "success") {
         dataSource = this.model.successDataSource;
@@ -215,9 +208,11 @@ export default class importController extends FwController {
       }
       target.parentElement.querySelector(".prev-page-btn").disabled = false;
       if (dataSource.hasMoreLogs) {
-        dataSource.goToNextPage();
+        await dataSource.goToNextPage();
+        if (!dataSource.hasMoreLogs) {
+          target.parentElement.querySelector(".next-page-btn").disabled = true;
+        }
       }
-
     })
 
     let searchInput = this.querySelector("#code-search");
