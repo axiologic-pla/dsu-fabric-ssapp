@@ -22,7 +22,7 @@
 
 .products-container .webc-datatable--container {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     border: 1px solid #dee2e6;
     border-radius: 7px;
 }
