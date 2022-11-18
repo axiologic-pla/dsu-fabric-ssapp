@@ -134,11 +134,17 @@ export default class AuditController extends FwController {
     lazyUtils.attachHandlers(this, "auditActionsDataSource", null, "actionsTab-prev-page", "actionsTab-next-page");
     lazyUtils.attachHandlers(this, "auditLoginDataSource", "#user-search", "loginTab-prev-page", "loginTab-next-page");
     this.onTagClick("audit-export", async (model, target, event) => {
+      let downloadModal = this.showModalFromTemplate("wait-download", () => {
+      }, () => {
+      }, {
+        disableExpanding: true, disableFooter: true, disableClosing: true, centered: true
+      });
       let csvResult = await this.model.auditActionsDataSource.exportToCSV();
       let url = window.URL.createObjectURL(csvResult);
       let anchor = document.createElement("a");
       anchor.href = url;
       anchor.download = "audit.csv";
+      downloadModal.destroy();
       anchor.click();
       window.URL.revokeObjectURL(url);
       anchor.remove();

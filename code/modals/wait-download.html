@@ -1,0 +1,32 @@
+<style>
+    main {
+        padding-top: 50px;
+        height: 200px
+    }
+    main h3 {
+        font-style: normal;
+        font-weight: 500;
+        font-size: 1rem;
+        text-align: center;
+    }
+
+    .loader-container {
+        text-align: center;
+        margin-top: 30px
+    }
+
+    webc-modal::part(header) {
+        display: none;
+    }
+</style>
+
+<main>
+    <h3>Please wait until we finish generating the .csv file.</h3>
+    <h3>This could take a few moments</h3>
+    <div class="loader-container">
+        <div class="spinner-border text-success" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+    </div>
+
+</main>
