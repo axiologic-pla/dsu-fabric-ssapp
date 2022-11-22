@@ -51,6 +51,11 @@ export default class Batch {
     if (!this.batchNumber) {
       return 'Batch number is mandatory field';
     }
+
+    if (!/^[A-Za-z0-9]{1,20}$/.test(this.batchNumber)) {
+      return 'Batch number can contain only alphanumeric characters and a maximum length of 20';
+    }
+
     if (!this.expiryForDisplay) {
       return 'Expiration date is a mandatory field.';
     }
