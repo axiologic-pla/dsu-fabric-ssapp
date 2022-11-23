@@ -105,7 +105,7 @@ export default class addBatchController extends FwController {
 
   }
 
-  async addOrUpdateBatch() {
+  async addOrUpdateBatch(operation) {
     if (!this.model.batch.gtin) {
       return this.showErrorModal("Invalid product code. Please select a valid code");
     }
@@ -125,10 +125,23 @@ export default class addBatchController extends FwController {
     }
 
     let error = batch.validate();
+
     if (error) {
       printOpenDSUError(createOpenDSUErrorWrapper("Invalid batch info ", error));
       return this.showErrorModal(error);
     }
+
+    if (operation === "create") {
+      try {
+        let batchWithIdExists = await $$.promisify(this.storageService.getRecord, this.storageService)(constants.BATCHES_STORAGE_TABLE, gtinResolverUtils.getBatchMetadataPK(this.model.batch.gtin, this.model.batch.batchNumber));
+        printOpenDSUError(createOpenDSUErrorWrapper("Invalid batch info ", "Batch ID is already in use"));
+        return this.showErrorModal("Batch ID is already in use");
+      } catch (e) {
+        //do nothing just check if batch with batchId exists
+      }
+
+    }
+
     this.createWebcModal({
       disableExpanding: true,
       disableClosing: true,
@@ -207,8 +220,12 @@ export default class addBatchController extends FwController {
     this.onTagClick("cancel", () => {
       this.navigateToPageTag("batches");
     });
-    this.onTagClick("update-batch", this.addOrUpdateBatch.bind(this))
-    this.onTagClick("add-batch", this.addOrUpdateBatch.bind(this));
+    this.onTagClick("update-batch", async () => {
+      await this.addOrUpdateBatch("update");
+    })
+    this.onTagClick("add-batch", async () => {
+      await this.addOrUpdateBatch("create");
+    })
 
     this.model.onChange('batch.videos.defaultSource', async (...props) => {
       this.model.videoSourceUpdated = this.videoInitialDefaultSource !== this.model.batch.videos.defaultSource;
