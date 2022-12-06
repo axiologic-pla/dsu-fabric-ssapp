@@ -188,7 +188,12 @@ export default class ManageProductController extends FwController {
     try {
       let modelMsgService = new ModelMessageService("product");
       message.product = modelMsgService.getMessageFromModel(product);
-
+      if (!message.product.flagEnableAdverseEventReporting) {
+        delete message.product.adverseEventReportingURL
+      }
+      if (!message.product.flagEnableACFProductCheck) {
+        delete message.product.acfProductCheckURL
+      }
       let photoMessages = [];
       //process photo
       if (typeof this.productPhoto !== "undefined") {

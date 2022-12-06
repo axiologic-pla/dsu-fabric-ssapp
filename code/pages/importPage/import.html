@@ -23,7 +23,7 @@
                 </span>
             </div>
             <psk-tab-navigator id="orange-tab-navigator" selected="@selectedTab">
-                <psk-tab class="success-messages-tab" title="Successfully Imported Logs">
+                <psk-tab class="success-messages-tab" title="Successful Messages">
                     <webc-datatable datasource="@successDataSource" hide-pagination>
                         <div slot="header">Item Code</div>
                         <div slot="header">Message ID</div>
@@ -55,7 +55,7 @@
                         <button class="next-page-btn" data-tag="next-page" msgType="success"> >></button>
                     </div>
                 </psk-tab>
-                <psk-tab class="failed-messages-tab" title="Failed Imported Logs">
+                <psk-tab class="failed-messages-tab" title="Failed Messages">
                     <webc-datatable datasource="@failedDataSource" hide-pagination>
                         <div slot="header">Item Code</div>
                         <div slot="header">Message ID</div>
