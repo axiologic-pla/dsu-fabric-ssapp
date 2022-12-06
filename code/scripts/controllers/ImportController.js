@@ -176,6 +176,8 @@ export default class importController extends FwController {
       window.WebCardinal.loader.hidden = false;
       await MessagesService.processMessages(messages, this.storageService, this.manageProcessedMessages.bind(this));
     });
+/*
+    Removed for MVP1
 
     this.onTagClick("view-all", async () => {
       const openDSU = require("opendsu");
@@ -183,6 +185,7 @@ export default class importController extends FwController {
       const domain = await $$.promisify(config.getEnv)("epiDomain");
       window.open(`${window.location.origin}/mappingEngine/${domain}/logs`, '_blank');
     })
+*/
 
 
     this.onTagClick("prev-page", async (model, target, event) => {
