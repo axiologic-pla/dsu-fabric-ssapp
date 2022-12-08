@@ -3,14 +3,20 @@
     <webc-container controller="ImportController">
         <div class="m-5">
             <p>Select your files</p>
+
             <psk-files-chooser data-view-model="@filesChooser" id="import-files">
             </psk-files-chooser>
+            <button data-tag="import" disabled="@importIsDisabled" class="btn btn-secondary import-btn" type="button">
+                <label>Import selected files</label>
+            </button>
 
             <hr/>
-            <psk-button data-tag="import" disabled="@importIsDisabled" label="Import"></psk-button>
-       <!-- removed for MVP1
-           <psk-button data-tag="view-all" label="View responses"></psk-button>-->
-            <psk-button data-tag="retry-failed" disabled="@retryBtnIsDisabled" label="Retry failed messages"
+
+            <!-- removed for MVP1
+                <psk-button data-tag="view-all" label="View responses"></psk-button>-->
+            <psk-button data-tag="retry-failed" disabled="@retryBtnIsDisabled" label="Retry failed"
+                        style="float:right"></psk-button>
+            <psk-button data-tag="retry-failed" disabled="@retryBtnIsDisabled" label="Force recover"
                         style="float:right"></psk-button>
 
             <h3>Import Logs</h3>

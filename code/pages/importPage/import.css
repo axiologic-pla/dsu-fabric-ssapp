@@ -8,6 +8,10 @@
     grid-template-columns: repeat(6, 1fr) 40px;
 }
 
+.import-btn {
+    height: 36px;
+}
+
 .pagination-container {
     display: flex;
     justify-content: center;

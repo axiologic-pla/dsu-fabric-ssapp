@@ -158,7 +158,7 @@ export default class AuditController extends FwController {
 
       let cleanObject = function JSONstringifyOrder(obj) {
         const objToDisplay = {};
-        let displayKeys = ["username", "reason", "itemCode", "diffs", "anchorId", "hashLink", "metadata", "logInfo"];
+        let displayKeys = ["username", "reason", "status", "itemCode", "diffs", "anchorId", "hashLink", "metadata", "logInfo"];
         displayKeys.forEach(key => {
           objToDisplay[key] = obj[key];
         })
