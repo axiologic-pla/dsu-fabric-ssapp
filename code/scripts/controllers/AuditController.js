@@ -104,6 +104,10 @@ class AuditDataSource extends LazyDataSource {
             viewLog = this.attachmentLogProcessing(item);
             break;
           case "FAILED_LOG":
+            if (item.logInfo && item.logInfo.invalidFields) {
+              item.metadata.invalidFields = item.logInfo.invalidFields;
+              delete item.logInfo.invalidFields;
+            }
             viewLog = this.basicLogProcessing(item);
             break;
           default:
@@ -154,7 +158,7 @@ export default class AuditController extends FwController {
 
       let cleanObject = function JSONstringifyOrder(obj) {
         const objToDisplay = {};
-        let displayKeys = ["username", "reason", "itemCode", "diffs", "anchorId", "hashLink", "logInfo", "metadata"];
+        let displayKeys = ["username", "reason", "itemCode", "diffs", "anchorId", "hashLink", "metadata", "logInfo"];
         displayKeys.forEach(key => {
           objToDisplay[key] = obj[key];
         })
