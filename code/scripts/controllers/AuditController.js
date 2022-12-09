@@ -61,7 +61,7 @@ class AuditDataSource extends LazyDataSource {
       batch: "-",
       reason: item.reason,
       username: item.username,
-      creationTime: item.creationTime || new Date(item.timestamp).toISOString(),
+      creationTime: item.creationTime || new Date(item["__timestamp"]).toISOString(),
       details: {
         all: JSON.stringify(item),
       }

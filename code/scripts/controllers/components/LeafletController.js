@@ -20,8 +20,8 @@ export default class LeafletController extends WebcController {
           return true
         }
 
-        if (lf.status === LeafletService.LEAFLET_CARD_STATUS.EXISTS) {
-          lf.status = LeafletService.LEAFLET_CARD_STATUS.DELETE;
+        if (lf.action === LeafletService.LEAFLET_CARD_STATUS.EXISTS) {
+          lf.action = LeafletService.LEAFLET_CARD_STATUS.DELETE;
           this.model.deletedLanguageTypeCards.push(lf);
           if (lf.videoSource) {
             this.model.videoSourceUpdated = true;

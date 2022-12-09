@@ -49,8 +49,8 @@ class SuccessLogDataSource extends DataSource {
       let now = Date.now();
       importLogs = importLogs.map(log => {
         if (log.message) {
-          log.timeAgo = utils.timeAgo(log.timestamp)
-          log.isFresh = now - log.timestamp < 60 * 1000;
+          log.timeAgo = utils.timeAgo(log["__timestamp"])
+          log.isFresh = now - log["__timestamp"] < 60 * 1000;
           log.itemMsgId = log.message.messageId;
           return log;
         }
@@ -107,10 +107,10 @@ class FailedLogDataSource extends DataSource {
       let now = Date.now();
       importLogs = importLogs.map(log => {
         if (log.message) {
-          log.timeAgo = utils.timeAgo(log.timestamp)
-          log.isFresh = now - log.timestamp < 60 * 1000;
+          log.timeAgo = utils.timeAgo(log["__timestamp"])
+          log.isFresh = now - log["__timestamp"] < 60 * 1000;
           log.retry = false;
-          log.itemId = log.itemCode + '_' + log.timestamp;
+          log.itemId = log.itemCode + '_' + log["__timestamp"];
           log.itemMsgId = log.message.messageId;
           return log;
         }
