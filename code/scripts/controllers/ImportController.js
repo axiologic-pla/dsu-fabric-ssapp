@@ -174,18 +174,20 @@ export default class importController extends FwController {
       }
 
       window.WebCardinal.loader.hidden = false;
-      await MessagesService.processMessages(messages, this.storageService, this.manageProcessedMessages.bind(this));
+      await MessagesService.processMessages(messages, this.storageService, async (undigestedMessages) => {
+        await this.manageProcessedMessages(undigestedMessages)
+      });
     });
-/*
-    Removed for MVP1
+    /*
+        Removed for MVP1
 
-    this.onTagClick("view-all", async () => {
-      const openDSU = require("opendsu");
-      const config = openDSU.loadAPI("config");
-      const domain = await $$.promisify(config.getEnv)("epiDomain");
-      window.open(`${window.location.origin}/mappingEngine/${domain}/logs`, '_blank');
-    })
-*/
+        this.onTagClick("view-all", async () => {
+          const openDSU = require("opendsu");
+          const config = openDSU.loadAPI("config");
+          const domain = await $$.promisify(config.getEnv)("epiDomain");
+          window.open(`${window.location.origin}/mappingEngine/${domain}/logs`, '_blank');
+        })
+    */
 
 
     this.onTagClick("prev-page", async (model, target, event) => {
@@ -320,7 +322,9 @@ export default class importController extends FwController {
         this.model.selectedTab = 1;
         window.WebCardinal.loader.hidden = false;
 
-        await MessagesService.processMessages(messages, this.storageService, this.manageProcessedMessages.bind(this));
+        await MessagesService.processMessages(messages, this.storageService, async (undigestedMessages) => {
+          await this.manageProcessedMessages(undigestedMessages)
+        });
 
         this.model.retryAll = false;
         this.querySelector("#retry-all-checkbox").checked = false;
@@ -379,21 +383,22 @@ export default class importController extends FwController {
     })
   }
 
-  manageProcessedMessages(undigestedMessages) {
+  async manageProcessedMessages(undigestedMessages) {
     window.WebCardinal.loader.hidden = true;
+    this.querySelector(".prev-page-btn[msgType='success']").disabled = true;
+    this.querySelector(".next-page-btn[msgType='success']").disabled = false;
+    this.model.successDataSource.importLogs = [];
+    await this.model.successDataSource.goToPageByIndex(0);
+    this.querySelector(".prev-page-btn[msgType='failed']").disabled = true;
+    this.querySelector(".next-page-btn[msgType='failed']").disabled = false;
+    this.model.failedDataSource.importLogs = [];
+    await this.model.failedDataSource.goToPageByIndex(0);
+
     if (undigestedMessages.length === 0) {
       this.model.selectedTab = 0;
     } else {
       this.model.selectedTab = 1;
     }
-    this.querySelector(".prev-page-btn[msgType='success']").disabled = true;
-    this.querySelector(".next-page-btn[msgType='success']").disabled = false;
-    this.model.successDataSource.importLogs = [];
-    this.model.successDataSource.goToPageByIndex(0);
-    this.querySelector(".prev-page-btn[msgType='failed']").disabled = true;
-    this.querySelector(".next-page-btn[msgType='failed']").disabled = false;
-    this.model.failedDataSource.importLogs = [];
-    this.model.failedDataSource.goToPageByIndex(0);
   }
 
 }
