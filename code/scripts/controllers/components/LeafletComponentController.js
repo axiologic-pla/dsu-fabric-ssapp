@@ -4,31 +4,22 @@ const Languages = gtinResolver.Languages
 const UploadTypes = gtinResolver.UploadTypes
 const {WebcController} = WebCardinal.controllers;
 
-export default class LeafletController extends WebcController {
+export default class LeafletComponentController extends WebcController {
 
   constructor(...props) {
     super(...props);
-    this.model.deletedLanguageTypeCards = [];
     this.onTagClick("add-language-leaflet", (event) => {
       this.addLanguageTypeFilesListener(event)
     });
 
     this.onTagClick("delete-language-leaflet", (model, target, event) => {
       let eventData = target.firstElementChild.innerText.split('/');
-      this.model.languageTypeCards = this.model.languageTypeCards.filter(lf => {
-        if (!(lf.type.value === eventData[1] && lf.language.value === eventData[0])) {
-          return true
-        }
-
-        if (lf.action === LeafletService.LEAFLET_CARD_STATUS.EXISTS) {
-          lf.action = LeafletService.LEAFLET_CARD_STATUS.DELETE;
-          this.model.deletedLanguageTypeCards.push(lf);
-          if (lf.videoSource) {
-            this.model.videoSourceUpdated = true;
-          }
-        }
-        return false
-      });
+      let cardIndex = this.gettypeAndLanguageIndex(eventData[0], eventData[1]);
+      this.model.languageTypeCards[cardIndex].action = LeafletService.LEAFLET_CARD_STATUS.DELETE;
+      if (this.model.languageTypeCards[cardIndex].videoSource) {
+        this.model.videoSourceUpdated = true;
+      }
+      this.updateCardsForDisplay();
     });
   }
 
@@ -42,14 +33,10 @@ export default class LeafletController extends WebcController {
       }
     })
     const languages = {
-      label: "Language",
-      placeholder: "Select a language",
-      options: Languages.getListAsVM()
+      label: "Language", placeholder: "Select a language", options: Languages.getListAsVM()
     };
     const types = {
-      componentLabel: "Type",
-      placeholder: "Select a type",
-      options: UploadTypes.getListAsVM(disabledFeatures)
+      componentLabel: "Type", placeholder: "Select a type", options: UploadTypes.getListAsVM(disabledFeatures)
     };
     this.model.modalData = {
       title: "Choose language and type of upload",
@@ -59,15 +46,10 @@ export default class LeafletController extends WebcController {
       types: types,
       videoDisabled: this.model.disabledFeatures.find(item => item.trim() === "05"),
       product: {
-        language: "en",
-        type: "leaflet",
-        videoSource: ""
+        language: "en", type: "leaflet", videoSource: ""
       },
       fileChooser: {
-        accept: "directory",
-        "event-name": "uploadLeaflet",
-        label: "Upload files",
-        "list-files": true
+        accept: "directory", "event-name": "uploadLeaflet", label: "Upload files", "list-files": true
       },
       filesWereNotSelected: true,
     }
@@ -81,25 +63,42 @@ export default class LeafletController extends WebcController {
     this.showModalFromTemplate('select-language-and-type-modal', () => {
       const select = document.getElementsByClassName('document-type-select')[0];
       let selectedType = select.options[select.selectedIndex].value;
-      if (this.typeAndLanguageExist(this.model.modalData.product.language, selectedType)) {
-        return alert('This language and type combo already exist.');
-      }
       let selectedLanguage = Languages.getListAsVM().find(lang => lang.value === this.model.modalData.product.language);
+      let leafletAction;
+      let cardIndex = this.gettypeAndLanguageIndex(selectedLanguage.value, selectedType);
+      if (cardIndex !== -1) {
+        if (this.model.languageTypeCards[cardIndex].action !== LeafletService.LEAFLET_CARD_STATUS.DELETE) {
+          alert(`You are about to update an existing leaflet for ${selectedLanguage.label} language`);
+        }
+        leafletAction = LeafletService.LEAFLET_CARD_STATUS.UPDATE;
+      //  this.model.languageTypeCards.splice(cardIndex, 1);
+        this.model.languageTypeCards = this.model.languageTypeCards.filter(card => card.type.value !== selectedType || card.language.value !== selectedLanguage.value);
+      } else {
+        leafletAction = LeafletService.LEAFLET_CARD_STATUS.NEW
+      }
+
 
       let videoSource = btoa(this.model.modalData.product.videoSource);
-      let card = LeafletService.generateCard(LeafletService.LEAFLET_CARD_STATUS.NEW, selectedType, selectedLanguage.value, this.model.modalData.files, videoSource);
+      let card = LeafletService.generateCard(leafletAction, selectedType, selectedLanguage.value, this.model.modalData.files, videoSource);
+
       this.model.languageTypeCards.push(card);
       if (videoSource) {
         this.model.videoSourceUpdated = true;
       }
+      this.updateCardsForDisplay();
     }, () => {
       return
     }, {model: this.model});
   }
 
 
-  typeAndLanguageExist(language, type) {
-    return this.model.languageTypeCards.findIndex(lf => lf.type.value === type && lf.language.value === language) !== -1;
+  gettypeAndLanguageIndex(language, type) {
+    return this.model.languageTypeCards.findIndex(lf => lf.type.value === type && lf.language.value === language)
+  }
+
+  updateCardsForDisplay() {
+    this.model.languageTypeCardsForDisplay = this.model.languageTypeCards.filter(card => card.action !== LeafletService.LEAFLET_CARD_STATUS.DELETE)
+
   }
 
 }

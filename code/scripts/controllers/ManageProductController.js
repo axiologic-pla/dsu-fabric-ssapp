@@ -36,6 +36,7 @@ export default class ManageProductController extends FwController {
           }
 
           this.model.languageTypeCards = attachments.languageTypeCards;
+          this.model.languageTypeCardsForDisplay = attachments.languageTypeCards;
           this.initialCards = JSON.parse(JSON.stringify(this.model.languageTypeCards));
           if (attachments.productPhoto) {
             this.model.product.photo = attachments.productPhoto;
@@ -205,11 +206,10 @@ export default class ManageProductController extends FwController {
 
       //process leaflet & smpc cards
       let leafletMsg = await utils.initMessage("leaflet");
-      leafletMsg.cards = [...this.model.deletedLanguageTypeCards, ...this.model.languageTypeCards];
-      leafletMsg.type = "product";
+      leafletMsg.cards = [...this.model.languageTypeCards];
       leafletMsg.username = this.model.username;
       leafletMsg.code = message.product.productCode;
-      let cardMessages = await gtinResolver.DSUFabricUtils.createEpiMessages(leafletMsg);
+      let cardMessages = await gtinResolver.DSUFabricUtils.createEpiMessages(leafletMsg, "product");
 
       let messages = [];
       if (this.productWasUpdated()) {

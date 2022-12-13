@@ -58,6 +58,7 @@ export default class addBatchController extends FwController {
         let submitButton = this.querySelector("#submit-batch");
         submitButton.disabled = true;
         this.model.languageTypeCards = attachments.languageTypeCards;
+        this.model.languageTypeCardsForDisplay = attachments.languageTypeCards;
         this.initialCards = JSON.parse(JSON.stringify(this.model.languageTypeCards));
         this.initialModel = JSON.parse(JSON.stringify(this.model));
         this.model.onChange("batch", (...props) => {
@@ -160,12 +161,11 @@ export default class addBatchController extends FwController {
       //process batch, leaflet & smpc cards
 
       let leafletMsg = await utils.initMessage("leaflet");
-      leafletMsg.cards = [...this.model.deletedLanguageTypeCards, ...this.model.languageTypeCards];
-      leafletMsg.type = "batch";
+      leafletMsg.cards = [...this.model.languageTypeCards];
       leafletMsg.username = this.model.username;
       leafletMsg.code = message.batch.batch;
       leafletMsg.productCode = message.batch.productCode;
-      let cardMessages = await gtinResolver.DSUFabricUtils.createEpiMessages(leafletMsg);
+      let cardMessages = await gtinResolver.DSUFabricUtils.createEpiMessages(leafletMsg, "batch");
       let messages = [];
       if (this.batchWasUpdated()) {
         messages = [message, ...cardMessages];
