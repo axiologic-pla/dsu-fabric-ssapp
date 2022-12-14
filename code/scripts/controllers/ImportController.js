@@ -141,7 +141,7 @@ export default class importController extends FwController {
       selectedTab: 0,
       filesChooser: {
         label: "Select files",
-        accept: "json",
+        accept: ".json",
         listFiles: true,
         filesAppend: true,
         "event-name": "uploadProducts",
