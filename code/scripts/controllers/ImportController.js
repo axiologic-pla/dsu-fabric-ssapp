@@ -311,25 +311,44 @@ export default class importController extends FwController {
       this.updateRetryBtnState();
     })
 
-    this.onTagClick("retry-failed", async (model, target, event) => {
+    function getSelectedFailed(prepareFnc){
       let messages = [];
       this.model.failedImportedLogs.forEach(elem => {
         if (elem.retry) {
-          messages.push(elem.message);
+          let msg = elem.message;
+          if(prepareFnc){
+            msg = prepareFnc(msg);
+          }
+          messages.push(msg);
         }
       });
-      if (messages.length > 0) {
-        this.model.selectedTab = 1;
-        window.WebCardinal.loader.hidden = false;
+      return messages;
+    }
 
-        await MessagesService.processMessages(messages, this.storageService, async (undigestedMessages) => {
-          await this.manageProcessedMessages(undigestedMessages)
-        });
+    function prepareCallback(prepareFnc){
+      return async (model, target, event) => {
+        let messages = getSelectedFailed.call(this, prepareFnc);
+        if (messages.length > 0) {
+          this.model.selectedTab = 1;
+          window.WebCardinal.loader.hidden = false;
 
-        this.model.retryAll = false;
-        this.querySelector("#retry-all-checkbox").checked = false;
+          await MessagesService.processMessages(messages, this.storageService, async (undigestedMessages) => {
+            await this.manageProcessedMessages(undigestedMessages);
+          });
+
+          this.model.retryAll = false;
+          this.querySelector("#retry-all-checkbox").checked = false;
+        }
       }
-    })
+    }
+
+    let self = this;
+    this.onTagClick("retry-failed", prepareCallback.call(self));
+
+    this.onTagClick("force-retry-failed", prepareCallback.call(self,(msg)=>{
+      msg.force = true;
+      return msg;
+    }));
 
   }
 
@@ -402,5 +421,3 @@ export default class importController extends FwController {
   }
 
 }
-
-
