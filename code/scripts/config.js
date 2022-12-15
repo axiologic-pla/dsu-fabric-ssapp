@@ -31,6 +31,25 @@ addHook('whenPageClose', 'generate-did', () => {
 addHook("beforeAppLoads", async () => {
   // load fabric base Controller
   addControllers({FwController});
+
+  const openDSU = require("opendsu");
+  const didAPI = openDSU.loadAPI("w3cdid");
+  const scAPI = openDSU.loadAPI("sc");
+  const typicalBusinessLogicHub = didAPI.getTypicalBusinessLogicHub();
+  const onUserRemovedMessage = (message) => {
+    scAPI.getMainEnclave(async (err, mainEnclave)=>{
+      if (err) {
+        console.log(err);
+      }
+
+      await $$.promisify(mainEnclave.writeKey)(constants.CREDENTIAL_KEY, constants.CREDENTIAL_DELETED);
+      await $$.promisify(scAPI.deleteSharedEnclave)();
+      scAPI.refreshSecurityContext();
+      return $$.history.go("generate-did");
+    })
+  }
+
+  typicalBusinessLogicHub.strongSubscribe(constants.MESSAGE_TYPES.USER_REMOVED, onUserRemovedMessage);
 })
 
 addHook("beforePageLoads", "home", async () => {
@@ -47,8 +66,8 @@ addHook("beforePageLoads", "home", async () => {
     FwController.prototype.storageService = storageService;
 
     const mainEnclave = await $$.promisify(scAPI.getMainEnclave)();
-    let credential = await $$.promisify(mainEnclave.readKey)("credential");
-    let did = await $$.promisify(mainEnclave.readKey)("did");
+    let credential = await $$.promisify(mainEnclave.readKey)(constants.CREDENTIAL_KEY);
+    let did = await $$.promisify(mainEnclave.readKey)(constants.IDENTITY_KEY);
     userGroupName = constants.DID_GROUP_MAP[credential.groupDID.slice(credential.groupDID.lastIndexOf(":") + 1)];
     let loginData = {
       userId: config.identity.name,
@@ -58,11 +77,14 @@ addHook("beforePageLoads", "home", async () => {
     }
 
     let logService = new LogService(constants.LOGIN_LOGS_TABLE);
-    logService.loginLog(loginData, (err, result) => {
-      if (err) {
-        console.log("Failed to audit wallet access:", err);
-      }
-    })
+    if (!window.loggedIn) {
+      logService.loginLog(loginData, (err, result) => {
+        if (err) {
+          console.log("Failed to audit wallet access:", err);
+        }
+      });
+      window.loggedIn = true;
+    }
 
     const didDomain = await $$.promisify(scAPI.getDIDDomain)();
     const groupDIDDocument = await $$.promisify(w3cdid.resolveDID)(`did:ssi:group:${didDomain}:ePI_Administration_Group`);
@@ -71,7 +93,7 @@ addHook("beforePageLoads", "home", async () => {
     try {
       adminUserList = await $$.promisify(groupDIDDocument.listMembersByIdentity)();
       const memberDID_Document = await $$.promisify(w3cdid.resolveDID)(did);
-      loginData.messageType = "UserLogin";
+      loginData.messageType = constants.MESSAGE_TYPES.USER_LOGIN;
       loginData.messageId = `${require("opendsu").loadAPI("crypto").generateRandom(32).toString("hex")}|${did}`;
       for (let i = 0; i < adminUserList.length; i++) {
         let adminDID_Document = await $$.promisify(w3cdid.resolveDID)(adminUserList[i]);

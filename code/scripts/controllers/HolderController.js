@@ -1,4 +1,5 @@
 import {copyToClipboard} from "../helpers/document-utils.js";
+import constants from "../constants.js";
 
 const {FwController} = WebCardinal.controllers;
 
@@ -60,9 +61,9 @@ export default class HolderController extends FwController {
         return console.log(err);
       }
       try {
-        let did = await $$.promisify(mainEnclave.readKey)("did");
+        let did = await $$.promisify(mainEnclave.readKey)(constants.IDENTITY_KEY);
         this.model.did = did;
-        let credential = await $$.promisify(mainEnclave.readKey)("credential");
+        let credential = await $$.promisify(mainEnclave.readKey)(constants.CREDENTIAL_KEY);
         this.model.displayCredentialArea = !!credential;
         if (this.model.displayCredentialArea) {
           setCredential(credential);

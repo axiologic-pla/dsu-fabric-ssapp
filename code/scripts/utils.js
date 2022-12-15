@@ -210,7 +210,7 @@ async function getUserRights() {
   const scAPI = openDSU.loadAPI("sc");
   try {
     const mainEnclave = await $$.promisify(scAPI.getMainEnclave)();
-    let credential = await $$.promisify(mainEnclave.readKey)("credential");
+    let credential = await $$.promisify(mainEnclave.readKey)(constants.CREDENTIAL_KEY);
     let userEpiGroup = credential.tags[0];
     if (userEpiGroup !== constants.DID_GROUP_MAP.ePI_Read_Group) {
       userRights = "readwrite"

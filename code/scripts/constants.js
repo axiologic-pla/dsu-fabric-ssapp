@@ -23,5 +23,15 @@ export default {
     'ePI_Read_Group': "ePI Read Group",
     'ePI_Write_Group': "ePI Write Group",
     'ePI_Administration_Group': "ePI Administration Group",
-  }
+  },
+  MESSAGE_TYPES: {
+    USER_LOGIN: "userLogin",
+    USER_REMOVED: "userRemoved",
+    RECEIVED_APPROVAL: "receivedApproval",
+    DID_CREATED: "didCreated",
+    ADD_MEMBER_TO_GROUP: "AddMemberToGroup"
+  },
+  IDENTITY_KEY: "didKey",
+  CREDENTIAL_KEY: "credentialKey",
+  CREDENTIAL_DELETED: "deleted"
 }
