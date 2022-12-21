@@ -31,7 +31,7 @@ export default {
     DID_CREATED: "didCreated",
     ADD_MEMBER_TO_GROUP: "AddMemberToGroup"
   },
-  IDENTITY_KEY: "didKey",
-  CREDENTIAL_KEY: "credentialKey",
+  IDENTITY_KEY: "did",
+  CREDENTIAL_KEY: "credential",
   CREDENTIAL_DELETED: "deleted"
 }
