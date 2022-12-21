@@ -1,6 +1,6 @@
 {
     "name": "ssapp-template",
-    "version": "v1.2.2",
+    "version": "v1.2.3",
     "description": "SSApp Template",
     "main": "index.js",
     "scripts": {
