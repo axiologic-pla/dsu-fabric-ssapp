@@ -12,8 +12,17 @@
     grid-template-columns: repeat(5, 1fr);
 }
 
+.audit-logs-container .search-container.hiddenElement,
+.login-search-container .search-container.hiddenElement {
+    display: none;
+}
+
 .audit-logs-container .search-container {
     display: flex;
     justify-content: space-between;
-    padding: 10px 10px 0px;
 }
+
+.search-container.audit-search-container {
+    padding-bottom: 0px;
+}
+

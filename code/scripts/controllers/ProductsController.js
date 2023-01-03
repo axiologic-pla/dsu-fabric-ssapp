@@ -1,17 +1,12 @@
 import constants from "../constants.js";
 import Product from "../models/Product.js";
-import {LazyDataSource} from "../helpers/LazyDataSource.js";
+import ProductsDataSource from "../datasources/ProductsDataSource.js"
 import lazyUtils from "../helpers/lazy-data-source-utils.js";
 
 const {FwController} = WebCardinal.controllers;
 
 const LogService = require("gtin-resolver").loadApi("services").LogService;
 
-class ProductsDataSource extends LazyDataSource {
-  constructor(...props) {
-    super(...props);
-  }
-}
 
 export default class ProductsController extends FwController {
   constructor(element, history) {
@@ -22,7 +17,8 @@ export default class ProductsController extends FwController {
     this.model.prodDataSource = new ProductsDataSource({
       storageService: this.storageService,
       tableName: constants.PRODUCTS_TABLE,
-      searchField: "gtin"
+      searchField: "gtin",
+      dataSourceName: "products"
     });
 
     lazyUtils.attachHandlers(this, "prodDataSource");

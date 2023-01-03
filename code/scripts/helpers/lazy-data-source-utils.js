@@ -1,11 +1,14 @@
 function attachHandlers(controller, datasource, searchInputSelector = "#code-search", prevPageTag = "prev-page", nextPageTag = "next-page") {
   let searchInput = controller.querySelector(searchInputSelector || "#code-search");
-  let foundIcon = controller.querySelector(".fa-check");
-  let notFoundIcon = controller.querySelector(".fa-ban");
+  let foundIcon = searchInput.parentElement.querySelector(".fa-check");
+  let notFoundIcon = searchInput.parentElement.querySelector(".fa-ban");
   if (searchInput) {
-    searchInput.addEventListener("search", async (event) => {
+    /*clean all listeners and attach new listener */
+    let new_element = searchInput.cloneNode(true);
+    new_element.addEventListener("search", async (event) => {
       await controller.model[datasource].searchHandler(event.target.value, foundIcon, notFoundIcon)
     })
+    searchInput.parentNode.replaceChild(new_element, searchInput);
   }
 
   controller.onTagClick(prevPageTag, async (model, target, event) => {

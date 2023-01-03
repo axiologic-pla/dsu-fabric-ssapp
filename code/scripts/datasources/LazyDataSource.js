@@ -16,10 +16,13 @@ export class LazyDataSource extends DataSource {
     this.storageService = customOptions.storageService;
     this.tableName = customOptions.tableName;
     this.searchField = customOptions.searchField;
+    this.name = customOptions.dataSourceName;
+    this.callback = customOptions.onGetDataCallback;
     this.setPageSize(this.itemsOnPage);
     this.dataSourceRezults = [];
     this.hasMoreLogs = false;
     this.filterResult = [];
+    this.hasResults = false;
   }
 
   async searchHandler(inputValue, foundIcon, notFoundIcon) {
@@ -43,9 +46,14 @@ export class LazyDataSource extends DataSource {
   }
 
   getMappedResult(data) {
+    if (this.dataSourceRezults.length > 0) {
+      this.hasResults = true;
+    }
+    if (this.callback && typeof this.callback === "function") {
+      this.callback()
+    }
     return data;
   }
-
 
   async getPageDataAsync(startOffset, dataLengthForCurrentPage) {
     if (this.filterResult.length > 0) {
@@ -65,7 +73,6 @@ export class LazyDataSource extends DataSource {
         this.dataSourceRezults = await $$.promisify(this.storageService.filter, this.storageService)(this.tableName, "__timestamp > 0", "dsc", this.itemsOnPage * 2);
       }
 
-
       resultData = this.dataSourceRezults.slice(startOffset, startOffset + dataLengthForCurrentPage);
       this.hasMoreLogs = this.dataSourceRezults.length >= startOffset + dataLengthForCurrentPage + 1;
 
@@ -73,9 +80,7 @@ export class LazyDataSource extends DataSource {
       console.log("Eroor on get async page data  ", e);
     }
 
-    document.querySelectorAll(".pagination-container").forEach(item => {
-      item.hidden = this.dataSourceRezults.length <= this.itemsOnPage
-    })
+    document.querySelector(`.pagination-container.${this.name}-datasource`).hidden = this.dataSourceRezults.length <= this.itemsOnPage
 
     document.querySelectorAll(".search-container").forEach(item => {
       item.hidden = resultData.length === 0;

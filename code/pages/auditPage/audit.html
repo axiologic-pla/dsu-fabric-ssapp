@@ -6,15 +6,15 @@
 
     <div class="test" slot="page-content">
         <webc-container controller="AuditController">
-
             <div class="audit-logs-container">
+                <dsu-tab-panel data-view-model="@" shadow>
+                    <div slot="tab" data-tag="change-tab" tab-name="actions">Action logs</div>
+                    <div slot="content" class="edit-actions-tab">
 
-                <psk-tab-navigator id="orange-tab-navigator" selected="@selectedTab">
-                    <psk-tab class="edit-actions-tab" title="Action logs">
-                        <div class="search-container">
-                            <div>
-                                Search by product code <input id="code-search" placeholder="Search by code"
-                                                              type="search">
+                        <div class="search-container audit-search-container">
+                            <div>Search by product code <input id="audit-code-search"
+                                                               placeholder="Search by code"
+                                                               type="search">
                                 <span class="validity">
                                     <i aria-hidden="true" class="fa fa-ban"></i>
                                     <i class="fa fa-check"></i>
@@ -22,6 +22,8 @@
                             </div>
                             <psk-button data-tag="audit-export" label="Export as CSV"></psk-button>
                         </div>
+
+
                         <webc-datatable datasource="@auditActionsDataSource" hide-pagination>
                             <div class="fist-table-header" slot="header">GTIN</div>
                             <div slot="header">Batch</div>
@@ -41,26 +43,34 @@
                                     View
                                 </button>
                             </div>
-
                             <div slot="no-data">
                                 no data ...
                             </div>
+                            <div class="actions-tab pagination-container actions-datasource" slot="after">
+                                <button class="prev-page-btn page-action-btn" data-tag="actionsTab-prev-page"
+                                        disabled> <<
+                                </button>
+                                <button class="next-page-btn page-action-btn" data-tag="actionsTab-next-page">
+                                    >>
+                                </button>
+                            </div>
                         </webc-datatable>
-                        <div class="actions-tab pagination-container">
-                            <button class="prev-page-btn page-action-btn" data-tag="actionsTab-prev-page" disabled> <<</button>
-                            <button class="next-page-btn page-action-btn" data-tag="actionsTab-next-page"> >></button>
-                        </div>
-                    </psk-tab>
-                    <psk-tab class="login-actions-tab" title="Access logs">
-                        <div class="search-container">
-                            <div>
-                                Search by userId <input id="user-search" placeholder="Search by userId" type="search">
+
+                    </div>
+                    <div slot="tab" data-tag="change-tab" tab-name="logins">Access logs</div>
+                    <div slot="content" class="login-actions-tab">
+
+                        <div class="search-container login-search-container">
+                            <div> Search by userId <input id="user-search"
+                                                          placeholder="Search by userId"
+                                                          type="search">
                                 <span class="validity">
                                     <i aria-hidden="true" class="fa fa-ban"></i>
                                     <i class="fa fa-check"></i>
                                 </span>
                             </div>
                         </div>
+
                         <webc-datatable datasource="@auditLoginDataSource" hide-pagination>
                             <div class="fist-table-header first-column" slot="header">UserId</div>
                             <div slot="header">Action</div>
@@ -73,19 +83,27 @@
                             <div class="data-item">{{@userDID}}</div>
                             <div class="data-item">{{@userGroup}}</div>
                             <div class="data-item">{{@logISODate}}</div>
+
                             <div slot="no-data">
                                 <b>There are no data yet.</b>
                                 <br>
                                 <i>Start by using one of group actions (add or remove).</i>
                             </div>
+                            <div class="login-tab pagination-container login-datasource" slot="after">
+                                <button class="prev-page-btn page-action-btn" data-tag="loginTab-prev-page"
+                                        disabled> <<
+                                </button>
+                                <button class="next-page-btn page-action-btn" data-tag="loginTab-next-page"> >>
+                                </button>
+                            </div>
                         </webc-datatable>
-                        <div class="login-tab pagination-container">
-                            <button class="prev-page-btn page-action-btn" data-tag="loginTab-prev-page" disabled> <<</button>
-                            <button class="next-page-btn page-action-btn" data-tag="loginTab-next-page"> >></button>
-                        </div>
-                    </psk-tab>
-                </psk-tab-navigator>
+
+                    </div>
+                </dsu-tab-panel>
+
             </div>
+
+
         </webc-container>
     </div>
 </page-template>

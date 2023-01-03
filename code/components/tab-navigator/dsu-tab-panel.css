@@ -1,0 +1,30 @@
+.tabs {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+}
+
+.tabs ::slotted(div[slot="tab"]) {
+    padding: 8px 16px !important;
+    user-select: none;
+    cursor: pointer;
+    background-color: #51AE8F;
+    font-size: 1rem;
+    color: white;
+    flex-grow: 1;
+    text-align: center;
+    line-height: 1.5;
+}
+
+.tabs ::slotted(div[slot="tab"].selected) {
+    background-color: #328569;
+}
+
+.tab-contents ::slotted(*) {
+    display: none;
+}
+
+.tab-contents ::slotted(.selected) {
+    display: block;
+    padding: 5px !important;
+}

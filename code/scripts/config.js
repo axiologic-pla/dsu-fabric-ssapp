@@ -37,7 +37,7 @@ addHook("beforeAppLoads", async () => {
   const scAPI = openDSU.loadAPI("sc");
   const typicalBusinessLogicHub = didAPI.getTypicalBusinessLogicHub();
   const onUserRemovedMessage = (message) => {
-    scAPI.getMainEnclave(async (err, mainEnclave)=>{
+    scAPI.getMainEnclave(async (err, mainEnclave) => {
       if (err) {
         console.log(err);
       }
@@ -50,6 +50,8 @@ addHook("beforeAppLoads", async () => {
   }
 
   typicalBusinessLogicHub.strongSubscribe(constants.MESSAGE_TYPES.USER_REMOVED, onUserRemovedMessage);
+  // load Custom Components
+  await import("../components/tab-navigator/dsu-tab-panel.js");
 })
 
 addHook("beforePageLoads", "home", async () => {
