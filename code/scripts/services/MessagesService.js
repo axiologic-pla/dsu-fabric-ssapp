@@ -49,9 +49,9 @@ async function processMessages(messages, dsuStorage, callback) {
             if (undigestedMessage) {
               let errorStatus = undigestedMessage.error.debug_message || null;
               if (undigestedMessage.error && undigestedMessage.error.otherErrors && undigestedMessage.error.otherErrors.details.length) {
-                mappingLogService.logFailAction(undigestedMessage.message, undigestedMessage.error.otherErrors.details, errorStatus)
+                await mappingLogService.logFailAction(undigestedMessage.message, undigestedMessage.error.otherErrors.details, errorStatus)
               } else {
-                mappingLogService.logFailAction(undigestedMessage.message, undigestedMessage.error, errorStatus)
+                await mappingLogService.logFailAction(undigestedMessage.message, undigestedMessage.error, errorStatus)
               }
             }
           }

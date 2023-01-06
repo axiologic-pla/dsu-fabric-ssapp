@@ -31,24 +31,26 @@ export default class ManageProductController extends FwController {
         this.model.product.isCodeEditable = false;
         this.model.product.videos = product.videos || {defaultSource: ""};
         gtinResolver.DSUFabricUtils.getDSUAttachments(product, this.disabledFeatures, (err, attachments) => {
-          if (err) {
-            this.showErrorModalAndRedirect("Failed to get inherited cards", "products");
-          }
-
-          this.model.languageTypeCards = attachments.languageTypeCards;
-          this.model.languageTypeCardsForDisplay = attachments.languageTypeCards;
-          this.initialCards = JSON.parse(JSON.stringify(this.model.languageTypeCards));
-          if (attachments.productPhoto) {
-            this.model.product.photo = attachments.productPhoto;
-          }
-          this.initialCards = JSON.parse(JSON.stringify(this.model.languageTypeCards));
-          this.initialModel = JSON.parse(JSON.stringify(this.model));
           this.model.onChange("product", (...props) => {
             this.manageUpdateButtonState(submitButton);
           })
           this.model.onChange("languageTypeCards", (...props) => {
             this.manageUpdateButtonState(submitButton);
           })
+
+          if (err) {
+            this.showErrorModalAndRedirect("Unknown error while loading DSU", "products");
+          }
+
+          this.model.languageTypeCards = attachments ? attachments.languageTypeCards : [];
+          this.model.languageTypeCardsForDisplay = attachments ? attachments.languageTypeCards :[];
+          this.initialCards = JSON.parse(JSON.stringify(this.model.languageTypeCards));
+          if (attachments && attachments.productPhoto) {
+            this.model.product.photo = attachments.productPhoto;
+          }
+          this.initialCards = JSON.parse(JSON.stringify(this.model.languageTypeCards));
+          this.initialModel = JSON.parse(JSON.stringify(this.model));
+
         });
         // ensureHolderCredential();
         this.model.product.videos.defaultSource = atob(this.model.product.videos.defaultSource);
