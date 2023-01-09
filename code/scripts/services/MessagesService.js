@@ -1,5 +1,5 @@
 import constants from "../constants.js";
-
+import AuditLogService from "./AuditLogService.js";
 const mappings = require("gtin-resolver").loadApi("mappings");
 const MessagesPipe = require("gtin-resolver").getMessagesPipe();
 
@@ -16,7 +16,7 @@ async function processMessages(messages, dsuStorage, callback) {
   const anchoring = openDSU.loadAPI("anchoring");
   const anchoringx = anchoring.getAnchoringX();
 
-  let mappingEngine, mappingLogService;
+  let mappingEngine, mappingLogService, auditLogService;
   try {
     const holderInfo = {
       domain,
@@ -27,6 +27,7 @@ async function processMessages(messages, dsuStorage, callback) {
       logService: logService
     });
     mappingLogService = mappings.getMappingLogsInstance(dsuStorage, logService);
+    auditLogService = new AuditLogService(mappingLogService);
   } catch (e) {
     throw e;
   }
@@ -44,17 +45,7 @@ async function processMessages(messages, dsuStorage, callback) {
         if (digestedMessagesCounter >= messages.length) {
 
           console.log("undigested messages ", undigestedMessages);
-          for (let i = 0; i < messages.length; i++) {
-            let undigestedMessage = undigestedMessages.find(uMsg => uMsg.message.messageId === messages[i].messageId);
-            if (undigestedMessage) {
-              let errorStatus = undigestedMessage.error.debug_message || null;
-              if (undigestedMessage.error && undigestedMessage.error.otherErrors && undigestedMessage.error.otherErrors.details.length) {
-                await mappingLogService.logFailAction(undigestedMessage.message, undigestedMessage.error.otherErrors.details, errorStatus)
-              } else {
-                await mappingLogService.logFailAction(undigestedMessage.message, undigestedMessage.error, errorStatus)
-              }
-            }
-          }
+          await auditLogService.logUndigestedMessages(undigestedMessages);
 
           resolve(callback(undigestedMessages));
         }

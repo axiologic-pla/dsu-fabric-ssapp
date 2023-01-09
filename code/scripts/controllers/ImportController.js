@@ -209,9 +209,11 @@ export default class importController extends FwController {
 
           await MessagesService.processMessages(messages, this.storageService, async (undigestedMessages) => {
             await this.manageProcessedMessages(undigestedMessages);
+            this.model.failedImportedLogs = [];
           });
 
           this.model.retryAll = false;
+
           this.querySelector("#retry-all-checkbox").checked = false;
         }
       }
