@@ -43,15 +43,20 @@ export default class importController extends FwController {
       let messages
       try {
         messages = await this.getMessagesFromFiles(this.filesArray);
-      } catch (err) {
-        this.showErrorModal(`Could not import file. ${err.message}`, "Error");
-        return;
-      }
+        window.WebCardinal.loader.hidden = false;
+        let undigestedMessagesArr = [];
+        let chunkSize = 5;
+        for (let i = 0; i < messages.length; i += chunkSize) {
+          await MessagesService.processMessages(messages.slice(i, i + chunkSize), this.storageService, async (undigestedMessages) => {
+            undigestedMessagesArr = [...undigestedMessagesArr, ...undigestedMessages];
+          });
 
-      window.WebCardinal.loader.hidden = false;
-      await MessagesService.processMessages(messages, this.storageService, async (undigestedMessages) => {
-        await this.manageProcessedMessages(undigestedMessages)
-      });
+        }
+        await this.manageProcessedMessages(undigestedMessagesArr);
+      } catch (err) {
+        this.showErrorModal(`Something went wrong on import. ${err.message}`, "Error");
+      }
+      return;
     });
     /*
         Removed for MVP1
