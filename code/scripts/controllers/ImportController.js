@@ -116,6 +116,9 @@ export default class importController extends FwController {
           } else {
             notFoundIcon.style.display = "inline";
           }
+        } else {
+          this.model.successDataSource.filterResult = [];
+          this.model.failedDataSource.filterResult = [];
         }
         this.model.successDataSource.goToPageByIndex(0);
         this.model.failedDataSource.goToPageByIndex(0);

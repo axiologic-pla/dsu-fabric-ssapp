@@ -1,4 +1,5 @@
 import utils from "../../utils.js";
+
 const {DataSource} = WebCardinal.dataSources;
 
 export default class SuccessLogDataSource extends DataSource {
@@ -13,13 +14,25 @@ export default class SuccessLogDataSource extends DataSource {
     this.filterResult = [];
   }
 
+  getMappedResult(data) {
+    let now = Date.now();
+    return data.map(log => {
+      if (log.message) {
+        log.timeAgo = utils.timeAgo(log["__timestamp"])
+        log.isFresh = now - log["__timestamp"] < 60 * 1000;
+        log.itemMsgId = log.message.messageId;
+        return log;
+      }
+    })
+  }
+
   async getPageDataAsync(startOffset, dataLengthForCurrentPage) {
     window.WebCardinal.loader.hidden = false;
 
     if (this.filterResult.length > 0) {
       window.WebCardinal.loader.hidden = true;
       document.querySelector(".success-messages-page-btn").hidden = true;
-      return this.filterResult
+      return this.getMappedResult(this.filterResult);
     }
 
     let importLogs = [];
@@ -43,15 +56,6 @@ export default class SuccessLogDataSource extends DataSource {
         document.querySelector(".success-messages-page-btn .next-page-btn").disabled = false;
       }
 
-      let now = Date.now();
-      importLogs = importLogs.map(log => {
-        if (log.message) {
-          log.timeAgo = utils.timeAgo(log["__timestamp"])
-          log.isFresh = now - log["__timestamp"] < 60 * 1000;
-          log.itemMsgId = log.message.messageId;
-          return log;
-        }
-      })
       window.WebCardinal.loader.hidden = true;
     } catch (e) {
       console.log(e);
@@ -61,6 +65,6 @@ export default class SuccessLogDataSource extends DataSource {
     } else {
       document.querySelector(".success-messages-page-btn").style.display = "flex";
     }
-    return importLogs
+    return this.getMappedResult(importLogs)
   }
 }
