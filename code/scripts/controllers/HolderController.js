@@ -105,6 +105,23 @@ export default class HolderController extends FwController {
         {controller: "FeaturesModalController"}
       );
     });
+
+    this.onTagClick("download-debug", () => {
+      try {
+        let logData = JSON.parse($$.memoryLogger.dump());
+        let formattedJSON = JSON.stringify(logData, null, 4);
+        let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(formattedJSON);
+        let downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "debugLog.json");
+        document.body.appendChild(downloadAnchorNode); // required for firefox
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+      } catch (err) {
+        this.showErrorModal(`Something went wrong on download. ${err.message}`, "Error");
+      }
+      return;
+    })
   }
 
   async renderSettingsContainer() {
