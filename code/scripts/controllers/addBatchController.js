@@ -53,7 +53,7 @@ export default class addBatchController extends FwController {
       this.model.batch.version++;
       gtinResolver.DSUFabricUtils.getDSUAttachments(this.model.batch, this.disabledFeatures, (err, attachments) => {
         if (err) {
-          this.showErrorModalAndRedirect("Failed to get inherited cards", "patch");
+          this.showErrorModalAndRedirect("Invalid state of the DSUs in GTINResolver", "Leaflet retrieve error", {tag: "batches"});
         }
         let submitButton = this.querySelector("#submit-batch");
         submitButton.disabled = true;
@@ -86,9 +86,9 @@ export default class addBatchController extends FwController {
     });
 
     this.storageService.filter(constants.PRODUCTS_TABLE, "__timestamp > 0", (err, products) => {
-      if (err || !products) {
+      if (err || !products || products.length === 0) {
         printOpenDSUError(createOpenDSUErrorWrapper("Failed to retrieve products list!", err));
-        return this.showErrorModalAndRedirect("Failed to retrieve products list! Create a product first!", "products", 5000);
+        return this.showErrorModalAndRedirect("Failed to retrieve products list! Create a product first!", "Product not found", {tag: "manage-product"});
       }
       const options = [];
       Object.values(products).forEach(prod => options.push({
@@ -246,7 +246,7 @@ export default class addBatchController extends FwController {
       this.getProductFromGtin(this.model.batch.gtin, (err, product) => {
         if (err) {
           printOpenDSUError(createOpenDSUErrorWrapper("Failed to get a valid product", err));
-          return this.showErrorModalAndRedirect("Failed to get a valid product", "batches");
+          return this.showErrorModalAndRedirect("Failed to get a valid product", "Product not found", {tag: "batches"});
         }
         this.model.batch.gtin = product.gtin;
         this.model.batch.productName = product.name;
@@ -320,12 +320,12 @@ export default class addBatchController extends FwController {
     this.storageService.addIndex(constants.PRODUCTS_TABLE, "gtin", (error) => {
       if (error) {
         printOpenDSUError(createOpenDSUErrorWrapper("Failed to get a valid product", error));
-        return this.showErrorModalAndRedirect("Failed to get a valid product", "batches");
+        return this.showErrorModalAndRedirect("Failed to get a valid product", "Product not found", {tag: "batches"});
       }
       this.storageService.filter(constants.PRODUCTS_TABLE, `gtin == ${gtin}`, (err, products) => {
         if (err) {
           printOpenDSUError(createOpenDSUErrorWrapper("Failed to get a valid product", err));
-          return this.showErrorModalAndRedirect("Failed to get a valid product", "batches");
+          return this.showErrorModalAndRedirect("Failed to get a valid product", "Product not found", {tag: "batches"});
         }
         let product = products[0];
         if (!product) {

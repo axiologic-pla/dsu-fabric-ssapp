@@ -39,7 +39,7 @@ export default class ManageProductController extends FwController {
           })
 
           if (err) {
-            this.showErrorModalAndRedirect("Unknown error while loading DSU", "products");
+            this.showErrorModalAndRedirect("Unknown error while loading DSU", "DSU Error", {tag: "products"});
           }
 
           this.model.languageTypeCards = attachments ? attachments.languageTypeCards : [];
