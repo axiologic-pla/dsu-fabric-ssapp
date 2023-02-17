@@ -77,7 +77,7 @@ export class LazyDataSource extends DataSource {
       this.hasMoreLogs = this.dataSourceRezults.length >= startOffset + dataLengthForCurrentPage + 1;
 
     } catch (e) {
-      console.log("Eroor on get async page data  ", e);
+      console.log("Error on get async page data  ", e);
     }
 
     document.querySelector(`.pagination-container.${this.name}-datasource`).hidden = this.dataSourceRezults.length <= this.itemsOnPage
