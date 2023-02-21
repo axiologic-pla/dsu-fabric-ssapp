@@ -16,6 +16,11 @@
     display: none;
 }
 
+.batch-cancel-btn{
+    pointer-events: initial;
+    opacity: 1;
+}
+
 .batch-version {
     position: absolute;
     top: 32px;
