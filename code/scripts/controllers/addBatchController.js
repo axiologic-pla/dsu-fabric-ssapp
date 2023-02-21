@@ -78,12 +78,7 @@ export default class addBatchController extends FwController {
 
     }
 
-    this.storageService.filter(this.model.batch.batchNumber, "__timestamp > 0", (err, logs) => {
-      if (err || typeof logs === "undefined") {
-        logs = [];
-      }
-      this.model.serialNumbersLogs = logs;
-    });
+    this.getNumberLogs();
 
     this.storageService.filter(constants.PRODUCTS_TABLE, "__timestamp > 0", (err, products) => {
       if (err || !products || products.length === 0) {
@@ -203,14 +198,25 @@ export default class addBatchController extends FwController {
     button.disabled = JSON.stringify(this.model.languageTypeCards) === JSON.stringify(this.initialCards) && JSON.stringify(this.model.batch) === JSON.stringify(this.initialModel.batch) && !serialIsUpdated;
   }
 
+  getNumberLogs(){
+
+    const featManager = require("gtin-resolver").DSUFabricFeatureManager;
+    featManager.isFeatureEnabled("07", (err, enabled)=>{
+      if(enabled){
+        //await $$.promisify(this.storageService.addIndex.bind(this.storageService))(this.model.batch.batchNumber, "__timestamp");
+        this.storageService.filter(this.model.batch.batchNumber, "__timestamp > 0", (err, logs) => {
+          if (err || typeof logs === "undefined") {
+            logs = [];
+          }
+          this.model.serialNumbersLogs = logs;
+        });
+      }
+    })
+  }
+
   addEventListeners() {
     this.model.onChange("batch.batchNumber", (event) => {
-      this.storageService.filter(this.model.batch.batchNumber, "__timestamp > 0", (err, logs) => {
-        if (err || typeof logs === "undefined") {
-          logs = [];
-        }
-        this.model.serialNumbersLogs = logs;
-      });
+      this.getNumberLogs();
     })
     this.model.onChange("hasAcdcAuthFeature", (event) => {
       if (!this.model.hasAcdcAuthFeature) {
@@ -424,7 +430,7 @@ export default class addBatchController extends FwController {
       }
 
       this.model.serial_update_options.value = "Select an option";
-      await $$.promisify(this.storageService.addIndex.bind(this.storageService))(this.model.batch.batchNumber, "__timestamp");
+
       await $$.promisify(this.storageService.insertRecord.bind(this.storageService))(this.model.batch.batchNumber, serialNumbersLog.creationTime, serialNumbersLog);
       this.manageUpdateButtonState();
       return;
