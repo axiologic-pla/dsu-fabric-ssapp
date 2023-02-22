@@ -50,7 +50,7 @@ export default class addBatchController extends FwController {
     if (editMode) {
 
       this.gtin = this.model.batch.gtin;
-      this.model.batch.version++;
+      //this.model.batch.version++;
       gtinResolver.DSUFabricUtils.getDSUAttachments(this.model.batch, this.disabledFeatures, (err, attachments) => {
         if (err) {
           this.showErrorModalAndRedirect("Invalid state of the DSUs in GTINResolver", "Leaflet retrieve error", {tag: "batches"});

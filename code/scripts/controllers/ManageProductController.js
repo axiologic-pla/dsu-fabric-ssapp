@@ -26,7 +26,7 @@ export default class ManageProductController extends FwController {
       this.storageService.getRecord(constants.PRODUCTS_TABLE, state.gtin, (err, product) => {
         this.model.submitLabel = "Update Product";
         this.model.product = new Product(product);
-        this.model.product.version++;
+        this.model.product.version = product.version;
         this.model.product.previousVersion = product.version;
         this.model.product.isCodeEditable = false;
         this.model.product.videos = product.videos || {defaultSource: ""};
