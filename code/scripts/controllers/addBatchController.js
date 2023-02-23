@@ -296,7 +296,7 @@ export default class addBatchController extends FwController {
 
     }
 
-    MessagesService.processMessages(messageArr, this.storageService, async (undigestedMessages) => {
+    MessagesService.processMessagesWithoutGrouping(messageArr, this.storageService, async (undigestedMessages) => {
       this.hideModal();
       this.showMessageError(undigestedMessages)
     })

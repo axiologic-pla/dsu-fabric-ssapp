@@ -60,6 +60,45 @@ async function processMessages(messages, dsuStorage, callback) {
   });
 }
 
+async function processMessagesWithoutGrouping(messages, dsuStorage, callback){
+  const LogService = require("gtin-resolver").loadApi("services").LogService;
+  let logService = new LogService();
+  const openDSU = require("opendsu");
+  const config = openDSU.loadAPI("config");
+  const domain = await $$.promisify(config.getEnv)("epiDomain");
+  const subdomain = await $$.promisify(config.getEnv)("epiSubdomain")
+
+  let mappingEngine, mappingLogService, auditLogService;
+  try {
+    const holderInfo = {
+      domain,
+      subdomain
+    }
+    mappingEngine = await $$.promisify(mappings.getEPIMappingEngine)({
+      holderInfo: holderInfo,
+      logService: logService
+    });
+    mappingLogService = mappings.getMappingLogsInstance(dsuStorage, logService);
+    auditLogService = new AuditLogService(mappingLogService);
+  } catch (e) {
+    throw e;
+  }
+
+  return new Promise(async function (resolve, reject) {
+    try {
+      let undigestedMessages = [];
+      undigestedMessages = await mappingEngine.digestMessages(messages);
+      console.log("undigested messages ", undigestedMessages);
+      await auditLogService.logUndigestedMessages(undigestedMessages);
+      resolve(callback(undigestedMessages));
+    } catch (err) {
+      console.log("Error on digestMessages", err);
+      reject(err)
+    }
+  });
+}
+
 export default {
-  processMessages
+  processMessages,
+  processMessagesWithoutGrouping
 }
