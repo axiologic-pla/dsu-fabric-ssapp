@@ -101,6 +101,12 @@ export default class AuditDataSource extends LazyDataSource {
             }
             viewLog = this.basicLogProcessing(item);
             break;
+          case "RECOVER_LOG":
+            viewLog = this.basicLogProcessing(item);
+            if(item.metadata && item.metadata.batch){
+              viewLog.batch = item.metadata.batch;
+            }
+            break;
           default:
             viewLog = this.basicLogProcessing(item);
         }
