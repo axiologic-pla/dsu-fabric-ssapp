@@ -17,7 +17,23 @@ export default class addBatchController extends FwController {
     this.model = {disabledFeatures: this.disabledFeatures, userrights: this.userRights, languageTypeCards: []};
     let state = this.history.location.state;
     const editMode = state != null && state.batchData != null;
-    const editData = editMode ? JSON.parse(state.batchData) : undefined;
+    let editData = editMode ? JSON.parse(state.batchData) : undefined;
+
+    if(editMode){
+      let pk = gtinResolverUtils.getBatchMetadataPK(editData.gtin, editData.batchNumber);
+      this.storageService.getRecord(constants.BATCHES_STORAGE_TABLE, pk, (err, batchMetadata) => {
+        if(batchMetadata){
+          editData = batchMetadata;
+        }
+
+        this.initialize(editMode, editData);
+      });
+    }else{
+      this.initialize(editMode, editData);
+    }
+  }
+
+  initialize(editMode, editData){
     let batch = new Batch(editData);
     this.versionOffset = 1;
     this.model.batch = batch;
@@ -48,12 +64,11 @@ export default class addBatchController extends FwController {
     this.videoInitialDefaultSource = this.model.batch.videos.defaultSource;
 
     if (editMode) {
-
       this.gtin = this.model.batch.gtin;
       //this.model.batch.version++;
       gtinResolver.DSUFabricUtils.getDSUAttachments(this.model.batch, this.disabledFeatures, (err, attachments) => {
         if (err) {
-          this.showErrorModalAndRedirect("Invalid state of the DSUs in GTINResolver", "Leaflet retrieve error", {tag: "batches"});
+          return this.handlerUnknownError(this.history.location.state, this.model.batch);
         }
         let submitButton = this.querySelector("#submit-batch");
         submitButton.disabled = true;
@@ -98,7 +113,70 @@ export default class addBatchController extends FwController {
     setTimeout(() => {
       this.setUpCheckboxes();
     }, 0)
+  }
 
+  handlerUnknownError(state, batch){
+    this.showErrorModal(
+        new Error(`Would you like to recover?`),
+        'Unknown error while loading data.',
+        async ()=>{
+          //yes
+          setTimeout(async ()=>{
+            this.createWebcModal({
+              disableExpanding: true,
+              disableClosing: true,
+              disableFooter: true,
+              modalTitle: "Info",
+              modalContent: "Recovery process in progress..."
+            });
+
+            if(typeof state.batchData === "string" && state.batchData.length > 0){
+              state.batch = JSON.parse(state.batchData);
+            }
+
+            let recoveryMessage = await utils.initMessage("Batch");
+            recoveryMessage.batch = batch;
+            if(!recoveryMessage.batch){
+              recoveryMessage.batch = {
+                productCode: state.batch ? state.batch.gtin : undefined
+              };
+            }
+
+            if(!recoveryMessage.batch.productCode){
+              recoveryMessage.batch.productCode = state.batch.gtin;
+            }
+            if(!recoveryMessage.batch.batch){
+              recoveryMessage.batch.batch = batch ? batch.batchNumber : "recovered data";
+            }
+            if(!recoveryMessage.batch.expiryDate){
+              recoveryMessage.batch.expiryDate = batch ? batch.expiry : "recovered data";
+            }
+            recoveryMessage.force = true;
+
+            //by setting this refreshState if all goes when we will return to edit the product
+            this.refreshState = {
+              tag: "home",
+              state: {
+                refreshTo: {
+                  tag: "add-batch",
+                  state: {batchData: JSON.stringify(batch)}
+                }
+              }
+            };
+            this.sendMessagesToProcess([recoveryMessage]);
+          }, 100);
+        },
+        ()=>{
+          console.log("Rejected the recover process by choosing no option.");
+          this.showErrorModalAndRedirect("Refused the recovery process. Redirecting...", "Info", {tag: "batches"});
+        },
+        {
+          disableExpanding: true,
+          cancelButtonText: 'No',
+          confirmButtonText: 'Yes',
+          id: 'feedback-modal'
+        }
+    )
   }
 
   async addOrUpdateBatch(operation) {
@@ -318,6 +396,13 @@ export default class addBatchController extends FwController {
       }, () => {
       }, {model: {errors: errors}});
     } else {
+      if(this.refreshState){
+        //this.refreshState is controlled above in unknownHandler before force recovery
+        console.log("Refreshing the edit batch page after recovery");
+        return setTimeout(()=>{
+          this.navigateToPageTag(this.refreshState.tag, this.refreshState.state);
+        }, 500);
+      }
       this.navigateToPageTag("batches");
     }
   }

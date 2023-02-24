@@ -18,6 +18,7 @@ webc-app-menu[mode=mobile] {
 
 webc-modal {
     --header-button-background: none !important;
+    --confirm-button-background: #328569;
 }
 
 webc-modal::part(position) {
