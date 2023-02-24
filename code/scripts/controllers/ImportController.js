@@ -56,6 +56,16 @@ export default class importController extends FwController {
       } catch (err) {
         this.showErrorModal(`Something went wrong on import. ${err.message}`, "Error");
       }
+
+      try {
+        this.filesArray = [];
+        document.querySelector(".selectedFiles").innerHTML = "";
+        this.model.importIsDisabled = true;
+
+      } catch (e) {
+        console.log("Dom Files container not found");
+      }
+
       return;
     });
     /*
