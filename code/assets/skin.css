@@ -1,4 +1,4 @@
-body{
+body {
     background: url("../assets/images/background.svg");
 }
 
@@ -24,9 +24,14 @@ webc-modal::part(position) {
     overflow: auto;
 }
 
+webc-modal::part(main) {
+    word-break: break-all;
+}
+
 webc-modal .header-color {
     color: #565656 !important;
 }
+
 
 psk-page::part(page-main) {
     height: 100%;
