@@ -45,6 +45,7 @@ export default class SuccessLogDataSource extends DataSource {
       } else {
         this.importLogs = await $$.promisify(this.enclaveDB.filter)('import-logs', ['__timestamp > 0', 'status == success'], "dsc", this.itemsOnPage * 2);
       }
+      window.WebCardinal.loader.hidden = true;
       this.importLogs.length > this.itemsOnPage ? document.querySelector(".success-messages-page-btn").hidden = false : document.querySelector(".success-messages-page-btn").hidden = true;
 
       importLogs = this.importLogs.slice(startOffset, startOffset + dataLengthForCurrentPage);
@@ -56,15 +57,15 @@ export default class SuccessLogDataSource extends DataSource {
         document.querySelector(".success-messages-page-btn .next-page-btn").disabled = false;
       }
 
-      window.WebCardinal.loader.hidden = true;
+      if (!importLogs.length > 0) {
+        document.querySelector(".success-messages-page-btn").style.display = "none";
+      } else {
+        document.querySelector(".success-messages-page-btn").style.display = "flex";
+      }
     } catch (e) {
       console.log(e);
     }
-    if (!importLogs.length > 0) {
-      document.querySelector(".success-messages-page-btn").style.display = "none";
-    } else {
-      document.querySelector(".success-messages-page-btn").style.display = "flex";
-    }
+
     return this.getMappedResult(importLogs)
   }
 }
