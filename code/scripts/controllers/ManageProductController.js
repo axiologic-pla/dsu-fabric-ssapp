@@ -313,7 +313,7 @@ export default class ManageProductController extends FwController {
 
     }
 
-    MessagesService.processMessagesWithoutGrouping(messageArr, this.storageService, async (undigestedMessages) => {
+    MessagesService.processMessagesWithoutGrouping(messageArr, this.storageService, async (err, undigestedMessages) => {
       this.hideModal();
       this.showMessageError(undigestedMessages);
     })
