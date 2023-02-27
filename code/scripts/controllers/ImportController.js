@@ -17,10 +17,10 @@ export default class importController extends FwController {
             filesChooser: {
                 label: "Select files",
                 accept: ".json",
-                listFiles: true,
+                listFiles: false,
                 filesAppend: true,
                 "event-name": "uploadProducts",
-                "list-files": true
+                "list-files": false
             },
             importIsDisabled: true,
             retryBtnIsDisabled: true,
@@ -34,6 +34,10 @@ export default class importController extends FwController {
         this.on('uploadProducts', (event) => {
             this.filesArray = event.data || [];
             this.model.importIsDisabled = this.filesArray.length === 0;
+            if (this.filesArray.length !== 0) {
+              this.model.filesChooser.listFiles = true;
+              this.model.filesChooser["list-files"] = true;
+            }
         });
 
         this.onTagClick("import", async () => {
@@ -95,15 +99,10 @@ export default class importController extends FwController {
                 this.model.failedImportedLogs = [];
                 this.model.retryAll = false;
 
-                try {
-                    this.filesArray = [];
-                    this.querySelector("#retry-all-checkbox").checked = false;
-                    document.querySelector(".selectedFiles").innerHTML = "";
-                    this.model.importIsDisabled = true;
-
-                } catch (e) {
-                    console.log("Dom Files container not found");
-                }
+              this.filesArray = [];
+              this.model.importIsDisabled = this.filesArray.length === 0;
+              this.model.filesChooser.listFiles = false;
+              this.model.filesChooser["list-files"] = false;
 
             });
 
