@@ -33,6 +33,14 @@ async function logFailedMessages(messages, dsuStorage, callback){
     callback(undefined);
 }
 
+function skipMessages(messages){
+    let undigestedMessages = [];
+    for(let message of messages){
+        undigestedMessages.push({message: message, error:"skipped because of previous errors"});
+    }
+    return undigestedMessages;
+}
+
 async function processMessages(messages, dsuStorage, callback) {
     if (!messages || messages.length === 0) {
         return;
@@ -126,6 +134,7 @@ async function processMessagesWithoutGrouping(messages, dsuStorage, callback) {
         await auditLogService.logUndigestedMessages(undigestedMessages);
     } catch (err) {
         console.log("Error on digestMessages", err);
+        undigestedMessages.concat(skipMessages(messages));
         error = err;
     }
     callback(error, undigestedMessages);
@@ -160,10 +169,7 @@ async function digestMessagesOneByOne(messages, dsuStorage, callback) {
         try{
             undigested = await mappingEngine.digestMessages(message);
         }catch(err){
-            for(let message of messages){
-                undigestedMessages.push({message: message, error:"skipped because of previous errors"});
-            }
-            return callback(err, undigestedMessages);
+            return callback(err, undigestedMessages.concat(skipMessages(messages)));
         }
 
         undigestedMessages = undigestedMessages.concat(undigested);
