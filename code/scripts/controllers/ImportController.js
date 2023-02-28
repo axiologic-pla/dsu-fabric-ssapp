@@ -60,30 +60,7 @@ export default class importController extends FwController {
                         'Import failed',
                         () => {
                             setTimeout(()=>{
-                                this.createWebcModal({
-                                    disableExpanding: true,
-                                    disableClosing: true,
-                                    disableFooter: true,
-                                    modalTitle: "Info",
-                                    modalContent: "Saving failed messages..."
-                                });
-
-                                MessagesService.logFailedMessages(undigested, this.storageService, (err) => {
-                                    if (err) {
-                                        this.hideModal();
-                                        this.showErrorModal(
-                                            new Error(`Unable to save failed messages. Cause: ${err.message ? err.message : ''}`),
-                                            'Log operation status',
-                                            () => {},
-                                            () => {},
-                                            {
-                                                disableExpanding: true,
-                                                disableCancelButton: true,
-                                                confirmButtonText: 'Ok',
-                                                id: 'import-failed-modal'
-                                            });
-                                    }
-                                });
+                                this.logUndigestedMessages(undigested);
                             }, 100);
                         },
                         () => {},
@@ -96,14 +73,14 @@ export default class importController extends FwController {
                     return
                 }
 
+                this.logUndigestedMessages(undigested);
                 this.model.failedImportedLogs = [];
                 this.model.retryAll = false;
 
-              this.filesArray = [];
-              this.model.importIsDisabled = this.filesArray.length === 0;
-              this.model.filesChooser.listFiles = false;
-              this.model.filesChooser["list-files"] = false;
-
+                this.filesArray = [];
+                this.model.importIsDisabled = this.filesArray.length === 0;
+                this.model.filesChooser.listFiles = false;
+                this.model.filesChooser["list-files"] = false;
             });
 
         });
@@ -286,6 +263,37 @@ export default class importController extends FwController {
 
     }
 
+    logUndigestedMessages(undigested){
+        this.createWebcModal({
+                                 disableExpanding: true,
+                                 disableClosing: true,
+                                 disableFooter: true,
+                                 modalTitle: "Info",
+                                 modalContent: "Saving failed messages..."
+                             });
+
+        MessagesService.logFailedMessages(undigested, this.storageService, (err) => {
+            if (err) {
+                this.hideModal();
+                this.showErrorModal(
+                    new Error(`Unable to save failed messages. Cause: ${err.message ? err.message : ''}`),
+                    'Log operation status',
+                    () => {
+                    },
+                    () => {
+                    },
+                    {
+                        disableExpanding: true,
+                        disableCancelButton: true,
+                        confirmButtonText: 'Ok',
+                        id: 'import-failed-modal'
+                    });
+                return;
+            }
+
+            this.hideModal();
+        });
+    }
     updateRetryBtnState() {
         let hasCheckedItems = Array.from(this.querySelectorAll(".failed-message")).findIndex((elem) => elem.checked) >= 0;
         let hasUnCheckedItems = Array.from(this.querySelectorAll(".failed-message")).findIndex((elem) => !elem.checked) >= 0;

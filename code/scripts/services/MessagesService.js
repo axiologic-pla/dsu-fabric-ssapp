@@ -166,7 +166,7 @@ async function digestMessagesOneByOne(messages, dsuStorage, callback) {
             return callback(err, undigestedMessages);
         }
 
-        undigestedMessages = undigested.concat(undigested);
+        undigestedMessages = undigestedMessages.concat(undigested);
         return process(messages.shift());
     }
 
