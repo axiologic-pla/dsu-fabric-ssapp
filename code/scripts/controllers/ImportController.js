@@ -24,6 +24,7 @@ export default class importController extends FwController {
             },
             importIsDisabled: true,
             retryBtnIsDisabled: true,
+            forceRetryBtnIsDisabled: true,
             successfullyImportedLogs: [],
             failedImportedLogs: [],
             retryAll: false,
@@ -108,6 +109,9 @@ export default class importController extends FwController {
             if (dataSource.getCurrentPageIndex() === 0) {
                 target.disabled = true;
             }
+            if (this.querySelector("#retry-all-checkbox") && this.querySelector("#retry-all-checkbox").checked) {
+              this.querySelector("#retry-all-checkbox").checked = false;
+            }
         })
 
         this.onTagClick("next-page", async (model, target, event) => {
@@ -123,6 +127,9 @@ export default class importController extends FwController {
                 if (!dataSource.hasMoreLogs) {
                     target.parentElement.querySelector(".next-page-btn").disabled = true;
                 }
+            }
+            if (this.querySelector("#retry-all-checkbox") && this.querySelector("#retry-all-checkbox").checked) {
+              this.querySelector("#retry-all-checkbox").checked = false;
             }
         })
 
@@ -295,14 +302,18 @@ export default class importController extends FwController {
         });
     }
     updateRetryBtnState() {
-        let hasCheckedItems = Array.from(this.querySelectorAll(".failed-message")).findIndex((elem) => elem.checked) >= 0;
-        let hasUnCheckedItems = Array.from(this.querySelectorAll(".failed-message")).findIndex((elem) => !elem.checked) >= 0;
-        if (hasUnCheckedItems) {
+        let failedMessagesElements = Array.from(this.querySelectorAll(".failed-message"));
+        let checkedItems = failedMessagesElements.filter((item) => {
+            return item.checked
+        })
+
+        if (checkedItems.length < failedMessagesElements.length) {
             this.querySelector("#retry-all-checkbox").checked = false;
         } else {
             this.querySelector("#retry-all-checkbox").checked = true;
         }
-        this.model.retryBtnIsDisabled = !hasCheckedItems;
+        this.model.retryBtnIsDisabled = checkedItems.length === 0;
+        this.model.forceRetryBtnIsDisabled = checkedItems.length !== 1;
     }
 
     async getMessagesFromFiles(files) {
