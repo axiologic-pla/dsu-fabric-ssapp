@@ -43,8 +43,10 @@ class FwController extends WebcController {
 
           if(undigested.length){
             await this.logUndigestedMessages(undigested);
-            this.hideModal();
+            resolve();
+            return;
           }
+          this.hideModal();
           resolve();
         });
       }
