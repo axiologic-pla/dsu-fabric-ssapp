@@ -314,10 +314,19 @@ export default class ManageProductController extends FwController {
     }
 
     MessagesService.processMessagesWithoutGrouping(messageArr, this.storageService, async (err, undigestedMessages) => {
-      this.hideModal();
-      this.showMessageError(undigestedMessages);
-    })
+      let handler = this.getHandlerForMessageDigestingProcess(messageArr, this.prepareModalInformation);
+      //managing popus ...
+      await handler(err, undigestedMessages);
 
+      this.showMessageError(undigestedMessages);
+    });
+  }
+
+  prepareModalInformation(err, undigested, messages){
+    return {
+      title: `There was an error during saving process. Cause: ${err.message ? err.message : ''}`,
+      content: 'Saving failed'
+    }
   }
 
   validateGTIN(gtinValue) {

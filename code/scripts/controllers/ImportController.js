@@ -52,29 +52,15 @@ export default class importController extends FwController {
             } catch (err) {
                 this.showErrorModal(`Unable to read selected files.`, "Error");
             }
-            MessagesService.digestMessagesOneByOne(JSON.parse(JSON.stringify(messages)), this.storageService, async (err, undigested) => {
-                window.WebCardinal.loader.hidden = true;
-                await this.manageProcessedMessages(undigested);
-                if (err) {
-                    this.showErrorModal(
-                        new Error(`There was an error during import process. Failed to import ${undigested.length} from a total of ${messages.length} messages. Cause: ${err.message ? err.message : ''}`),
-                        'Import failed',
-                        () => {
-                            setTimeout(()=>{
-                                this.logUndigestedMessages(undigested);
-                            }, 100);
-                        },
-                        () => {},
-                        {
-                            disableExpanding: true,
-                            disableCancelButton: true,
-                            confirmButtonText: 'Ok',
-                            id: 'import-feedback-modal'
-                        });
-                    return
-                }
 
-                this.logUndigestedMessages(undigested);
+            MessagesService.digestMessagesOneByOne(JSON.parse(JSON.stringify(messages)), this.storageService, async (err, undigested)=>{
+                let handler = this.getHandlerForMessageDigestingProcess(messages, this.prepareModalInformation);
+                window.WebCardinal.loader.hidden = true;
+                //managing popus ...
+                await handler(err, undigested);
+
+                await this.manageProcessedMessages(undigested);
+
                 this.model.failedImportedLogs = [];
                 this.model.retryAll = false;
 
@@ -83,7 +69,6 @@ export default class importController extends FwController {
                 this.model.filesChooser.listFiles = false;
                 this.model.filesChooser["list-files"] = false;
             });
-
         });
         /*
             Removed for MVP1
@@ -270,37 +255,13 @@ export default class importController extends FwController {
 
     }
 
-    logUndigestedMessages(undigested){
-        this.createWebcModal({
-                                 disableExpanding: true,
-                                 disableClosing: true,
-                                 disableFooter: true,
-                                 modalTitle: "Info",
-                                 modalContent: "Saving failed messages..."
-                             });
-
-        MessagesService.logFailedMessages(undigested, this.storageService, (err) => {
-            if (err) {
-                this.hideModal();
-                this.showErrorModal(
-                    new Error(`Unable to save failed messages. Cause: ${err.message ? err.message : ''}`),
-                    'Log operation status',
-                    () => {
-                    },
-                    () => {
-                    },
-                    {
-                        disableExpanding: true,
-                        disableCancelButton: true,
-                        confirmButtonText: 'Ok',
-                        id: 'import-failed-modal'
-                    });
-                return;
-            }
-
-            this.hideModal();
-        });
+    prepareModalInformation(err, undigested, messages){
+        return {
+            title: 'Import failed',
+            content: `There was an error during import process. Failed to import ${undigested.length} from a total of ${messages.length} messages. Cause: ${err.message ? err.message : ''}`
+        }
     }
+
     updateRetryBtnState() {
         let failedMessagesElements = Array.from(this.querySelectorAll(".failed-message"));
         let checkedItems = failedMessagesElements.filter((item) => {

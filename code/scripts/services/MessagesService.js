@@ -110,7 +110,7 @@ async function processMessagesWithoutGrouping(messages, dsuStorage, callback) {
     const domain = await $$.promisify(config.getEnv)("epiDomain");
     const subdomain = await $$.promisify(config.getEnv)("epiSubdomain")
 
-    let mappingEngine, mappingLogService, auditLogService;
+    let mappingEngine;
     try {
         const holderInfo = {
             domain,
@@ -120,8 +120,6 @@ async function processMessagesWithoutGrouping(messages, dsuStorage, callback) {
             holderInfo: holderInfo,
             logService: logService
         });
-        mappingLogService = mappings.getMappingLogsInstance(dsuStorage, logService);
-        auditLogService = new AuditLogService(mappingLogService);
     } catch (e) {
         return callback(e);
     }
@@ -131,7 +129,6 @@ async function processMessagesWithoutGrouping(messages, dsuStorage, callback) {
     try {
         undigestedMessages = await mappingEngine.digestMessages(messages);
         console.log("undigested messages ", undigestedMessages);
-        await auditLogService.logUndigestedMessages(undigestedMessages);
     } catch (err) {
         console.log("Error on digestMessages", err);
         undigestedMessages.concat(skipMessages(messages));
