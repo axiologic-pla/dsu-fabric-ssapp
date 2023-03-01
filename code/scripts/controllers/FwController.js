@@ -85,8 +85,9 @@ class FwController extends WebcController {
                 id: 'failed-to-log-modal'
             });
     }
-  }
 
+    this.hideModal();
+  }
 }
 
 export {FwController};
