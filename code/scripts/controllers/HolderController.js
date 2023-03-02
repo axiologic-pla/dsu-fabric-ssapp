@@ -126,6 +126,10 @@ export default class HolderController extends FwController {
 
   async renderSettingsContainer() {
     let envFile = await $$.promisify(config.readEnvFile)();
+    //hide keySSI properties from display in ui
+    delete envFile["enclaveKeySSI"];
+    delete envFile["sharedEnclaveKeySSI"];
+
     this.model.editableFeatures = !(!!envFile.lockFeatures);
     this.model.envData = envFile;
     const environmentContainer = this.element.querySelector('#environmentContainer');
