@@ -253,6 +253,15 @@ async function initMessage(msgType) {
   }
 }
 
+async function ensureMinimalInfoOnMessage(message){
+  let userDetails = await getUserDetails();
+  let senderId = userDetails && userDetails.username ? userDetails.username : null;
+  if(senderId){
+    message.senderId = senderId;
+  }
+  return message;
+}
+
 //disable functionalities as it was defined in environment config
 function disableFeatures(thisObj) {
   thisObj.model.disabledFeatures.forEach(offFuncKey => {
@@ -284,5 +293,6 @@ export default {
   generateRandom,
   initMessage,
   disableFeatures,
-  getUserRights
+  getUserRights,
+  ensureMinimalInfoOnMessage
 }

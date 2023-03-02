@@ -1,6 +1,7 @@
 import MessagesService from "../services/MessagesService.js";
 import FailedLogDataSource from "../datasources/Import/FailedLogDataSource.js";
 import SuccessLogDataSource from "../datasources/Import/SuccessLogDataSource.js";
+import utils from "../utils.js";
 
 const {FwController} = WebCardinal.controllers;
 
@@ -288,7 +289,7 @@ export default class importController extends FwController {
                 let fileReader = new FileReader();
                 fileReader.readAsText(file, "UTF-8");
 
-                fileReader.onload = function (evt) {
+                fileReader.onload = async function (evt) {
                     let message;
                     try {
                         message = JSON.parse(evt.target.result);
@@ -298,10 +299,10 @@ export default class importController extends FwController {
                     //TODO discuss if files can contain more than one message/product
                     if (Array.isArray(message)) {
                         for (let i = 0; i < message.length; i++) {
-                            messages.push(message[i]);
+                            messages.push(await utils.ensureMinimalInfoOnMessage(message[i]));
                         }
                     } else {
-                        messages.push(message);
+                        messages.push(await utils.ensureMinimalInfoOnMessage(message));
                     }
                     filesRead++;
                     if (filesRead === files.length) {
