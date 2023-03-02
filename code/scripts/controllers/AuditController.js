@@ -36,21 +36,12 @@ export default class AuditController extends FwController {
     lazyUtils.attachHandlers(this, "auditLoginDataSource", "#user-search", "loginTab-prev-page", "loginTab-next-page");
 
     this.onTagClick("audit-export", async (model, target, event) => {
-      let downloadModal = this.showModalFromTemplate("wait-download", () => {
-      }, () => {
-      }, {
-        disableExpanding: true, disableFooter: true, disableClosing: true, centered: true
-      });
-      let csvResult = await this.model.auditActionsDataSource.exportToCSV();
-      let url = window.URL.createObjectURL(csvResult);
-      let anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = "audit.csv";
-      downloadModal.destroy();
-      anchor.click();
-      window.URL.revokeObjectURL(url);
-      anchor.remove();
-    })
+      await this.csvExportHandler("actions", this.model.auditActionsDataSource)
+    });
+
+    this.onTagClick("login-export", async (model, target, event) => {
+      await this.csvExportHandler("login", this.model.auditLoginDataSource)
+    });
 
     this.onTagClick('change-tab', async (model, target, event) => {
       let tabName = target.getAttribute("tab-name");
@@ -94,6 +85,76 @@ export default class AuditController extends FwController {
     });
 
     /*  this.updateDataSourceView(5000);*/
+  }
+
+  async csvExportHandler(exportType, dataSource) {
+    let downloadModal = this.showModalFromTemplate("wait-download", () => {
+    }, () => {
+    }, {
+      disableExpanding: true, disableFooter: true, disableClosing: true, centered: true
+    });
+
+    let exportData;
+    let allRowData = await $$.promisify(dataSource.storageService.filter, dataSource.storageService)(dataSource.tableName, `__timestamp > 0`, "dsc");
+
+    if (exportType === "actions") {
+      exportData = dataSource.getMappedResult(allRowData);
+    }
+
+    if (exportType === "login") {
+      exportData = allRowData.map((item, index) => {
+        delete item["__version"];
+        delete item["__timestamp"];
+        delete item["pk"];
+        return item;
+      })
+    }
+
+    let csvResult = await this.exportToCSV(exportData);
+    let url = window.URL.createObjectURL(csvResult);
+    let anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "audit.csv";
+    downloadModal.destroy();
+    anchor.click();
+    window.URL.revokeObjectURL(url);
+    anchor.remove();
+  }
+
+  async exportToCSV(data) {
+    let exportData = data;
+    //prepare column titles
+    let titles = Object.keys(exportData[0]);
+    let columnTitles = titles.join(",") + "\n";
+    let rows = "";
+
+    exportData.forEach(item => {
+      let row = "";
+      titles.forEach(colTitle => {
+        if ("details" === colTitle) {
+          let details = JSON.parse(item[colTitle].all);
+          if (details.diffs && Object.keys(details.diffs).length > 0) {
+            row += "diffs: " + JSON.stringify(details.diffs).replace(/,/g, ";") + ";";
+          }
+          if (details.logInfo && Object.keys(details.logInfo).length > 0) {
+            row += "logInfo: " + JSON.stringify(details.logInfo).replace(/,/g, ";") + ";";
+          }
+          if (details.anchorId) {
+            row += "anchorId:" + details.anchorId + ";";
+          }
+          if (details.hashLink) {
+            row += "hashLink:" + details.hashLink + ";";
+          }
+          row += ",";
+        } else {
+          row += item[colTitle] + ",";
+        }
+      })
+      rows += row + "\n";
+    })
+
+    let csvBlob = new Blob([columnTitles + rows], {type: "text/csv"});
+    return csvBlob;
   }
 
   manageSearchContainer(selector, datasource) {

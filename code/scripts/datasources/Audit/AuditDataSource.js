@@ -5,46 +5,6 @@ export default class AuditDataSource extends LazyDataSource {
     super(...props);
   }
 
-  async exportToCSV(data) {
-    let exportData = data;
-    if (!exportData) {
-      let allData = await $$.promisify(this.storageService.filter, this.storageService)(this.tableName, `__timestamp > 0`, "dsc");
-      exportData = this.getMappedResult(allData);
-    }
-    //prepare column titles
-    let titles = Object.keys(exportData[0]);
-    let columnTitles = titles.join(",") + "\n";
-    let rows = "";
-
-    exportData.forEach(item => {
-      let row = "";
-      titles.forEach(colTitle => {
-        if ("details" === colTitle) {
-          let details = JSON.parse(item[colTitle].all);
-          if (details.diffs && Object.keys(details.diffs).length > 0) {
-            row += "diffs: " + JSON.stringify(details.diffs).replace(/,/g, ";") + ";";
-          }
-          if (details.logInfo && Object.keys(details.logInfo).length > 0) {
-            row += "logInfo: " + JSON.stringify(details.logInfo).replace(/,/g, ";") + ";";
-          }
-          if (details.anchorId) {
-            row += "anchorId:" + details.anchorId + ";";
-          }
-          if (details.hashLink) {
-            row += "hashLink:" + details.hashLink + ";";
-          }
-          row += ",";
-        } else {
-          row += item[colTitle] + ",";
-        }
-      })
-      rows += row + "\n";
-    })
-
-    let csvBlob = new Blob([columnTitles + rows], {type: "text/csv"});
-    return csvBlob;
-  }
-
   basicLogProcessing(item) {
     return {
       gtin: item.metadata ? item.metadata.gtin || "-" : "-",
