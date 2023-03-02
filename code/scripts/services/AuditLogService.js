@@ -4,6 +4,9 @@ export default class AuditLogService {
   }
 
   async logUndigestedMessages(undigestedMessages) {
+    if (undigestedMessages.length) {
+      await this.mappingLogService.refreshAsync();
+    }
     for (let i = 0; i < undigestedMessages.length; i++) {
 
       let undigestedMessage = undigestedMessages[i];

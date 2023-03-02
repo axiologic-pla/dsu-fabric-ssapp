@@ -166,7 +166,9 @@ async function digestMessagesOneByOne(messages, dsuStorage, callback) {
         try{
             undigested = await mappingEngine.digestMessages(message);
         }catch(err){
-            return callback(err, undigestedMessages.concat(skipMessages(messages)));
+            let failedMessages = undigestedMessages.concat(skipMessages(messages));
+            failedMessages.push(message);
+            return callback(err, failedMessages);
         }
 
         undigestedMessages = undigestedMessages.concat(undigested);
