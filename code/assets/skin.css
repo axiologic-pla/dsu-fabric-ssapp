@@ -12,6 +12,10 @@ webc-app-menu[mode=vertical] {
     --min-width: 240px;
 }
 
+webc-app-identity {
+    pointer-events: none !important;
+}
+
 webc-app-menu[mode=mobile] {
     --background: #328569;
 }
