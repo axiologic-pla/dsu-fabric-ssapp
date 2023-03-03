@@ -107,6 +107,7 @@ addHook("beforePageLoads", "home", async () => {
 
   } catch (e) {
     console.log("Could not initialise properly FwController", e);
+    alert("Could not initialise the app properly. Contact support!");
   }
 
   try {
@@ -115,6 +116,7 @@ addHook("beforePageLoads", "home", async () => {
     FwController.prototype.disabledFeatures = disabledFeatures;
   } catch (e) {
     console.log("Could not initialise properly FwController", e);
+    alert("Could not initialise the app properly. Contact support!");
   }
 });
 
