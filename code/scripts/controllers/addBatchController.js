@@ -374,7 +374,7 @@ export default class addBatchController extends FwController {
 
     }
 
-    MessagesService.processMessagesWithoutGrouping(messageArr, this.storageService, async (err, undigestedMessages) => {
+    MessagesService.processMessagesWithoutGrouping(messageArr, MessagesService.getStorageService(this.storageService), async (err, undigestedMessages) => {
       let handler = this.getHandlerForMessageDigestingProcess(messageArr, this.prepareModalInformation);
       //managing popus ...
       await handler(err, undigestedMessages);

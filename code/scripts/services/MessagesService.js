@@ -15,8 +15,13 @@ async function getHolderInfo() {
     };
 }
 
-async function logFailedMessages(messages, dsuStorage, callback){
+function logFailedMessages(messages, dsuStorage, callback){
+    dsuStorage.failureAwareCommit(messages, callback);
+}
+
+async function _logFailedMessages(messages, dsuStorage, callback){
     if (!messages || messages.length === 0) {
+        callback(undefined);
         return;
     }
     const LogService = require("gtin-resolver").loadApi("services").LogService;
@@ -41,6 +46,122 @@ function skipMessages(messages){
     return undigestedMessages;
 }
 
+function getStorageService(dsuStorage) {
+    if(dsuStorage.wrapped){
+       return dsuStorage;
+    }
+
+
+    async function acquireLock(period, attempts, timeout){
+        let identifier = await dsuStorage.getUniqueIdAsync();
+
+        const opendsu = require("opendsu");
+        const utils = opendsu.loadApi("utils");
+        const lockApi = opendsu.loadApi("lock");
+        const crypto = opendsu.loadApi("crypto");
+        let secret = crypto.encodeBase58(crypto.generateRandom(32));
+
+        let lockAcquired;
+        while(attempts>0){
+            attempts--;
+            lockAcquired = await lockApi.lockAsync(identifier, secret, period);
+            if(!lockAcquired){
+                await utils.sleepAsync(timeout);
+            }else{
+                break;
+            }
+        }
+        if (!lockAcquired) {
+            secret = undefined;
+        }
+
+        return secret;
+    }
+
+    async function releaseLock(secret){
+        let identifier = await dsuStorage.getUniqueIdAsync();
+
+        const opendsu = require("opendsu");
+        const lockApi = opendsu.loadApi("lock");
+        try{
+            await lockApi.unlockAsync(identifier, secret);
+        }catch(err){
+            console.error("Failed to release lock", err);
+        }
+    }
+
+
+    let originalCommit = dsuStorage.commitBatch;
+    let originalBegin = dsuStorage.beginBatch;
+    let originalCancel = dsuStorage.cancelBatch;
+
+    dsuStorage.commitBatch = function(forDID, callback){
+        console.trace("Commit Batch called");
+        //originalCommit.call(dsuStorage, ...args);
+        if(typeof forDID === "function"){
+            callback = forDID;
+            forDID = undefined;
+        }
+        callback();
+    }
+
+    dsuStorage.beginBatch = function(forDID){
+        console.trace("Begin Batch called");
+        originalBegin.call(dsuStorage, forDID);
+    }
+
+    dsuStorage.cancelBatch = function(...args){
+        console.trace("Cancel Batch called");
+        originalCancel.call(dsuStorage, ...args);
+    }
+
+    dsuStorage.failureAwareCommit = async function(failedMessages, callback){
+        let lock;
+        let error;
+        lock = await acquireLock(60000, 100, 500);
+        if(!lock){
+            callback(new Error("Not able to acquire lock to save the undigested messages."));
+        }
+
+        if(failedMessages.length){
+            await $$.promisify(dsuStorage.cancelBatch)();
+
+            try{
+                await $$.promisify(dsuStorage.refresh, dsuStorage)();
+                originalBegin.call(dsuStorage);
+                await $$.promisify(_logFailedMessages)(failedMessages, dsuStorage);
+            }catch(err){
+                console.log(err);
+                error = err;
+            }
+        }
+
+        try{
+            await $$.promisify(originalCommit, dsuStorage)();
+        }catch(err){
+            console.log(err);
+            error = err;
+        }
+
+        await releaseLock(lock);
+        callback(error, undefined);
+    }
+
+    dsuStorage.wrapped = true;
+    return dsuStorage;
+}
+
+function getEPIMappingEngine(sharedEnclave, options, callback) {
+    if (typeof options === "function") {
+        callback = options;
+        options = undefined;
+    }
+    const openDSU = require("opendsu");
+
+    const mappingEngine = openDSU.loadApi("m2dsu").getMappingEngine(sharedEnclave, options);
+    return callback(undefined, mappingEngine);
+}
+
 async function processMessages(messages, dsuStorage, callback) {
     if (!messages || messages.length === 0) {
         return;
@@ -59,7 +180,7 @@ async function processMessages(messages, dsuStorage, callback) {
             domain,
             subdomain
         }
-        mappingEngine = await $$.promisify(mappings.getEPIMappingEngine)({
+        mappingEngine = await $$.promisify(getEPIMappingEngine)(dsuStorage, {
             holderInfo: holderInfo,
             logService: logService
         });
@@ -116,7 +237,7 @@ async function processMessagesWithoutGrouping(messages, dsuStorage, callback) {
             domain,
             subdomain
         }
-        mappingEngine = await $$.promisify(mappings.getEPIMappingEngine)({
+        mappingEngine = await $$.promisify(getEPIMappingEngine)(dsuStorage, {
             holderInfo: holderInfo,
             logService: logService
         });
@@ -137,7 +258,6 @@ async function processMessagesWithoutGrouping(messages, dsuStorage, callback) {
     callback(error, undigestedMessages);
 }
 
-
 async function digestMessagesOneByOne(messages, dsuStorage, callback) {
     let undigestedMessages = [];
     const LogService = require("gtin-resolver").loadApi("services").LogService;
@@ -150,7 +270,7 @@ async function digestMessagesOneByOne(messages, dsuStorage, callback) {
 
     try {
         options.holderInfo = await getHolderInfo();
-        mappingEngine = await $$.promisify(mappings.getEPIMappingEngine)(options);
+        mappingEngine = await $$.promisify(getEPIMappingEngine)(dsuStorage, options);
 
     } catch (err) {
         return callback(err, messages);
@@ -182,5 +302,6 @@ export default {
     logFailedMessages,
     processMessages,
     digestMessagesOneByOne,
-    processMessagesWithoutGrouping
+    processMessagesWithoutGrouping,
+    getStorageService
 }

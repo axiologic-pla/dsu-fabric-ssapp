@@ -54,22 +54,37 @@ export default class importController extends FwController {
                 this.showErrorModal(`Unable to read selected files.`, "Error");
             }
 
-            MessagesService.digestMessagesOneByOne(JSON.parse(JSON.stringify(messages)), this.storageService, async (err, undigested)=>{
+            let failedMessages = [];
+            for(let msg of messages){
+                let promisified  = $$.promisify(MessagesService.processMessagesWithoutGrouping);
+                let error;
+                let undigested;
+                try{
+                    undigested = await promisified([msg], MessagesService.getStorageService(this.storageService));
+                    for(let failed of undigested){
+                        failedMessages.push(failed);
+                    }
+                }catch(err){
+                    error = err;
+                }
+
                 let handler = this.getHandlerForMessageDigestingProcess(messages, this.prepareModalInformation);
                 window.WebCardinal.loader.hidden = true;
                 //managing popus ...
-                await handler(err, undigested);
+                await handler(error, undigested);
+            }
 
-                await this.manageProcessedMessages(undigested);
-
+            await this.manageProcessedMessages(failedMessages);
+            if(failedMessages.length){
                 this.model.failedImportedLogs = [];
                 this.model.retryAll = false;
+            }
 
-                this.filesArray = [];
-                this.model.importIsDisabled = this.filesArray.length === 0;
-                this.model.filesChooser.listFiles = false;
-                this.model.filesChooser["list-files"] = false;
-            });
+            this.filesArray = [];
+            this.model.importIsDisabled = this.filesArray.length === 0;
+            this.model.filesChooser.listFiles = false;
+            this.model.filesChooser["list-files"] = false;
+
         });
         /*
             Removed for MVP1
@@ -234,8 +249,9 @@ export default class importController extends FwController {
                     this.model.selectedTab = 1;
                     window.WebCardinal.loader.hidden = false;
 
-                    await MessagesService.processMessages(messages, this.storageService, async (undigestedMessages) => {
+                    await MessagesService.processMessages(messages, MessagesService.getStorageService(this.storageService), async (undigestedMessages) => {
                         await this.manageProcessedMessages(undigestedMessages);
+                        await this.logUndigestedMessages(undigestedMessages);
                         this.model.failedImportedLogs = [];
                     });
 
@@ -259,7 +275,7 @@ export default class importController extends FwController {
     prepareModalInformation(err, undigested, messages){
         return {
             title: 'Import failed',
-            content: `There was an error during import process. Failed to import ${undigested.length} from a total of ${messages.length} messages. Cause: ${err.message ? err.message : ''}`
+            content: `There was an error during import process. Cause: ${err.message ? err.message : 'Unknown'}`
         }
     }
 
