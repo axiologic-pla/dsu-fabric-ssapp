@@ -96,7 +96,6 @@ function getStorageService(dsuStorage) {
     let originalCancel = dsuStorage.cancelBatch;
 
     dsuStorage.commitBatch = function(forDID, callback){
-        console.trace("Commit Batch called");
         //originalCommit.call(dsuStorage, ...args);
         if(typeof forDID === "function"){
             callback = forDID;
@@ -106,12 +105,10 @@ function getStorageService(dsuStorage) {
     }
 
     dsuStorage.beginBatch = function(forDID){
-        console.trace("Begin Batch called");
         originalBegin.call(dsuStorage, forDID);
     }
 
     dsuStorage.cancelBatch = function(...args){
-        console.trace("Cancel Batch called");
         originalCancel.call(dsuStorage, ...args);
     }
 

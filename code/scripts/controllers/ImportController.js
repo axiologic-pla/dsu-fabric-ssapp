@@ -42,18 +42,9 @@ export default class importController extends FwController {
             }
         });
 
-        this.onTagClick("import", async () => {
-            if (this.filesArray.length === 0) {
-                return;
-            }
-            let messages;
-            try {
-                messages = await this.getMessagesFromFiles(this.filesArray);
-                window.WebCardinal.loader.hidden = false;
-            } catch (err) {
-                this.showErrorModal(`Unable to read selected files.`, "Error");
-            }
+        let self = this;
 
+        async function digest(messages){
             let failedMessages = [];
             for(let msg of messages){
                 let promisified  = $$.promisify(MessagesService.processMessagesWithoutGrouping);
@@ -84,6 +75,21 @@ export default class importController extends FwController {
             this.model.importIsDisabled = this.filesArray.length === 0;
             this.model.filesChooser.listFiles = false;
             this.model.filesChooser["list-files"] = false;
+        }
+
+        this.onTagClick("import", async () => {
+            if (this.filesArray.length === 0) {
+                return;
+            }
+            let messages;
+            try {
+                messages = await this.getMessagesFromFiles(this.filesArray);
+                window.WebCardinal.loader.hidden = false;
+            } catch (err) {
+                this.showErrorModal(`Unable to read selected files.`, "Error");
+            }
+
+            await digest.call(self, messages);
 
         });
         /*
@@ -262,8 +268,19 @@ export default class importController extends FwController {
             }
         }
 
-        let self = this;
-        this.onTagClick("retry-failed", prepareCallback.call(self));
+        this.onTagClick("retry-failed", async (model, target, event) => {
+            let messages = getSelectedFailed.call(this);
+            if (messages.length > 0) {
+                this.model.selectedTab = 1;
+                window.WebCardinal.loader.hidden = false;
+
+                await digest.call(self, messages);
+
+                this.model.retryAll = false;
+
+                this.querySelector("#retry-all-checkbox").checked = false;
+            }
+        });
 
         this.onTagClick("force-retry-failed", prepareCallback.call(self, (msg) => {
             msg.force = true;
