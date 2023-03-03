@@ -14,6 +14,12 @@ export default class AuditLogService {
       if (undigestedMessage.error && undigestedMessage.error.otherErrors && undigestedMessage.error.otherErrors.details.length) {
         await this.mappingLogService.logFailAction(undigestedMessage.message, undigestedMessage.error.otherErrors.details, errorStatus)
       } else {
+        if(!undigestedMessage.error){
+          undigestedMessage.error = "Unknown error. Check Logs!";
+        }
+        if(!undigestedMessage.message){
+          undigestedMessage.message = "Unknown error. Check Logs!";
+        }
         await this.mappingLogService.logFailAction(undigestedMessage.message, undigestedMessage.error, errorStatus)
       }
     }
