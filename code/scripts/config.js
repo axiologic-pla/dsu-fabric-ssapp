@@ -45,6 +45,8 @@ addHook("beforeAppLoads", async () => {
       await $$.promisify(mainEnclave.writeKey)(constants.CREDENTIAL_KEY, constants.CREDENTIAL_DELETED);
       await $$.promisify(scAPI.deleteSharedEnclave)();
       scAPI.refreshSecurityContext();
+      window.disableRefreshSafetyAlert = true;
+      window.location.reload();
       return $$.history.go("generate-did");
     })
   }
