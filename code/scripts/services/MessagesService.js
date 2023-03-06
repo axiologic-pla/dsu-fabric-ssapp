@@ -62,13 +62,19 @@ function getStorageService(dsuStorage) {
         let secret = crypto.encodeBase58(crypto.generateRandom(32));
 
         let lockAcquired;
-        while(attempts>0){
-            attempts--;
+        let noAttempts = attempts;
+        while(noAttempts>0){
+            noAttempts--;
             lockAcquired = await lockApi.lockAsync(identifier, secret, period);
             if(!lockAcquired){
                 await utils.sleepAsync(timeout);
             }else{
                 break;
+            }
+            if(noAttempts === 0){
+                if (window.confirm("Other user is editing right now. Do you want to wait for him to finish?")) {
+                    noAttempts = attempts;
+                }
             }
         }
         if (!lockAcquired) {
