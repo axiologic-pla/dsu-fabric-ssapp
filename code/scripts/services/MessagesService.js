@@ -143,6 +143,7 @@ function getStorageService(dsuStorage) {
             await $$.promisify(originalCommit, dsuStorage)();
         }catch(err){
             console.log(err);
+            alert(err);
             error = err;
         }
 

@@ -23,7 +23,17 @@ export default class ManageProductController extends FwController {
       // product already exists, enter in edit mode
       let submitButton = this.querySelector("#submit-product");
       submitButton.disabled = true;
-      this.storageService.getRecord(constants.PRODUCTS_TABLE, state.gtin, (err, product) => {
+      gtinResolver.DSUFabricUtils.getProductMetadata(state.gtin, (err, product) => {
+        if(err){
+          return this.storageService.getRecord(constants.PRODUCTS_TABLE, state.gtin, (e, product) => {
+            if(e){
+              return this.showErrorModal(`Unable to read product info from database! ${e.message}`, "Error", () => {
+                this.navigateToPageTag("products");
+              });
+            }
+            return this.handlerUnknownError(state, product);
+          });
+        }
         this.model.submitLabel = "Update Product";
         this.model.product = new Product(product);
         this.model.product.version = product.version;

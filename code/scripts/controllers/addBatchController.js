@@ -21,7 +21,18 @@ export default class addBatchController extends FwController {
 
     if(editMode){
       let pk = gtinResolverUtils.getBatchMetadataPK(editData.gtin, editData.batchNumber);
-      this.storageService.getRecord(constants.BATCHES_STORAGE_TABLE, pk, (err, batchMetadata) => {
+      gtinResolver.DSUFabricUtils.getBatchMetadata(editData.batchNumber, editData.gtin, (err, batchMetadata) => {
+        if(err){
+          return this.storageService.getRecord(constants.BATCHES_STORAGE_TABLE, pk, (e, batch) => {
+            if(e){
+              return this.showErrorModal(`Unable to read product info from database! ${e.message}`, "Error", () => {
+                this.navigateToPageTag("batches");
+              });
+            }
+            return this.handlerUnknownError(this.history.location.state, batch);
+          });
+        }
+
         if(batchMetadata){
           editData = batchMetadata;
         }
