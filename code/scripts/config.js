@@ -96,7 +96,8 @@ addHook("beforePageLoads", "home", async () => {
       adminUserList = await $$.promisify(groupDIDDocument.listMembersByIdentity)();
       const memberDID_Document = await $$.promisify(w3cdid.resolveDID)(did);
       loginData.messageType = constants.MESSAGE_TYPES.USER_LOGIN;
-      loginData.messageId = `${require("opendsu").loadAPI("crypto").generateRandom(32).toString("hex")}|${did}`;
+      const crypto = require("opendsu").loadAPI("crypto");
+      loginData.messageId = crypto.encodeBase58(crypto.generateRandom(32));
       for (let i = 0; i < adminUserList.length; i++) {
         let adminDID_Document = await $$.promisify(w3cdid.resolveDID)(adminUserList[i]);
         await $$.promisify(memberDID_Document.sendMessage)(JSON.stringify(loginData), adminDID_Document);
