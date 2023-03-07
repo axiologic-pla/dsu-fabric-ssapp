@@ -7,6 +7,10 @@ webc-app-container {
     position: relative;
 }
 
+webc-app-error-toast{
+    z-index: 100;
+}
+
 webc-app-menu[mode=vertical] {
     --background: #328569;
     --min-width: 240px;
