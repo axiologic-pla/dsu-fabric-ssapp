@@ -356,7 +356,7 @@ export default class ManageProductController extends FwController {
           } else {
             obj = msg.error || {originalMessage: msg.reason};
           }
-          errors.push({message: obj.originalMessage || obj.debug_message});
+          errors.push({message: obj.originalMessage || obj.debug_message || obj.message});
         }
       })
 
