@@ -17,7 +17,34 @@ export default class addBatchController extends FwController {
     this.model = {disabledFeatures: this.disabledFeatures, userrights: this.userRights, languageTypeCards: []};
     let state = this.history.location.state;
     const editMode = state != null && state.batchData != null;
-    const editData = editMode ? JSON.parse(state.batchData) : undefined;
+    let editData = editMode ? JSON.parse(state.batchData) : undefined;
+
+    if(editMode){
+      let pk = gtinResolverUtils.getBatchMetadataPK(editData.gtin, editData.batchNumber);
+      gtinResolver.DSUFabricUtils.getBatchMetadata(editData.batchNumber, editData.gtin, (err, batchMetadata) => {
+        if(err){
+          return this.storageService.getRecord(constants.BATCHES_STORAGE_TABLE, pk, (e, batch) => {
+            if(e){
+              return this.showErrorModal(`Unable to read product info from database! ${e.message}`, "Error", () => {
+                this.navigateToPageTag("batches");
+              });
+            }
+            return this.handlerUnknownError(this.history.location.state, batch);
+          });
+        }
+
+        if(batchMetadata){
+          editData = batchMetadata;
+        }
+
+        this.initialize(editMode, editData);
+      });
+    }else{
+      this.initialize(editMode, editData);
+    }
+  }
+
+  initialize(editMode, editData){
     let batch = new Batch(editData);
     this.versionOffset = 1;
     this.model.batch = batch;
@@ -48,12 +75,11 @@ export default class addBatchController extends FwController {
     this.videoInitialDefaultSource = this.model.batch.videos.defaultSource;
 
     if (editMode) {
-
       this.gtin = this.model.batch.gtin;
-      this.model.batch.version++;
+      //this.model.batch.version++;
       gtinResolver.DSUFabricUtils.getDSUAttachments(this.model.batch, this.disabledFeatures, (err, attachments) => {
         if (err) {
-          this.showErrorModalAndRedirect("Failed to get inherited cards", "patch");
+          return this.handlerUnknownError(this.history.location.state, this.model.batch);
         }
         let submitButton = this.querySelector("#submit-batch");
         submitButton.disabled = true;
@@ -78,17 +104,12 @@ export default class addBatchController extends FwController {
 
     }
 
-    this.storageService.filter(this.model.batch.batchNumber, "__timestamp > 0", (err, logs) => {
-      if (err || typeof logs === "undefined") {
-        logs = [];
-      }
-      this.model.serialNumbersLogs = logs;
-    });
+    this.getNumberLogs();
 
     this.storageService.filter(constants.PRODUCTS_TABLE, "__timestamp > 0", (err, products) => {
-      if (err || !products) {
+      if (err || !products || products.length === 0) {
         printOpenDSUError(createOpenDSUErrorWrapper("Failed to retrieve products list!", err));
-        return this.showErrorModalAndRedirect("Failed to retrieve products list! Create a product first!", "products", 5000);
+        return this.showErrorModalAndRedirect("Failed to retrieve products list! Create a product first!", "Product not found", {tag: "manage-product"});
       }
       const options = [];
       Object.values(products).forEach(prod => options.push({
@@ -103,7 +124,70 @@ export default class addBatchController extends FwController {
     setTimeout(() => {
       this.setUpCheckboxes();
     }, 0)
+  }
 
+  handlerUnknownError(state, batch){
+    this.showErrorModal(
+        new Error(`Would you like to recover?`),
+        'Unknown error while loading data.',
+        async ()=>{
+          //yes
+          setTimeout(async ()=>{
+            this.createWebcModal({
+              disableExpanding: true,
+              disableClosing: true,
+              disableFooter: true,
+              modalTitle: "Info",
+              modalContent: "Recovery process in progress..."
+            });
+
+            if(typeof state.batchData === "string" && state.batchData.length > 0){
+              state.batch = JSON.parse(state.batchData);
+            }
+
+            let recoveryMessage = await utils.initMessage("Batch");
+            recoveryMessage.batch = batch;
+            if(!recoveryMessage.batch){
+              recoveryMessage.batch = {
+                productCode: state.batch ? state.batch.gtin : undefined
+              };
+            }
+
+            if(!recoveryMessage.batch.productCode){
+              recoveryMessage.batch.productCode = state.batch.gtin;
+            }
+            if(!recoveryMessage.batch.batch){
+              recoveryMessage.batch.batch = batch ? batch.batchNumber : "recovered data";
+            }
+            if(!recoveryMessage.batch.expiryDate){
+              recoveryMessage.batch.expiryDate = batch ? batch.expiry : "recovered data";
+            }
+            recoveryMessage.force = true;
+
+            //by setting this refreshState if all goes when we will return to edit the product
+            this.refreshState = {
+              tag: "home",
+              state: {
+                refreshTo: {
+                  tag: "add-batch",
+                  state: {batchData: JSON.stringify(batch)}
+                }
+              }
+            };
+            this.sendMessagesToProcess([recoveryMessage]);
+          }, 100);
+        },
+        ()=>{
+          console.log("Rejected the recover process by choosing no option.");
+          this.showErrorModalAndRedirect("Refused the recovery process. Redirecting...", "Info", {tag: "batches"});
+        },
+        {
+          disableExpanding: true,
+          cancelButtonText: 'No',
+          confirmButtonText: 'Yes',
+          id: 'feedback-modal'
+        }
+    )
   }
 
   async addOrUpdateBatch(operation) {
@@ -203,14 +287,25 @@ export default class addBatchController extends FwController {
     button.disabled = JSON.stringify(this.model.languageTypeCards) === JSON.stringify(this.initialCards) && JSON.stringify(this.model.batch) === JSON.stringify(this.initialModel.batch) && !serialIsUpdated;
   }
 
+  getNumberLogs(){
+
+    const featManager = require("gtin-resolver").DSUFabricFeatureManager;
+    featManager.isFeatureEnabled("07", (err, enabled)=>{
+      if(enabled){
+        //await $$.promisify(this.storageService.addIndex.bind(this.storageService))(this.model.batch.batchNumber, "__timestamp");
+        this.storageService.filter(this.model.batch.batchNumber, "__timestamp > 0", (err, logs) => {
+          if (err || typeof logs === "undefined") {
+            logs = [];
+          }
+          this.model.serialNumbersLogs = logs;
+        });
+      }
+    })
+  }
+
   addEventListeners() {
     this.model.onChange("batch.batchNumber", (event) => {
-      this.storageService.filter(this.model.batch.batchNumber, "__timestamp > 0", (err, logs) => {
-        if (err || typeof logs === "undefined") {
-          logs = [];
-        }
-        this.model.serialNumbersLogs = logs;
-      });
+      this.getNumberLogs();
     })
     this.model.onChange("hasAcdcAuthFeature", (event) => {
       if (!this.model.hasAcdcAuthFeature) {
@@ -246,7 +341,7 @@ export default class addBatchController extends FwController {
       this.getProductFromGtin(this.model.batch.gtin, (err, product) => {
         if (err) {
           printOpenDSUError(createOpenDSUErrorWrapper("Failed to get a valid product", err));
-          return this.showErrorModalAndRedirect("Failed to get a valid product", "batches");
+          return this.showErrorModalAndRedirect("Failed to get a valid product", "Product not found", {tag: "batches"});
         }
         this.model.batch.gtin = product.gtin;
         this.model.batch.productName = product.name;
@@ -290,10 +385,20 @@ export default class addBatchController extends FwController {
 
     }
 
-    MessagesService.processMessages(messageArr, this.storageService, async (undigestedMessages) => {
-      this.hideModal();
-      this.showMessageError(undigestedMessages)
-    })
+    MessagesService.processMessagesWithoutGrouping(messageArr, MessagesService.getStorageService(this.storageService), async (err, undigestedMessages) => {
+      let handler = this.getHandlerForMessageDigestingProcess(messageArr, this.prepareModalInformation);
+      //managing popus ...
+      await handler(err, undigestedMessages);
+
+      this.showMessageError(undigestedMessages);
+    });
+  }
+
+  prepareModalInformation(err, undigested, messages){
+    return {
+      title: `There was an error during saving process. Cause: ${err.message ? err.message : ''}`,
+      content: 'Saving failed'
+    }
   }
 
   showMessageError(undigestedMessages) {
@@ -312,6 +417,13 @@ export default class addBatchController extends FwController {
       }, () => {
       }, {model: {errors: errors}});
     } else {
+      if(this.refreshState){
+        //this.refreshState is controlled above in unknownHandler before force recovery
+        console.log("Refreshing the edit batch page after recovery");
+        return setTimeout(()=>{
+          this.navigateToPageTag(this.refreshState.tag, this.refreshState.state);
+        }, 500);
+      }
       this.navigateToPageTag("batches");
     }
   }
@@ -320,12 +432,12 @@ export default class addBatchController extends FwController {
     this.storageService.addIndex(constants.PRODUCTS_TABLE, "gtin", (error) => {
       if (error) {
         printOpenDSUError(createOpenDSUErrorWrapper("Failed to get a valid product", error));
-        return this.showErrorModalAndRedirect("Failed to get a valid product", "batches");
+        return this.showErrorModalAndRedirect("Failed to get a valid product", "Product not found", {tag: "batches"});
       }
       this.storageService.filter(constants.PRODUCTS_TABLE, `gtin == ${gtin}`, (err, products) => {
         if (err) {
           printOpenDSUError(createOpenDSUErrorWrapper("Failed to get a valid product", err));
-          return this.showErrorModalAndRedirect("Failed to get a valid product", "batches");
+          return this.showErrorModalAndRedirect("Failed to get a valid product", "Product not found", {tag: "batches"});
         }
         let product = products[0];
         if (!product) {
@@ -424,7 +536,7 @@ export default class addBatchController extends FwController {
       }
 
       this.model.serial_update_options.value = "Select an option";
-      await $$.promisify(this.storageService.addIndex.bind(this.storageService))(this.model.batch.batchNumber, "__timestamp");
+
       await $$.promisify(this.storageService.insertRecord.bind(this.storageService))(this.model.batch.batchNumber, serialNumbersLog.creationTime, serialNumbersLog);
       this.manageUpdateButtonState();
       return;

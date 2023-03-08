@@ -23,10 +23,20 @@ export default class ManageProductController extends FwController {
       // product already exists, enter in edit mode
       let submitButton = this.querySelector("#submit-product");
       submitButton.disabled = true;
-      this.storageService.getRecord(constants.PRODUCTS_TABLE, state.gtin, (err, product) => {
+      gtinResolver.DSUFabricUtils.getProductMetadata(state.gtin, (err, product) => {
+        if(err){
+          return this.storageService.getRecord(constants.PRODUCTS_TABLE, state.gtin, (e, product) => {
+            if(e){
+              return this.showErrorModal(`Unable to read product info from database! ${e.message}`, "Error", () => {
+                this.navigateToPageTag("products");
+              });
+            }
+            return this.handlerUnknownError(state, product);
+          });
+        }
         this.model.submitLabel = "Update Product";
         this.model.product = new Product(product);
-        this.model.product.version++;
+        this.model.product.version = product.version;
         this.model.product.previousVersion = product.version;
         this.model.product.isCodeEditable = false;
         this.model.product.videos = product.videos || {defaultSource: ""};
@@ -39,7 +49,7 @@ export default class ManageProductController extends FwController {
           })
 
           if (err) {
-            this.showErrorModalAndRedirect("Unknown error while loading DSU", "products");
+            return this.handlerUnknownError(state, product);
           }
 
           this.model.languageTypeCards = attachments ? attachments.languageTypeCards : [];
@@ -79,6 +89,64 @@ export default class ManageProductController extends FwController {
 
     this.addEventListeners();
 
+  }
+
+  handlerUnknownError(state, product){
+    this.showErrorModal(
+        new Error(`Would you like to recover?`),
+        'Unknown error while loading data.',
+        async ()=>{
+          //yes
+          setTimeout(async ()=>{
+            this.createWebcModal({
+              disableExpanding: true,
+              disableClosing: true,
+              disableFooter: true,
+              modalTitle: "Info",
+              modalContent: "Recovery process in progress..."
+            });
+            let recoveryMessage = await utils.initMessage("Product");
+            recoveryMessage.product = product;
+            if(!recoveryMessage.product){
+              recoveryMessage.product = {
+                productCode:state.gtin
+              };
+            }
+            if(!recoveryMessage.product.productCode){
+              recoveryMessage.product.productCode = state.gtin;
+            }
+            if(!recoveryMessage.product.inventedName){
+              recoveryMessage.product.inventedName = product ? product.description : "recovered data";
+            }
+            if(!recoveryMessage.product.nameMedicinalProduct){
+              recoveryMessage.product.nameMedicinalProduct = product ? product.name : "recovered data";
+            }
+            recoveryMessage.force = true;
+            //by setting this refreshState if all goes when we will return to edit the product
+            this.refreshState = {
+              tag: "home",
+              state: {
+                refreshTo:
+                    {
+                      tag: "manage-product",
+                      state: {gtin: state.gtin}
+                    }
+              }
+            };
+            this.sendMessagesToProcess([recoveryMessage]);
+          }, 100);
+        },
+        ()=>{
+          console.log("Rejected the recover process by choosing no option.");
+          this.showErrorModalAndRedirect("Refused the recovery process. Redirecting...", "Info", {tag: "products"});
+        },
+        {
+          disableExpanding: true,
+          cancelButtonText: 'No',
+          confirmButtonText: 'Yes',
+          id: 'feedback-modal'
+        }
+    )
   }
 
   setUpCheckboxes() {
@@ -238,7 +306,7 @@ export default class ManageProductController extends FwController {
     if (this.model.videoSourceUpdated) {
       let videoMessage = await utils.initMessage("VideoSource");
       videoMessage.videos = {
-        productCode: this.model.product.gtin,
+        productCode: this.model.product.gtin
       }
 
       videoMessage.videos.source = btoa(this.model.product.videos.defaultSource);
@@ -255,11 +323,20 @@ export default class ManageProductController extends FwController {
 
     }
 
-    MessagesService.processMessages(messageArr, this.storageService, async (undigestedMessages) => {
-      this.hideModal();
-      this.showMessageError(undigestedMessages);
-    })
+    MessagesService.processMessagesWithoutGrouping(messageArr, MessagesService.getStorageService(this.storageService), async (err, undigestedMessages) => {
+      let handler = this.getHandlerForMessageDigestingProcess(messageArr, this.prepareModalInformation);
+      //managing popus ...
+      await handler(err, undigestedMessages);
 
+      this.showMessageError(undigestedMessages);
+    });
+  }
+
+  prepareModalInformation(err, undigested, messages){
+    return {
+      title: `There was an error during saving process. Cause: ${err.message ? err.message : ''}`,
+      content: 'Saving failed'
+    }
   }
 
   validateGTIN(gtinValue) {
@@ -279,7 +356,7 @@ export default class ManageProductController extends FwController {
           } else {
             obj = msg.error || {originalMessage: msg.reason};
           }
-          errors.push({message: obj.originalMessage || obj.debug_message});
+          errors.push({message: obj.originalMessage || obj.debug_message || obj.message});
         }
       })
 
@@ -290,7 +367,13 @@ export default class ManageProductController extends FwController {
 
       }, {model: {errors: errors}});
     } else {
-
+      if(this.refreshState){
+        //this.refreshState is controlled above in unknownHandler before force recovery
+        console.log("Refreshing the manage product page after recovery");
+        return setTimeout(()=>{
+          this.navigateToPageTag(this.refreshState.tag, this.refreshState.state);
+        }, 500);
+      }
       this.navigateToPageTag("products");
     }
   }

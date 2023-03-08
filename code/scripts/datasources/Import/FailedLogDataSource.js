@@ -14,13 +14,25 @@ export default class FailedLogDataSource extends DataSource {
     this.filterResult = [];
   }
 
+  getMappedResult(data) {
+    let now = Date.now();
+    return data.map(log => {
+      if (log.message) {
+        log.timeAgo = utils.timeAgo(log["__timestamp"])
+        log.isFresh = now - log["__timestamp"] < 60 * 1000;
+        log.itemMsgId = log.message.messageId;
+        return log;
+      }
+    })
+  }
+
   async getPageDataAsync(startOffset, dataLengthForCurrentPage) {
     window.WebCardinal.loader.hidden = false;
 
     if (this.filterResult.length > 0) {
       window.WebCardinal.loader.hidden = true;
       document.querySelector(".failed-messages-page-btn").hidden = true;
-      return this.filterResult
+      return this.getMappedResult(this.filterResult);
     }
 
     let importLogs = [];
@@ -33,32 +45,30 @@ export default class FailedLogDataSource extends DataSource {
       } else {
         this.importLogs = await $$.promisify(this.enclaveDB.filter)('import-logs', ['__timestamp > 0', 'status != success'], "dsc", this.itemsOnPage * 2);
       }
+
+      window.WebCardinal.loader.hidden = true;
+
       this.importLogs.length > this.itemsOnPage ? document.querySelector(".failed-messages-page-btn").hidden = false : document.querySelector(".failed-messages-page-btn").hidden = true;
 
       importLogs = this.importLogs.slice(startOffset, startOffset + dataLengthForCurrentPage);
       this.hasMoreLogs = this.importLogs.length >= startOffset + dataLengthForCurrentPage + 1;
 
-      let now = Date.now();
-      importLogs = importLogs.map(log => {
-        if (log.message) {
-          log.timeAgo = utils.timeAgo(log["__timestamp"])
-          log.isFresh = now - log["__timestamp"] < 60 * 1000;
-          log.retry = false;
-          log.itemId = log.itemCode + '_' + log["__timestamp"];
-          log.itemMsgId = log.message.messageId;
-          return log;
-        }
-      })
+      if (!this.hasMoreLogs) {
+        document.querySelector(".failed-messages-page-btn .next-page-btn").disabled = true;
+      } else {
+        document.querySelector(".failed-messages-page-btn .next-page-btn").disabled = false;
+      }
 
-      window.WebCardinal.loader.hidden = true;
+      if (!importLogs.length > 0) {
+        document.querySelector(".failed-messages-page-btn").style.display = "none";
+      } else {
+        document.querySelector(".failed-messages-page-btn").style.display = "flex";
+      }
+
     } catch (e) {
       console.log(e);
     }
-    if (!importLogs.length > 0) {
-      document.querySelector(".failed-messages-page-btn").style.display = "none";
-    } else {
-      document.querySelector(".failed-messages-page-btn").style.display = "flex";
-    }
-    return importLogs
+
+    return this.getMappedResult(importLogs)
   }
 }

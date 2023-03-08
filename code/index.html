@@ -14,19 +14,19 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
 
     <script>
-        if (window.frameElement) {
-            const iframeIdentity = window.frameElement.getAttribute('identity');
+      if (window.frameElement) {
+        const iframeIdentity = window.frameElement.getAttribute('identity');
 
-            if (iframeIdentity) {
-                window.parent.document.dispatchEvent(
-                    new CustomEvent(iframeIdentity, {
-                        detail: {
-                            status: 'completed',
-                        },
-                    })
-                );
-            }
+        if (iframeIdentity) {
+          window.parent.document.dispatchEvent(
+            new CustomEvent(iframeIdentity, {
+              detail: {
+                status: 'completed',
+              },
+            })
+          );
         }
+      }
     </script>
 </head>
 <body>
@@ -39,5 +39,23 @@
 <script src="scripts/bundles/gtinResolver.js"></script>
 
 </body>
+<script>
+  document.body.onbeforeunload = ()=>{
+      if(window.disableRefreshSafetyAlert){
+          return ;
+      }
+      return "Are you sure? This may cause inconsistencies";
+  }
 
+  if ($$) {
+    const originalHTTPHandler = $$.httpUnknownResponseGlobalHandler;
+    $$.httpUnknownResponseGlobalHandler = function (res) {
+      let err = res ? res.err : undefined;
+      if (err && err.rootCause == "network") {
+        originalHTTPHandler(res);
+        alert("Network issues detected!");
+      }
+    }
+  }
+</script>
 </html>

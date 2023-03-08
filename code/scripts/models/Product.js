@@ -8,7 +8,7 @@ export default class Product {
   description = "";
   leaflet = "";
   manufName = "";
-  version = 1;
+  version = 0;
   previousVersion = 1;
   files = [];
   transferred = false;

@@ -195,13 +195,8 @@ function timeAgo(time) {
 }
 
 async function getUserDetails() {
-  try {
-    const response = await fetch("./api-standard/user-details");
-    return await response.json();
-  } catch (err) {
-    console.error(`Failed to get user's details`, err);
-    return {};
-  }
+  const response = await fetch("./api-standard/user-details");
+  return await response.json();
 }
 
 async function getUserRights() {
@@ -253,6 +248,15 @@ async function initMessage(msgType) {
   }
 }
 
+async function ensureMinimalInfoOnMessage(message) {
+  let userDetails = await getUserDetails();
+  let senderId = userDetails && userDetails.username ? userDetails.username : null;
+  if (senderId) {
+    message.senderId = senderId;
+  }
+  return message;
+}
+
 //disable functionalities as it was defined in environment config
 function disableFeatures(thisObj) {
   thisObj.model.disabledFeatures.forEach(offFuncKey => {
@@ -268,6 +272,7 @@ function disableFeatures(thisObj) {
 
   })
 }
+
 export default {
   convertDateFromISOToGS1Format,
   convertDateToISO,
@@ -284,5 +289,6 @@ export default {
   generateRandom,
   initMessage,
   disableFeatures,
-  getUserRights
+  getUserRights,
+  ensureMinimalInfoOnMessage
 }

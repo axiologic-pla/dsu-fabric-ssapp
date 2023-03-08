@@ -71,7 +71,12 @@ export default class BatchesDataSource extends LazyDataSource {
       let wrongBatch = JSON.parse(JSON.stringify(batch));
       wrongBatch.defaultSerialNumber = "WRONG";
       batch.wrongCode = utils.sanitizeCode(this.generateSerializationForBatch(wrongBatch, wrongBatch.defaultSerialNumber));
-      batch.formatedDate = batch.expiry.match(/.{1,2}/g).join("/");
+      let expiryArr = batch.expiry.match(/.{1,2}/g);
+      //expiry day should not be visible if it's 00
+      if (expiryArr[expiryArr.length - 1] === "00") {
+        expiryArr.pop();
+      }
+      batch.formatedDate = expiryArr.join("/");
     });
   }
 
