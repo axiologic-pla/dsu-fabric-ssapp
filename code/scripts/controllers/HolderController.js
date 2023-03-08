@@ -46,9 +46,13 @@ export default class HolderController extends FwController {
             if (err) {
               return console.log('Error getting mainDSU', err);
             }
+            /*
+            * hidden for MVP1
+
             mainDSU.getKeySSIAsString((err, keySSI) => {
-              this.model.walletKeySSI = keySSI
-            });
+                          this.model.walletKeySSI = keySSI
+                        });
+            */
           })
         });
 
