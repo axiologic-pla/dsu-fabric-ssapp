@@ -17,12 +17,18 @@ export default class SuccessLogDataSource extends DataSource {
   getMappedResult(data) {
     let now = Date.now();
     return data.map(log => {
-      if (log.message) {
-        log.timeAgo = utils.timeAgo(log["__timestamp"])
-        log.isFresh = now - log["__timestamp"] < 60 * 1000;
-        log.itemMsgId = log.message.messageId;
-        return log;
+      log.timeAgo = utils.timeAgo(log["__timestamp"])
+      log.isFresh = now - log["__timestamp"] < 60 * 1000;
+      //keep compatibility with old log version
+      log.itemMsgId = log.messageId || log.message.messageId;
+      try {
+        log.details = log.message || log.auditLogData;
+      } catch (e) {
+        log.details = "Wrong log format"
       }
+
+      return log;
+
     })
   }
 
