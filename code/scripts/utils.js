@@ -273,6 +273,19 @@ function disableFeatures(thisObj) {
   })
 }
 
+async function getLogDetails(recordData) {
+  if (recordData.auditKeySSI) {
+    const openDSU = require("opendsu");
+    const resolver = openDSU.loadApi("resolver");
+    let auditDSU = await $$.promisify(resolver.loadDSU)(recordData.auditKeySSI);
+    let auditDetails = await $$.promisify(auditDSU.readFile)("/audit.json");
+    return JSON.parse(auditDetails);
+  } else {
+    return recordData
+  }
+
+}
+
 export default {
   convertDateFromISOToGS1Format,
   convertDateToISO,
@@ -290,5 +303,6 @@ export default {
   initMessage,
   disableFeatures,
   getUserRights,
-  ensureMinimalInfoOnMessage
+  ensureMinimalInfoOnMessage,
+  getLogDetails
 }

@@ -12,9 +12,7 @@ export default class AuditDataSource extends LazyDataSource {
       reason: item.reason,
       username: item.username,
       creationTime: item.creationTime || new Date(item["__timestamp"]).toISOString(),
-      details: {
-        all: JSON.stringify(item),
-      }
+      details: item
     };
   }
 
@@ -55,15 +53,15 @@ export default class AuditDataSource extends LazyDataSource {
             viewLog = this.attachmentLogProcessing(item);
             break;
           case "FAILED_LOG":
-            if (item.logInfo && item.logInfo.invalidFields) {
-              item.metadata.invalidFields = item.logInfo.invalidFields;
-              delete item.logInfo.invalidFields;
+            if (item.logInfo && item.invalidFields) {
+              item.metadata.invalidFields = item.invalidFields;
+              delete item.invalidFields;
             }
             viewLog = this.basicLogProcessing(item);
             break;
           case "RECOVER_LOG":
             viewLog = this.basicLogProcessing(item);
-            if(item.metadata && item.metadata.batch){
+            if (item.metadata && item.metadata.batch) {
               viewLog.batch = item.metadata.batch;
             }
             break;

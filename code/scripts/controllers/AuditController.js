@@ -2,6 +2,7 @@ import constants from "../constants.js";
 import AuditDataSource from "../datasources/Audit/AuditDataSource.js";
 import LoginDataSource from "../datasources/Audit/LoginDataSource.js";
 import lazyUtils from "../helpers/lazy-data-source-utils.js"
+import utils from "../utils.js"
 
 const {FwController} = WebCardinal.controllers;
 
@@ -53,8 +54,12 @@ export default class AuditController extends FwController {
       }
     })
 
-    this.onTagClick('show-audit-entry', (model, target, event) => {
-
+    this.onTagClick('show-audit-entry', async (model, target, event) => {
+      if (!window.WebCardinal.loader.hidden) {
+        //ignore other view calls until not finished last one;
+        return;
+      }
+      window.WebCardinal.loader.hidden = false;
       let cleanObject = function JSONstringifyOrder(obj) {
         const objToDisplay = {};
         let displayKeys = ["username", "reason", "status", "itemCode", "diffs", "anchorId", "hashLink", "metadata", "logInfo"];
@@ -64,8 +69,10 @@ export default class AuditController extends FwController {
 
         return objToDisplay
       }
-
-      const formattedJSON = JSON.stringify(cleanObject(JSON.parse(model.details.all)), null, 4);
+      let auditDetails = await utils.getLogDetails(model.details);
+      let viewObj = {...model.details, ...auditDetails};
+      const formattedJSON = JSON.stringify(cleanObject(viewObj), null, 4);
+      window.WebCardinal.loader.hidden = true;
       this.model.actionModalModel = {
         title: "Audit Entry", messageData: formattedJSON, denyButtonText: 'Close', acceptButtonText: "Download"
       }
@@ -86,6 +93,7 @@ export default class AuditController extends FwController {
 
     /*  this.updateDataSourceView(5000);*/
   }
+
 
   async csvExportHandler(exportType, dataSource) {
     let downloadModal = this.showModalFromTemplate("wait-download", () => {
@@ -128,16 +136,17 @@ export default class AuditController extends FwController {
     let columnTitles = titles.join(",") + "\n";
     let rows = "";
 
-    exportData.forEach(item => {
+    for (let item of exportData) {
       let row = "";
-      titles.forEach(colTitle => {
+      for (let colTitle of titles) {
         if ("details" === colTitle) {
-          let details = JSON.parse(item[colTitle].all);
-          if (details.diffs && Object.keys(details.diffs).length > 0) {
-            row += "diffs: " + JSON.stringify(details.diffs).replace(/,/g, ";") + ";";
+          let details = JSON.parse(item[colTitle]);
+          let auditDetails = await utils.getLogDetails(details);
+          if (auditDetails.diffs && Object.keys(auditDetails.diffs).length > 0) {
+            row += "diffs: " + JSON.stringify(auditDetails.diffs).replace(/,/g, ";") + ";";
           }
-          if (details.logInfo && Object.keys(details.logInfo).length > 0) {
-            row += "logInfo: " + JSON.stringify(details.logInfo).replace(/,/g, ";") + ";";
+          if (auditDetails.logInfo && Object.keys(auditDetails.logInfo).length > 0) {
+            row += "logInfo: " + JSON.stringify(auditDetails.logInfo).replace(/,/g, ";") + ";";
           }
           if (details.anchorId) {
             row += "anchorId:" + details.anchorId + ";";
@@ -149,9 +158,11 @@ export default class AuditController extends FwController {
         } else {
           row += item[colTitle] + ",";
         }
-      })
+      }
+
       rows += row + "\n";
-    })
+    }
+
 
     let csvBlob = new Blob([columnTitles + rows], {type: "text/csv"});
     return csvBlob;
