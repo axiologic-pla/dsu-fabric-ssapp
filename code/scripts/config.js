@@ -31,7 +31,7 @@ async function initializeWebCardinalConfig() {
         alert(`Failed to reset the application. RootCause: ${err.message}`);
       }
     } else {
-      alert(`Application is an desired state! Contact support!`);
+      alert(`Application is an undesired state! Contact support!`);
     }
   }
 
@@ -69,16 +69,28 @@ function finishInit(){
     const scAPI = openDSU.loadAPI("sc");
     const typicalBusinessLogicHub = didAPI.getTypicalBusinessLogicHub();
     const onUserRemovedMessage = (message) => {
+      window.disableRefreshSafetyAlert = true;
+      typicalBusinessLogicHub.stop();
       scAPI.getMainEnclave(async (err, mainEnclave) => {
         if (err) {
           console.log(err);
         }
 
-        await $$.promisify(mainEnclave.writeKey)(constants.CREDENTIAL_KEY, constants.CREDENTIAL_DELETED);
-        await $$.promisify(scAPI.deleteSharedEnclave)();
-        scAPI.refreshSecurityContext();
+        try{
+          await $$.promisify(mainEnclave.writeKey)(constants.CREDENTIAL_KEY, constants.CREDENTIAL_DELETED);
+          await $$.promisify(scAPI.deleteSharedEnclave)();
+          //scAPI.refreshSecurityContext();
+        }catch(err){
+          try{
+            scAPI.refreshSecurityContext();
+            await $$.promisify(scAPI.deleteSharedEnclave)();
+            await $$.promisify(mainEnclave.writeKey)(constants.CREDENTIAL_KEY, constants.CREDENTIAL_DELETED);
+          }catch(e){
+            console.log(e);
+          }
+        }
         window.disableRefreshSafetyAlert = true;
-        window.location.reload();
+        window.top.location.reload();
         return $$.history.go("generate-did");
       })
     }
@@ -146,7 +158,6 @@ function finishInit(){
     }
 
     try {
-
       let disabledFeatures = await gtinResolver.DSUFabricFeatureManager.getDisabledFeatures();
       FwController.prototype.disabledFeatures = disabledFeatures;
     } catch (e) {
