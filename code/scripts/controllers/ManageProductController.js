@@ -92,61 +92,73 @@ export default class ManageProductController extends FwController {
   }
 
   handlerUnknownError(state, product){
-    this.showErrorModal(
-        new Error(`Would you like to recover?`),
-        'Unknown error while loading data.',
-        async ()=>{
-          //yes
-          setTimeout(async ()=>{
-            this.createWebcModal({
+    if(!this.canWrite()){
+      this.showErrorModalAndRedirect("Failed to retrieve information about the selected product", "Error", {tag: "products"});
+      return;
+    }
+
+    gtinResolver.DSUFabricUtils.checkIfWeHaveDataForThis(state.gtin, undefined, (err)=>{
+      if(!err){
+        return this.showErrorModal(
+            new Error(`Would you like to recover?`),
+            'Unknown error while loading data.',
+            async ()=>{
+              //yes
+              setTimeout(async ()=>{
+                this.createWebcModal({
+                  disableExpanding: true,
+                  disableClosing: true,
+                  disableFooter: true,
+                  modalTitle: "Info",
+                  modalContent: "Recovery process in progress..."
+                });
+                let recoveryMessage = await utils.initMessage("Product");
+                recoveryMessage.product = product;
+                if(!recoveryMessage.product){
+                  recoveryMessage.product = {
+                    productCode:state.gtin
+                  };
+                }
+                if(!recoveryMessage.product.productCode){
+                  recoveryMessage.product.productCode = state.gtin;
+                }
+                if(!recoveryMessage.product.inventedName){
+                  recoveryMessage.product.inventedName = product ? product.description : "recovered data";
+                }
+                if(!recoveryMessage.product.nameMedicinalProduct){
+                  recoveryMessage.product.nameMedicinalProduct = product ? product.name : "recovered data";
+                }
+                recoveryMessage.force = true;
+                //by setting this refreshState if all goes when we will return to edit the product
+                this.refreshState = {
+                  tag: "home",
+                  state: {
+                    refreshTo:
+                        {
+                          tag: "manage-product",
+                          state: {gtin: state.gtin}
+                        }
+                  }
+                };
+                this.sendMessagesToProcess([recoveryMessage]);
+              }, 100);
+            },
+            ()=>{
+              console.log("Rejected the recover process by choosing no option.");
+              this.showErrorModalAndRedirect("Refused the recovery process. Redirecting...", "Info", {tag: "products"});
+            },
+            {
               disableExpanding: true,
-              disableClosing: true,
-              disableFooter: true,
-              modalTitle: "Info",
-              modalContent: "Recovery process in progress..."
-            });
-            let recoveryMessage = await utils.initMessage("Product");
-            recoveryMessage.product = product;
-            if(!recoveryMessage.product){
-              recoveryMessage.product = {
-                productCode:state.gtin
-              };
+              cancelButtonText: 'No',
+              confirmButtonText: 'Yes',
+              id: 'feedback-modal'
             }
-            if(!recoveryMessage.product.productCode){
-              recoveryMessage.product.productCode = state.gtin;
-            }
-            if(!recoveryMessage.product.inventedName){
-              recoveryMessage.product.inventedName = product ? product.description : "recovered data";
-            }
-            if(!recoveryMessage.product.nameMedicinalProduct){
-              recoveryMessage.product.nameMedicinalProduct = product ? product.name : "recovered data";
-            }
-            recoveryMessage.force = true;
-            //by setting this refreshState if all goes when we will return to edit the product
-            this.refreshState = {
-              tag: "home",
-              state: {
-                refreshTo:
-                    {
-                      tag: "manage-product",
-                      state: {gtin: state.gtin}
-                    }
-              }
-            };
-            this.sendMessagesToProcess([recoveryMessage]);
-          }, 100);
-        },
-        ()=>{
-          console.log("Rejected the recover process by choosing no option.");
-          this.showErrorModalAndRedirect("Refused the recovery process. Redirecting...", "Info", {tag: "products"});
-        },
-        {
-          disableExpanding: true,
-          cancelButtonText: 'No',
-          confirmButtonText: 'Yes',
-          id: 'feedback-modal'
-        }
-    )
+        )
+      }
+
+      this.showErrorModalAndRedirect("Unable to verify if data exists in Blockchain. Try later!", "Error", {tag: "products"});
+      return;
+    });
   }
 
   setUpCheckboxes() {
