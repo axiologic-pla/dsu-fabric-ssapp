@@ -18,15 +18,16 @@ export default class ManageProductController extends FwController {
     this.model = {disabledFeatures: this.disabledFeatures, userrights: this.userRights, languageTypeCards: []};
     let state = this.history.location.state;
     this.state = state;
-
+    this.submitButton = this.querySelector("#submit-product");
+    this.cancelButton = this.querySelector("#cancel-product");
     if (state && state.gtin) {
       // product already exists, enter in edit mode
-      let submitButton = this.querySelector("#submit-product");
-      submitButton.disabled = true;
+
+      this.submitButton.disabled = true;
       gtinResolver.DSUFabricUtils.getProductMetadata(state.gtin, (err, product) => {
-        if(err){
+        if (err) {
           return this.storageService.getRecord(constants.PRODUCTS_TABLE, state.gtin, (e, product) => {
-            if(e){
+            if (e) {
               return this.showErrorModal(`Unable to read product info from database! ${e.message}`, "Error", () => {
                 this.navigateToPageTag("products");
               });
@@ -42,10 +43,10 @@ export default class ManageProductController extends FwController {
         this.model.product.videos = product.videos || {defaultSource: ""};
         gtinResolver.DSUFabricUtils.getDSUAttachments(product, this.disabledFeatures, (err, attachments) => {
           this.model.onChange("product", (...props) => {
-            this.manageUpdateButtonState(submitButton);
+            this.manageUpdateButtonState(this.submitButton);
           })
           this.model.onChange("languageTypeCards", (...props) => {
-            this.manageUpdateButtonState(submitButton);
+            this.manageUpdateButtonState(this.submitButton);
           })
 
           if (err) {
@@ -53,7 +54,7 @@ export default class ManageProductController extends FwController {
           }
 
           this.model.languageTypeCards = attachments ? attachments.languageTypeCards : [];
-          this.model.languageTypeCardsForDisplay = attachments ? attachments.languageTypeCards :[];
+          this.model.languageTypeCardsForDisplay = attachments ? attachments.languageTypeCards : [];
           this.initialCards = JSON.parse(JSON.stringify(this.model.languageTypeCards));
           if (attachments && attachments.productPhoto) {
             this.model.product.photo = attachments.productPhoto;
@@ -229,28 +230,41 @@ export default class ManageProductController extends FwController {
 
     this.on("product-photo-selected", (event) => {
       this.productPhoto = event.data;
-      let submitButton = this.querySelector("#submit-product");
-      submitButton.disabled = false;
+      this.submitButton.disabled = false;
     });
 
     this.on('openFeedback', (e) => {
       this.feedbackEmitter = e.detail;
     });
 
-    this.onTagClick("add-product", async (event) => {
+
+    this.onTagClick("add-product", async (model, target, event) => {
       let product = this.model.product.clone();
+      this.toggleFormButtons(true);
       if (this.model.product.isCodeEditable) {
-        this.storageService.getRecord(constants.PRODUCTS_TABLE, product.gtin, async (err, productInDB) => {
+        //let productInDB = await $$.promisify(this.storageService.getRecord)(constants.PRODUCTS_TABLE, product.gtin);
+        let productInDB;
+        try {
+          productInDB = await $$.promisify(this.storageService.getRecord)(constants.PRODUCTS_TABLE, product.gtin);
           if (productInDB) {
-            this.showErrorModal("Cannot save the product because provided product code is already used.");
+            this.showErrorModal("Cannot save the product. Provided product code is already used.");
+            this.toggleFormButtons(false);
             return;
           }
-          await this.saveProduct(product);
-        })
-      } else {
-        await this.saveProduct(product);
+        } catch (e) {
+          //if gtin is not used continue with saving
+        }
+
       }
+      await this.saveProduct(product);
+      this.toggleFormButtons(false);
+
     });
+  }
+
+  toggleFormButtons(val) {
+    this.submitButton.disabled = val;
+    this.cancelButton.disabled = val;
   }
 
   async saveProduct(product) {
@@ -344,7 +358,7 @@ export default class ManageProductController extends FwController {
     });
   }
 
-  prepareModalInformation(err, undigested, messages){
+  prepareModalInformation(err, undigested, messages) {
     return {
       title: `There was an error during saving process. Cause: ${err.message ? err.message : ''}`,
       content: 'Saving failed'
@@ -379,10 +393,10 @@ export default class ManageProductController extends FwController {
 
       }, {model: {errors: errors}});
     } else {
-      if(this.refreshState){
+      if (this.refreshState) {
         //this.refreshState is controlled above in unknownHandler before force recovery
         console.log("Refreshing the manage product page after recovery");
-        return setTimeout(()=>{
+        return setTimeout(() => {
           this.navigateToPageTag(this.refreshState.tag, this.refreshState.state);
         }, 500);
       }
