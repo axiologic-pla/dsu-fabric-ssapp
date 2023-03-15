@@ -45,10 +45,11 @@
                             </div>
                         </div>
                         <div class="col-sm-12 col-lg-auto ml-auto p-0">
-                            <psk-checkbox checkbox-label="Enable day selection"
-                                          checked="@batch.enableExpiryDay"
-                                          name="enableExpiryDay"
-                                          value="@batch.enableExpiryDay"></psk-checkbox>
+                            <div class="checkbox-container">
+                                <input type="checkbox"
+                                       value="@batch.enableExpiryDay">
+                                <span class="checkbox-label">Enable day selection</span>
+                            </div>
                         </div>
                     </div>
                     <div>
@@ -96,8 +97,9 @@
                         </div>
                     </div>
 
-                    <div class="d-flex flex-row mt-5">
-                        <psk-button data-tag="cancel" label="Cancel" class="batch-cancel-btn"></psk-button>
+                    <div class="d-flex flex-row mt-5 form-buttons">
+                        <psk-button data-tag="cancel" label="Cancel" class="batch-cancel-btn"
+                                    id="cancel-batch"></psk-button>
                         <div data-if="@editMode">
                             <psk-button class="submit-batch-btn" data-tag="update-batch" id="submit-batch"
                                         label="Update batch"

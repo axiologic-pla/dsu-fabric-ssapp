@@ -41,8 +41,8 @@ export default class batchesController extends FwController {
     });
 
     this.onTagClick("edit-batch", async (model, target, event) => {
-        let eventData = target.getAttribute("event-data");
-        const batchData = this.model.batchesDataSource.dataSourceRezults.find((element) => element.batchNumber === eventData);
+        let eventData = JSON.parse(target.firstElementChild.innerText);
+        const batchData = this.model.batchesDataSource.dataSourceRezults.find((element) => element.batchNumber === eventData.batchNumber && element.gtin === eventData.gtin) ;
         this.navigateToPageTag("add-batch", {
           batchData: JSON.stringify(batchData)
         });

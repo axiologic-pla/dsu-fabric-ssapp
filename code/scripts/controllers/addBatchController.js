@@ -126,75 +126,75 @@ export default class addBatchController extends FwController {
     }, 0)
   }
 
-  handlerUnknownError(state, batch){
-    if(!this.canWrite()){
+  handlerUnknownError(state, batch) {
+    if (!this.canWrite()) {
       this.showErrorModalAndRedirect("Failed to retrieve information about the selected batch", "Error", {tag: "batches"});
       return;
     }
 
     let batchData = JSON.parse(state.batchData);
-    gtinResolver.DSUFabricUtils.checkIfWeHaveDataForThis(batchData.gtin, batchData.batchNumber, (err)=> {
+    gtinResolver.DSUFabricUtils.checkIfWeHaveDataForThis(batchData.gtin, batchData.batchNumber, (err) => {
       if (!err) {
         return this.showErrorModal(
-            new Error(`Would you like to recover?`),
-            'Unknown error while loading data.',
-            async () => {
-              //yes
-              setTimeout(async () => {
-                this.createWebcModal({
-                  disableExpanding: true,
-                  disableClosing: true,
-                  disableFooter: true,
-                  modalTitle: "Info",
-                  modalContent: "Recovery process in progress..."
-                });
+          new Error(`Would you like to recover?`),
+          'Unknown error while loading data.',
+          async () => {
+            //yes
+            setTimeout(async () => {
+              this.createWebcModal({
+                disableExpanding: true,
+                disableClosing: true,
+                disableFooter: true,
+                modalTitle: "Info",
+                modalContent: "Recovery process in progress..."
+              });
 
-                if (typeof state.batchData === "string" && state.batchData.length > 0) {
-                  state.batch = JSON.parse(state.batchData);
-                }
+              if (typeof state.batchData === "string" && state.batchData.length > 0) {
+                state.batch = JSON.parse(state.batchData);
+              }
 
-                let recoveryMessage = await utils.initMessage("Batch");
-                recoveryMessage.batch = batch;
-                if (!recoveryMessage.batch) {
-                  recoveryMessage.batch = {
-                    productCode: state.batch ? state.batch.gtin : undefined
-                  };
-                }
-
-                if (!recoveryMessage.batch.productCode) {
-                  recoveryMessage.batch.productCode = state.batch.gtin;
-                }
-                if (!recoveryMessage.batch.batch) {
-                  recoveryMessage.batch.batch = batch ? batch.batchNumber : "recovered data";
-                }
-                if (!recoveryMessage.batch.expiryDate) {
-                  recoveryMessage.batch.expiryDate = batch ? batch.expiry : "recovered data";
-                }
-                recoveryMessage.force = true;
-
-                //by setting this refreshState if all goes when we will return to edit the product
-                this.refreshState = {
-                  tag: "home",
-                  state: {
-                    refreshTo: {
-                      tag: "add-batch",
-                      state: {batchData: JSON.stringify(batch)}
-                    }
-                  }
+              let recoveryMessage = await utils.initMessage("Batch");
+              recoveryMessage.batch = batch;
+              if (!recoveryMessage.batch) {
+                recoveryMessage.batch = {
+                  productCode: state.batch ? state.batch.gtin : undefined
                 };
-                this.sendMessagesToProcess([recoveryMessage]);
-              }, 100);
-            },
-            () => {
-              console.log("Rejected the recover process by choosing no option.");
-              this.showErrorModalAndRedirect("Refused the recovery process. Redirecting...", "Info", {tag: "batches"});
-            },
-            {
-              disableExpanding: true,
-              cancelButtonText: 'No',
-              confirmButtonText: 'Yes',
-              id: 'feedback-modal'
-            }
+              }
+
+              if (!recoveryMessage.batch.productCode) {
+                recoveryMessage.batch.productCode = state.batch.gtin;
+              }
+              if (!recoveryMessage.batch.batch) {
+                recoveryMessage.batch.batch = batch ? batch.batchNumber : "recovered data";
+              }
+              if (!recoveryMessage.batch.expiryDate) {
+                recoveryMessage.batch.expiryDate = batch ? batch.expiry : "recovered data";
+              }
+              recoveryMessage.force = true;
+
+              //by setting this refreshState if all goes when we will return to edit the product
+              this.refreshState = {
+                tag: "home",
+                state: {
+                  refreshTo: {
+                    tag: "add-batch",
+                    state: {batchData: JSON.stringify(batch)}
+                  }
+                }
+              };
+              this.sendMessagesToProcess([recoveryMessage]);
+            }, 100);
+          },
+          () => {
+            console.log("Rejected the recover process by choosing no option.");
+            this.showErrorModalAndRedirect("Refused the recovery process. Redirecting...", "Info", {tag: "batches"});
+          },
+          {
+            disableExpanding: true,
+            cancelButtonText: 'No',
+            confirmButtonText: 'Yes',
+            id: 'feedback-modal'
+          }
         )
       }
       this.showErrorModalAndRedirect("Unable to verify if data exists in Blockchain. Try later!", "Error", {tag: "batches"});
@@ -292,7 +292,7 @@ export default class addBatchController extends FwController {
 
   manageUpdateButtonState() {
     let button = this.querySelector("#submit-batch");
-    if (!button) {
+    if (!button || this.savingInProgress) {
       return;
     }
     let serialIsUpdated = this.model.serialNumbers || this.model.recalledSerialNumbers || this.model.decommissionedSerialNumbers;
@@ -325,26 +325,19 @@ export default class addBatchController extends FwController {
       }
     })
     this.onTagClick("cancel", () => {
-      if (this.savingInProgress) {
-        return
-      }
-      this.savingInProgress = true;
       this.navigateToPageTag("batches");
     });
+
     this.onTagClick("update-batch", async () => {
-      if (this.savingInProgress) {
-        return
-      }
-      this.savingInProgress = true;
+      this.toggleFormButtons(true);
       await this.addOrUpdateBatch("update");
+      this.toggleFormButtons(false);
 
     })
     this.onTagClick("add-batch", async () => {
-      if (this.savingInProgress) {
-        return
-      }
-      this.savingInProgress = true;
+      this.toggleFormButtons(true);
       await this.addOrUpdateBatch("create");
+      this.toggleFormButtons(false);
 
     })
 
@@ -411,12 +404,12 @@ export default class addBatchController extends FwController {
 
     }
 
-    MessagesService.processMessagesWithoutGrouping(messageArr, MessagesService.getStorageService(this.storageService), async (err, undigestedMessages) => {
+    await MessagesService.processMessagesWithoutGrouping(messageArr, MessagesService.getStorageService(this.storageService), async (err, undigestedMessages) => {
       let handler = this.getHandlerForMessageDigestingProcess(messageArr, this.prepareModalInformation);
       //managing popus ...
       await handler(err, undigestedMessages);
-      this.savingInProgress = false;
       this.showMessageError(undigestedMessages);
+      return;
     });
   }
 
@@ -570,6 +563,14 @@ export default class addBatchController extends FwController {
       this.model.serial_update_options.value = "Select an option";
       return;
     }, {model: this.model});
+  }
+
+  toggleFormButtons(val) {
+    let formButtons = this.querySelectorAll(".form-buttons psk-button");
+    this.savingInProgress = val;
+    if (formButtons) {
+      formButtons.forEach(btn => btn.disabled = val)
+    }
   }
 
 };

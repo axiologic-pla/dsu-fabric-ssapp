@@ -51,7 +51,12 @@
                     <div class="data-item">
                         <button class="btn btn-link col align-self-center text-left edit-batch-button"
                                 data-tag="edit-batch"
-                                event-data="@batchNumber" type="button">
+                                event-data="@" type="button">
+                            <div hidden="hidden">{
+                                "gtin": "{{@gtin}}",
+                                "batchNumber": "{{@batchNumber}}"
+                                }
+                            </div>
                             <span class="edit-rights">Edit</span>
                             <span class="readonly-rights">View</span>
                         </button>
