@@ -126,68 +126,80 @@ export default class addBatchController extends FwController {
     }, 0)
   }
 
-  handlerUnknownError(state, batch) {
-    this.showErrorModal(
-      new Error(`Would you like to recover?`),
-      'Unknown error while loading data.',
-      async () => {
-        //yes
-        setTimeout(async () => {
-          this.createWebcModal({
-            disableExpanding: true,
-            disableClosing: true,
-            disableFooter: true,
-            modalTitle: "Info",
-            modalContent: "Recovery process in progress..."
-          });
+  handlerUnknownError(state, batch){
+    if(!this.canWrite()){
+      this.showErrorModalAndRedirect("Failed to retrieve information about the selected batch", "Error", {tag: "batches"});
+      return;
+    }
 
-          if (typeof state.batchData === "string" && state.batchData.length > 0) {
-            state.batch = JSON.parse(state.batchData);
-          }
+    let batchData = JSON.parse(state.batchData);
+    gtinResolver.DSUFabricUtils.checkIfWeHaveDataForThis(batchData.gtin, batchData.batchNumber, (err)=> {
+      if (!err) {
+        return this.showErrorModal(
+            new Error(`Would you like to recover?`),
+            'Unknown error while loading data.',
+            async () => {
+              //yes
+              setTimeout(async () => {
+                this.createWebcModal({
+                  disableExpanding: true,
+                  disableClosing: true,
+                  disableFooter: true,
+                  modalTitle: "Info",
+                  modalContent: "Recovery process in progress..."
+                });
 
-          let recoveryMessage = await utils.initMessage("Batch");
-          recoveryMessage.batch = batch;
-          if (!recoveryMessage.batch) {
-            recoveryMessage.batch = {
-              productCode: state.batch ? state.batch.gtin : undefined
-            };
-          }
+                if (typeof state.batchData === "string" && state.batchData.length > 0) {
+                  state.batch = JSON.parse(state.batchData);
+                }
 
-          if (!recoveryMessage.batch.productCode) {
-            recoveryMessage.batch.productCode = state.batch.gtin;
-          }
-          if (!recoveryMessage.batch.batch) {
-            recoveryMessage.batch.batch = batch ? batch.batchNumber : "recovered data";
-          }
-          if (!recoveryMessage.batch.expiryDate) {
-            recoveryMessage.batch.expiryDate = batch ? batch.expiry : "recovered data";
-          }
-          recoveryMessage.force = true;
+                let recoveryMessage = await utils.initMessage("Batch");
+                recoveryMessage.batch = batch;
+                if (!recoveryMessage.batch) {
+                  recoveryMessage.batch = {
+                    productCode: state.batch ? state.batch.gtin : undefined
+                  };
+                }
 
-          //by setting this refreshState if all goes when we will return to edit the product
-          this.refreshState = {
-            tag: "home",
-            state: {
-              refreshTo: {
-                tag: "add-batch",
-                state: {batchData: JSON.stringify(batch)}
-              }
+                if (!recoveryMessage.batch.productCode) {
+                  recoveryMessage.batch.productCode = state.batch.gtin;
+                }
+                if (!recoveryMessage.batch.batch) {
+                  recoveryMessage.batch.batch = batch ? batch.batchNumber : "recovered data";
+                }
+                if (!recoveryMessage.batch.expiryDate) {
+                  recoveryMessage.batch.expiryDate = batch ? batch.expiry : "recovered data";
+                }
+                recoveryMessage.force = true;
+
+                //by setting this refreshState if all goes when we will return to edit the product
+                this.refreshState = {
+                  tag: "home",
+                  state: {
+                    refreshTo: {
+                      tag: "add-batch",
+                      state: {batchData: JSON.stringify(batch)}
+                    }
+                  }
+                };
+                this.sendMessagesToProcess([recoveryMessage]);
+              }, 100);
+            },
+            () => {
+              console.log("Rejected the recover process by choosing no option.");
+              this.showErrorModalAndRedirect("Refused the recovery process. Redirecting...", "Info", {tag: "batches"});
+            },
+            {
+              disableExpanding: true,
+              cancelButtonText: 'No',
+              confirmButtonText: 'Yes',
+              id: 'feedback-modal'
             }
-          };
-          this.sendMessagesToProcess([recoveryMessage]);
-        }, 100);
-      },
-      () => {
-        console.log("Rejected the recover process by choosing no option.");
-        this.showErrorModalAndRedirect("Refused the recovery process. Redirecting...", "Info", {tag: "batches"});
-      },
-      {
-        disableExpanding: true,
-        cancelButtonText: 'No',
-        confirmButtonText: 'Yes',
-        id: 'feedback-modal'
+        )
       }
-    )
+      this.showErrorModalAndRedirect("Unable to verify if data exists in Blockchain. Try later!", "Error", {tag: "batches"});
+      return;
+    });
   }
 
   async addOrUpdateBatch(operation) {

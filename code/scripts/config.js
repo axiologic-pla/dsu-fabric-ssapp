@@ -109,6 +109,9 @@ function finishInit(){
     let userRights = await utils.getUserRights();
     let userGroupName = "-";
     FwController.prototype.userRights = userRights;
+    FwController.prototype.canWrite = ()=>{
+      return userRights === "readwrite";
+    };
     try {
       let storageService = await $$.promisify(getSharedStorage)();
       FwController.prototype.storageService = storageService;
