@@ -33,10 +33,11 @@ export default class FeaturesModalController extends WebcController {
         disabledFeatures = disabledFeatures + (index !== 0 ? "," : "") + checkbox.name;
       })
       config.setEnv("disabledFeatures", disabledFeatures, (err, env) => {
-        if (err) {
-          console.log("Could not update environment with disabled features")
-        }
         this.element.dispatchEvent(new Event('confirmed'));
+        if (err) {
+          this.notificationHandler.reportUserRelevantError("Could not update environment with disabled features")
+        }
+
       })
     });
   }

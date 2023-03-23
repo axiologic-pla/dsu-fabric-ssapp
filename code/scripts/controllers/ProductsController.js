@@ -79,7 +79,7 @@ export default class ProductsController extends FwController {
           const product = JSON.parse($$.Buffer.from(this.model.actionModalModel.transferCode, "base64").toString());
           this.addProductToProductsList(new Product(product), (err) => {
             if (err) {
-              return console.log(err);
+              return this.notificationHandler.reportUserRelevantError("Failed to add product to product list. ", err);
             }
           });
         }, (err) => {

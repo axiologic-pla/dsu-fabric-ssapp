@@ -2,16 +2,19 @@ import utils from "./utils.js";
 import constants from "./constants.js";
 import getSharedStorage from "./services/SharedDBStorageService.js";
 
+const openDSU = require("opendsu");
 const {define} = WebCardinal.components;
 const {setConfig, getConfig, addHook, addControllers} = WebCardinal.preload;
 const {FwController} = await import("./controllers/FwController.js");
 
+utils.overrideConsoleError();
+
 async function initializeWebCardinalConfig() {
   const config = getConfig();
   let userDetails;
-  try{
+  try {
     userDetails = await utils.getUserDetails();
-  }catch(err) {
+  } catch (err) {
     if (window.confirm("Looks that your application is not properly initialized or in an invalid state. Would you like to reset it?")) {
       try {
         const response = await fetch("/removeSSOSecret/DSU_Fabric", {
@@ -39,7 +42,7 @@ async function initializeWebCardinalConfig() {
     avatar: "assets/images/user.png"
   }
 
-  if(userDetails){
+  if (userDetails) {
     config.identity.name = userDetails.username;
     config.identity.email = userDetails.company;
   }
@@ -49,7 +52,30 @@ async function initializeWebCardinalConfig() {
 
 let config = await initializeWebCardinalConfig();
 
-function finishInit(){
+
+async function setupGlobalErrorHandlers() {
+  let errHandler = openDSU.loadAPI("error");
+
+  errHandler.observeUserRelevantMessages('warn', (notification) => {
+    utils.renderToast(notification.message, "warn")
+  });
+
+  errHandler.observeUserRelevantMessages('info', (notification) => {
+    utils.renderToast(notification.message, "info")
+  });
+
+  errHandler.observeUserRelevantMessages('error', (notification) => {
+    let errMsg = "";
+    if (notification.err && notification.err.message) {
+      errMsg = notification.err.message;
+    }
+    let toastMsg = `${notification.message} ${errMsg}`
+    utils.renderToast(toastMsg, "error")
+
+  });
+}
+
+function finishInit() {
   setConfig(config);
 
   addHook('beforePageLoads', 'generate-did', () => {
@@ -76,16 +102,16 @@ function finishInit(){
           console.log(err);
         }
 
-        try{
+        try {
           await $$.promisify(mainEnclave.writeKey)(constants.CREDENTIAL_KEY, constants.CREDENTIAL_DELETED);
           await $$.promisify(scAPI.deleteSharedEnclave)();
           //scAPI.refreshSecurityContext();
-        }catch(err){
-          try{
+        } catch (err) {
+          try {
             scAPI.refreshSecurityContext();
             await $$.promisify(scAPI.deleteSharedEnclave)();
             await $$.promisify(mainEnclave.writeKey)(constants.CREDENTIAL_KEY, constants.CREDENTIAL_DELETED);
-          }catch(e){
+          } catch (e) {
             console.log(e);
           }
         }
@@ -98,6 +124,7 @@ function finishInit(){
     typicalBusinessLogicHub.strongSubscribe(constants.MESSAGE_TYPES.USER_REMOVED, onUserRemovedMessage);
     // load Custom Components
     await import("../components/tab-navigator/dsu-tab-panel.js");
+    await setupGlobalErrorHandlers();
   })
 
   addHook("beforePageLoads", "home", async () => {
@@ -109,7 +136,7 @@ function finishInit(){
     let userRights = await utils.getUserRights();
     let userGroupName = "-";
     FwController.prototype.userRights = userRights;
-    FwController.prototype.canWrite = ()=>{
+    FwController.prototype.canWrite = () => {
       return userRights === "readwrite";
     };
     try {
@@ -173,7 +200,7 @@ function finishInit(){
   define('page-template', {shadow: true});
 }
 
-if(config.identity.name){
+if (config.identity.name) {
   //we finish the init only if proper user details retrieval was executed
   finishInit();
 }

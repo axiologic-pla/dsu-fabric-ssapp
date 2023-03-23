@@ -6,6 +6,7 @@
     "name": "DSU Fabric",
     "email": "MyOrganisation@example.com"
   },
+  "logLevel": "none",
   "pagesFallback": {
     "name": "404",
     "src": "./404.html"

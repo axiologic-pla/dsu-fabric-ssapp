@@ -108,7 +108,7 @@ export default class addBatchController extends FwController {
 
     this.storageService.filter(constants.PRODUCTS_TABLE, "__timestamp > 0", (err, products) => {
       if (err || !products || products.length === 0) {
-        printOpenDSUError(createOpenDSUErrorWrapper("Failed to retrieve products list!", err));
+        this.notificationHandler.reportDevRelevantInfo("Failed to retrieve products list!", err);
         return this.showErrorModalAndRedirect("Failed to retrieve products list! Create a product first!", "Product not found", {tag: "manage-product"});
       }
       const options = [];
@@ -204,12 +204,12 @@ export default class addBatchController extends FwController {
 
   async addOrUpdateBatch(operation) {
     if (!this.model.batch.gtin) {
-      return this.showErrorModal("Invalid product code. Please select a valid code");
+      return this.notificationHandler.reportUserRelevantWarning("Invalid product code. Please select a valid code");
     }
     let batch = this.initBatch();
 
     if (!batch.expiryForDisplay) {
-      return this.showErrorModal("Invalid date");
+      return this.notificationHandler.reportUserRelevantWarning("Invalid date");
     }
     // manage ignore date if day is not used we save it as last day of the month
     if (!batch.enableExpiryDay) {
@@ -218,21 +218,19 @@ export default class addBatchController extends FwController {
     batch.expiry = utils.convertDateToGS1Format(batch.expiryForDisplay, batch.enableExpiryDay);
 
     if (this.model.hasAcdcAuthFeature && !batch.acdcAuthFeatureSSI) {
-      return this.showErrorModal("You have enabled Authentication Feature. Please add a value or disable it");
+      return this.notificationHandler.reportUserRelevantWarning("You have enabled Authentication Feature. Please add a value or disable it");
     }
 
     let error = batch.validate();
 
     if (error) {
-      printOpenDSUError(createOpenDSUErrorWrapper("Invalid batch info ", error));
-      return this.showErrorModal(error);
+      return this.notificationHandler.reportUserRelevantWarning(error, createOpenDSUErrorWrapper("Invalid batch info ", error))
     }
 
     if (operation === "create") {
       try {
         let batchWithIdExists = await $$.promisify(this.storageService.getRecord, this.storageService)(constants.BATCHES_STORAGE_TABLE, gtinResolverUtils.getBatchMetadataPK(this.model.batch.gtin, this.model.batch.batchNumber));
-        printOpenDSUError(createOpenDSUErrorWrapper("Invalid batch info ", "Batch ID is already in use"));
-        return this.showErrorModal("Batch ID is already in use");
+        return this.notificationHandler.reportUserRelevantWarning(`Batch ID is already in use for product with gtin ${this.model.batch.gtin}`, createOpenDSUErrorWrapper("Batch ID validation failed: ", "Batch ID is already in use"))
       } catch (e) {
         //do nothing just check if batch with batchId exists
       }
@@ -269,13 +267,7 @@ export default class addBatchController extends FwController {
         messages = [...cardMessages]
       }
 
-      if (!this.DSUStorage.directAccessEnabled) {
-        this.DSUStorage.enableDirectAccess(async () => {
-          await this.sendMessagesToProcess(messages);
-        });
-      } else {
-        await this.sendMessagesToProcess(messages);
-      }
+      await this.sendMessagesToProcess(messages);
 
     } catch (e) {
       this.showErrorModal(e.message);
@@ -358,10 +350,6 @@ export default class addBatchController extends FwController {
       }
       this.model.batch.gtin = this.model.products.value;
       this.getProductFromGtin(this.model.batch.gtin, (err, product) => {
-        if (err) {
-          printOpenDSUError(createOpenDSUErrorWrapper("Failed to get a valid product", err));
-          return this.showErrorModalAndRedirect("Failed to get a valid product", "Product not found", {tag: "batches"});
-        }
         this.model.batch.gtin = product.gtin;
         this.model.batch.productName = product.name;
         this.model.productDescription = product.description || "";
@@ -454,18 +442,13 @@ export default class addBatchController extends FwController {
             return this.showErrorModalAndRedirect("Failed to get a valid product", "Product not found", {tag: "batches"});
           }*/
     this.storageService.filter(constants.PRODUCTS_TABLE, `gtin == ${gtin}`, (err, products) => {
-      if (err) {
-        printOpenDSUError(createOpenDSUErrorWrapper("Failed to get a valid product", err));
-        return this.showErrorModalAndRedirect("Failed to get a valid product", "Product not found", {tag: "batches"});
+      if (err || !products || !Array.isArray(products) || !products[0]) {
+        this.notificationHandler.reportDevRelevantInfo("Failed to get a product based on provided gtin", err);
+        return this.showErrorModalAndRedirect("Failed to get a product based on provided gtin", "Product not found", {tag: "batches"});
       }
       let product = products[0];
-      if (!product) {
-        return callback(new Error(`No product found for gtin ${gtin}`));
-      }
       callback(undefined, product);
     });
-    /*  })*/
-
   }
 
   initBatch() {

@@ -23,9 +23,8 @@ export default class HolderController extends FwController {
       credentialsAPI.parseJWTSegments(this.model.credential.token, async (parseError, jwtContent) => {
         if (parseError) {
           this.model.isInvalidCredential = true;
-          return console.log('Error parsing user credential', parseError);
+          return this.showErrorModalAndRedirect('Error parsing user credential', "Error", {tag: "home"});
         }
-        //console.log('Parsed credential', jwtContent);
         const {jwtHeader, jwtPayload} = jwtContent;
         this.model.readableCredential = JSON.stringify({jwtHeader, jwtPayload}, null, 4);
 
@@ -40,29 +39,34 @@ export default class HolderController extends FwController {
         readableCredentialElement.language = "json";
         readableCredentialElement.innerHTML = this.model.readableCredential;
         readableContainer.appendChild(readableCredentialElement);
+        /*
+         * hidden for MVP1
         this.DSUStorage.enableDirectAccess(() => {
           let sc = require("opendsu").loadAPI("sc");
           sc.getMainDSU((err, mainDSU) => {
             if (err) {
-              return console.log('Error getting mainDSU', err);
+               return this.notificationHandler.reportDevRelevantInfo('Error getting mainDSU', err);
+
+               //return console.log('Error getting mainDSU', err);
             }
-            /*
-            * hidden for MVP1
+
 
             mainDSU.getKeySSIAsString((err, keySSI) => {
                           this.model.walletKeySSI = keySSI
                         });
-            */
+
           })
         });
-
+     */
         await this.renderSettingsContainer();
       });
     }
     const scAPI = openDSU.loadAPI("sc");
     scAPI.getMainEnclave(async (err, mainEnclave) => {
       if (err) {
-        return console.log(err);
+        this.model.displayCredentialArea = false;
+        return this.notificationHandler.reportUserRelevantError('Could not retrieve credentials', err);
+        // return console.log(err);
       }
       try {
         let did = await $$.promisify(mainEnclave.readKey)(constants.IDENTITY_KEY);
@@ -102,7 +106,7 @@ export default class HolderController extends FwController {
               }
             );
           }).catch(err => {
-            console.log(err)
+            return this.notificationHandler.reportUserRelevantError('Could not retrieve credentials', err);
           })
         }, () => {
         },

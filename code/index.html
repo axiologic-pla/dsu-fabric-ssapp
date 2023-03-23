@@ -33,6 +33,8 @@
 
 <webc-app-root preload="scripts/config.js" disable-loader-hiding hidden></webc-app-root>
 
+<div class="toast-container"></div>
+
 <script src="scripts/bundles/iframeBoot.js"></script>
 <script src="scripts/bundles/webshims.js"></script>
 <script src="scripts/bundles/pskruntime.js"></script>
@@ -40,11 +42,11 @@
 
 </body>
 <script>
-  document.body.onbeforeunload = ()=>{
-      if(window.disableRefreshSafetyAlert){
-          return ;
-      }
-      return "Are you sure? This may cause inconsistencies";
+  document.body.onbeforeunload = () => {
+    if (window.disableRefreshSafetyAlert) {
+      return;
+    }
+    return "Are you sure? This may cause inconsistencies";
   }
 
   if ($$) {

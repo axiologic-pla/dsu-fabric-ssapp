@@ -10,7 +10,10 @@ class FwController extends WebcController {
         } catch (e) {
             // no loader to hide
         }
-    }
+
+    const openDSU = require("opendsu");
+    this.notificationHandler = openDSU.loadAPI("error");
+  }
 
     getHandlerForMessageDigestingProcess(messages, prepareModalInformation) {
         return (err, undigested) => {

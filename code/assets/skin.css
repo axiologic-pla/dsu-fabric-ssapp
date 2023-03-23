@@ -7,10 +7,6 @@ webc-app-container {
     position: relative;
 }
 
-webc-app-error-toast{
-    z-index: 100;
-}
-
 webc-app-menu[mode=vertical] {
     --background: #328569;
     --min-width: 240px;
@@ -174,4 +170,57 @@ button.btn.btn-primary:disabled {
     border: 1px solid #dee2e6;
     background: #dee2e6;
     color: grey;
+}
+
+.toast-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    width: 40%;
+    right: 0;
+    align-items: end;
+    padding: 10px;
+    background: none;
+    pointer-events: none;
+}
+
+.toast-text {
+    color: #000;
+    padding: 1.25rem;
+}
+
+.toast {
+    display: flex;
+    opacity: 100%;
+    background-color: #FFFFFF;
+    justify-content: space-between;
+    width: 100%;
+    border-top: 3px solid;
+    border-radius: 8px;
+}
+
+.toast.info {
+    border-top-color: #33D29C;
+}
+
+.toast.warn {
+    border-top-color: #FEC02D;
+}
+
+.toast.error {
+    border-top-color: #EF4C61;
+
+}
+
+.toast-close-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-right: 1.25rem;
+    pointer-events: all;
 }

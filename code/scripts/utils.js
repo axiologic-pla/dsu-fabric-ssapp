@@ -283,7 +283,41 @@ async function getLogDetails(recordData) {
   } else {
     return recordData
   }
+}
 
+function renderToast(message, type, timeoutValue = 15000) {
+  let toastContainer = document.querySelector(".toast-container");
+  let toastElement = document.createElement("div");
+  toastElement.classList.add("toast");
+  toastElement.classList.add(type);
+  toastElement.innerHTML = `<p class="toast-text">${message}</p>`
+  let toastButton = document.createElement("div");
+  toastButton.classList.add("toast-close-button");
+  toastButton.innerHTML = `<svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M13.705 2.20934C13.8928 2.02156 13.9983 1.76687 13.9983 1.50131C13.9983 1.23575 13.8928 0.981059 13.705 0.793278C13.5172 0.605495 13.2625 0.5 12.997 0.5C12.7314 0.5 12.4767 0.605495 12.2889 0.793278L7 6.08352L1.70944 0.794943C1.52165 0.607161 1.26695 0.501666 1.00137 0.501666C0.735788 0.501666 0.481087 0.607161 0.293294 0.794943C0.105501 0.982724 2.79833e-09 1.23741 0 1.50297C-2.79833e-09 1.76854 0.105501 2.02322 0.293294 2.21101L5.58385 7.49958L0.29496 12.7898C0.107167 12.9776 0.00166609 13.2323 0.00166609 13.4979C0.0016661 13.7634 0.107167 14.0181 0.29496 14.2059C0.482752 14.3937 0.737454 14.4992 1.00303 14.4992C1.26861 14.4992 1.52331 14.3937 1.71111 14.2059L7 8.91565L12.2906 14.2067C12.4784 14.3945 12.7331 14.5 12.9986 14.5C13.2642 14.5 13.5189 14.3945 13.7067 14.2067C13.8945 14.0189 14 13.7643 14 13.4987C14 13.2331 13.8945 12.9784 13.7067 12.7907L8.41615 7.49958L13.705 2.20934Z" fill="black"/>
+</svg>`
+  toastButton.addEventListener("click", (evt) => {
+    if (toastElement && toastElement.parentElement) {
+      toastElement.parentNode.removeChild(toastElement);
+    }
+  })
+  toastElement.appendChild(toastButton);
+  setTimeout(() => {
+    if (toastElement && toastElement.parentElement) {
+      toastElement.parentNode.removeChild(toastElement);
+    }
+  }, timeoutValue)
+  toastContainer.appendChild(toastElement);
+}
+
+function overrideConsoleError() {
+  let originalErrorHandler = console.error;
+  console.error = function (mainArg, ...args) {
+    const openDSU = require("opendsu");
+    let errHandler = openDSU.loadAPI("error");
+    originalErrorHandler.call(console, mainArg, ...args);
+    errHandler.reportUserRelevantError("Uncaught error", mainArg);
+  }
 }
 
 export default {
@@ -304,5 +338,7 @@ export default {
   disableFeatures,
   getUserRights,
   ensureMinimalInfoOnMessage,
-  getLogDetails
+  getLogDetails,
+  renderToast,
+  overrideConsoleError
 }

@@ -92,68 +92,68 @@ export default class ManageProductController extends FwController {
 
   }
 
-  handlerUnknownError(state, product){
-    if(!this.canWrite()){
+  handlerUnknownError(state, product) {
+    if (!this.canWrite()) {
       this.showErrorModalAndRedirect("Failed to retrieve information about the selected product", "Error", {tag: "products"});
       return;
     }
 
-    gtinResolver.DSUFabricUtils.checkIfWeHaveDataForThis(state.gtin, undefined, (err)=>{
-      if(!err){
+    gtinResolver.DSUFabricUtils.checkIfWeHaveDataForThis(state.gtin, undefined, (err) => {
+      if (!err) {
         return this.showErrorModal(
-            new Error(`Would you like to recover?`),
-            'Unknown error while loading data.',
-            async ()=>{
-              //yes
-              setTimeout(async ()=>{
-                this.createWebcModal({
-                  disableExpanding: true,
-                  disableClosing: true,
-                  disableFooter: true,
-                  modalTitle: "Info",
-                  modalContent: "Recovery process in progress..."
-                });
-                let recoveryMessage = await utils.initMessage("Product");
-                recoveryMessage.product = product;
-                if(!recoveryMessage.product){
-                  recoveryMessage.product = {
-                    productCode:state.gtin
-                  };
-                }
-                if(!recoveryMessage.product.productCode){
-                  recoveryMessage.product.productCode = state.gtin;
-                }
-                if(!recoveryMessage.product.inventedName){
-                  recoveryMessage.product.inventedName = product ? product.description : "recovered data";
-                }
-                if(!recoveryMessage.product.nameMedicinalProduct){
-                  recoveryMessage.product.nameMedicinalProduct = product ? product.name : "recovered data";
-                }
-                recoveryMessage.force = true;
-                //by setting this refreshState if all goes when we will return to edit the product
-                this.refreshState = {
-                  tag: "home",
-                  state: {
-                    refreshTo:
-                        {
-                          tag: "manage-product",
-                          state: {gtin: state.gtin}
-                        }
-                  }
+          new Error(`Would you like to recover?`),
+          'Unknown error while loading data.',
+          async () => {
+            //yes
+            setTimeout(async () => {
+              this.createWebcModal({
+                disableExpanding: true,
+                disableClosing: true,
+                disableFooter: true,
+                modalTitle: "Info",
+                modalContent: "Recovery process in progress..."
+              });
+              let recoveryMessage = await utils.initMessage("Product");
+              recoveryMessage.product = product;
+              if (!recoveryMessage.product) {
+                recoveryMessage.product = {
+                  productCode: state.gtin
                 };
-                this.sendMessagesToProcess([recoveryMessage]);
-              }, 100);
-            },
-            ()=>{
-              console.log("Rejected the recover process by choosing no option.");
-              this.showErrorModalAndRedirect("Refused the recovery process. Redirecting...", "Info", {tag: "products"});
-            },
-            {
-              disableExpanding: true,
-              cancelButtonText: 'No',
-              confirmButtonText: 'Yes',
-              id: 'feedback-modal'
-            }
+              }
+              if (!recoveryMessage.product.productCode) {
+                recoveryMessage.product.productCode = state.gtin;
+              }
+              if (!recoveryMessage.product.inventedName) {
+                recoveryMessage.product.inventedName = product ? product.description : "recovered data";
+              }
+              if (!recoveryMessage.product.nameMedicinalProduct) {
+                recoveryMessage.product.nameMedicinalProduct = product ? product.name : "recovered data";
+              }
+              recoveryMessage.force = true;
+              //by setting this refreshState if all goes when we will return to edit the product
+              this.refreshState = {
+                tag: "home",
+                state: {
+                  refreshTo:
+                    {
+                      tag: "manage-product",
+                      state: {gtin: state.gtin}
+                    }
+                }
+              };
+              this.sendMessagesToProcess([recoveryMessage]);
+            }, 100);
+          },
+          () => {
+            console.log("Rejected the recover process by choosing no option.");
+            this.showErrorModalAndRedirect("Refused the recovery process. Redirecting...", "Info", {tag: "products"});
+          },
+          {
+            disableExpanding: true,
+            cancelButtonText: 'No',
+            confirmButtonText: 'Yes',
+            id: 'feedback-modal'
+          }
         )
       }
 
@@ -247,7 +247,7 @@ export default class ManageProductController extends FwController {
         try {
           productInDB = await $$.promisify(this.storageService.getRecord)(constants.PRODUCTS_TABLE, product.gtin);
           if (productInDB) {
-            this.showErrorModal("Cannot save the product. Provided product code is already used.");
+            this.notificationHandler.reportUserRelevantWarning("Product code validation failed. Provided product code is already used.")
             this.toggleFormButtons(false);
             return;
           }
@@ -395,7 +395,7 @@ export default class ManageProductController extends FwController {
     } else {
       if (this.refreshState) {
         //this.refreshState is controlled above in unknownHandler before force recovery
-        console.log("Refreshing the manage product page after recovery");
+        this.notificationHandler.reportUserRelevantInfo("Refreshing the manage product page after recovery");
         return setTimeout(() => {
           this.navigateToPageTag(this.refreshState.tag, this.refreshState.state);
         }, 500);
@@ -413,12 +413,14 @@ export default class ManageProductController extends FwController {
     let validationResult = product.validate();
 
     if (Array.isArray(validationResult)) {
-      this.showErrorModal(validationResult[0]);
+      validationResult.forEach((err) => {
+        this.notificationHandler.reportUserRelevantWarning(err);
+      })
       return false;
     }
 
     if (!this.model.gtinIsValid) {
-      this.showErrorModal("Invalid GTIN.");
+      this.notificationHandler.reportUserRelevantWarning("Invalid product code.")
       return false;
     }
 
