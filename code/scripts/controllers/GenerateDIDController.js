@@ -23,6 +23,7 @@ function GenerateDIDController(...props) {
     if (err) {
       self.notificationHandler.reportUserRelevantError("Failed to initialize wallet", err);
       setTimeout(() => {
+        window.disableRefreshSafetyAlert = true;
         window.location.reload()
       }, 2000)
       return;
@@ -33,6 +34,7 @@ function GenerateDIDController(...props) {
     } catch (e) {
       self.notificationHandler.reportUserRelevantError("Failed to initialize wallet", err);
       setTimeout(() => {
+        window.disableRefreshSafetyAlert = true;
         window.location.reload()
       }, 2000)
       return;

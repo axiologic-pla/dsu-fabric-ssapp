@@ -55,6 +55,9 @@
       let err = res ? res.err : undefined;
       if (err && err.rootCause == "network") {
         originalHTTPHandler(res);
+        if (window.disableRefreshSafetyAlert) {
+          return;
+        }
         alert("Network issues detected!");
       }
     }
