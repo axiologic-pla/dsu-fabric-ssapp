@@ -99,6 +99,7 @@ export default class importController extends FwController {
           const openDSU = require("opendsu");
           const config = openDSU.loadAPI("config");
           const domain = await $$.promisify(config.getEnv)("epiDomain");
+          window.disableRefreshSafetyAlert = true;
           window.open(`${window.location.origin}/mappingEngine/${domain}/logs`, '_blank');
         })
     */
