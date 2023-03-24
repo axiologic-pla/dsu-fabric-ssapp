@@ -78,13 +78,15 @@ export default class importController extends FwController {
     }
 
     this.onTagClick("import", async () => {
-      if (this.filesArray.length === 0) {
+      if (this.filesArray.length === 0 ||  this.model.importIsDisabled) {
         return;
       }
+      this.model.importIsDisabled = true;
       let messages;
       try {
-        messages = await this.getMessagesFromFiles(this.filesArray);
         window.WebCardinal.loader.hidden = false;
+        messages = await this.getMessagesFromFiles(this.filesArray);
+
       } catch (err) {
         this.showErrorModal(`Unable to read selected files.`, "Error");
       }
