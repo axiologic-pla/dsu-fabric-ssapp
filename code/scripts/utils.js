@@ -220,24 +220,27 @@ async function getUserRights() {
   const mainEnclave = await $$.promisify(scAPI.getMainEnclave)();
   let credential = await $$.promisify(mainEnclave.readKey)(constants.CREDENTIAL_KEY);
 
-  const did = await $$.promisify(mainEnclave.readKey)(constants.IDENTITY_KEY);
-
-  for(let group of credential.allPossibleGroups){
-    if(await isInGroup(group.did, did)){
-      switch(group.accessMode){
-        case "read":
-          userRights = constants.USER_RIGHTS.READ;
-          break;
-        case "write":
-          userRights = constants.USER_RIGHTS.WRITE;
-          break;
+  if(credential.allPossibleGroups){
+    const did = await $$.promisify(mainEnclave.readKey)(constants.IDENTITY_KEY);
+    for(let group of credential.allPossibleGroups){
+      if(await isInGroup(group.did, did)){
+        switch(group.accessMode){
+          case "read":
+            userRights = constants.USER_RIGHTS.READ;
+            break;
+          case "write":
+            userRights = constants.USER_RIGHTS.WRITE;
+            break;
+        }
+        break;
       }
-      break;
     }
   }
 
+
   if(!userRights){
-    throw new Error("Failed to check user rights!");
+    //todo: add new constant in opendsu.containts for root-cause security
+    throw createOpenDSUErrorWrapper("Unable to get user rights!", new Error("User is not present in any group."), "security");
   }
 
   return userRights;

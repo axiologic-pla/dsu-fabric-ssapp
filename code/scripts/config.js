@@ -10,6 +10,9 @@ async function watchAndHandleExecution(fnc){
   try{
     await fnc();
   }catch(err) {
+    if(err.rootCause === "security"){
+      return $$.navigateToPage("generate-did");
+    }
     if (window.confirm("Looks that your application is not properly initialized or in an invalid state. Would you like to reset it?")) {
       try {
         const response = await fetch("/removeSSOSecret/DSU_Fabric", {
@@ -17,23 +20,20 @@ async function watchAndHandleExecution(fnc){
           cache: "no-cache"
         })
         if (response.ok) {
-          window.disableRefreshSafetyAlert = true;
           const basePath = window.location.href.split("loader")[0];
-          window.location.replace(basePath + "loader/newWallet.html");
+          $$.forceRedirect(basePath + "loader/newWallet.html");
         } else {
           let er = new Error(`Reset request failed (${response.status})`);
           er.rootCause = `statusCode: ${response.status}`;
           throw er;
         }
       } catch (err) {
-        alert(`Failed to reset the application. RootCause: ${err.message}`);
-        window.disableRefreshSafetyAlert = true;
-        location.reload();
+        $$.showErrorAlert(`Failed to reset the application. RootCause: ${err.message}`);
+        $$.forceTabRefresh();
       }
     } else {
-      alert(`Application is an undesired state! Contact support!`);
-      window.disableRefreshSafetyAlert = true;
-      location.reload();
+      $$.showErrorAlert(`Application is an undesired state! Contact support!`);
+      $$.forceTabRefresh();
     }
   }
   return true;
@@ -102,10 +102,8 @@ function finishInit(){
             console.log(e);
           }
         }
-        window.disableRefreshSafetyAlert = true;
-        window.top.location.reload();
-        return $$.history.go("generate-did");
-      })
+        return $$.forceTabRefresh();
+      });
     }
 
     typicalBusinessLogicHub.strongSubscribe(constants.MESSAGE_TYPES.USER_REMOVED, onUserRemovedMessage);
@@ -175,7 +173,7 @@ function finishInit(){
 
     } catch (e) {
       console.log("Could not initialise properly FwController", e);
-      alert("Could not initialise the app properly. Contact support!");
+      $$.showErrorAlert("Could not initialise the app properly. Contact support!");
     }
 
     try {
@@ -183,7 +181,7 @@ function finishInit(){
       FwController.prototype.disabledFeatures = disabledFeatures;
     } catch (e) {
       console.log("Could not initialise properly FwController", e);
-      alert("Could not initialise the app properly. Contact support!");
+      $$.showErrorAlert("Could not initialise the app properly. Contact support!");
     }
   });
 

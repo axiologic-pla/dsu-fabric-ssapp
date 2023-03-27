@@ -37,28 +37,6 @@
 <script src="scripts/bundles/webshims.js"></script>
 <script src="scripts/bundles/pskruntime.js"></script>
 <script src="scripts/bundles/gtinResolver.js"></script>
-
 </body>
-<script>
-  document.body.onbeforeunload = ()=>{
-      if(window.disableRefreshSafetyAlert){
-          return ;
-      }
-      return "Are you sure? This may cause inconsistencies";
-  }
-
-  if ($$) {
-    const originalHTTPHandler = $$.httpUnknownResponseGlobalHandler;
-    $$.httpUnknownResponseGlobalHandler = function (res) {
-      let err = res ? res.err : undefined;
-      if (err && err.rootCause == "network") {
-        originalHTTPHandler(res);
-        if (window.disableRefreshSafetyAlert) {
-          return;
-        }
-        alert("Network issues detected!");
-      }
-    }
-  }
-</script>
+<script src="scripts/globalHandlers.js"></script>
 </html>

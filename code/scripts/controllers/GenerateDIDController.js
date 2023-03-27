@@ -61,6 +61,17 @@ function GenerateDIDController(...props) {
         }
 
         if (sharedEnclave) {
+            let userRights;
+            try{
+                userRights = await utils.getUserRights();
+            }catch(err){
+                if(err.rootCause === "security"){
+                    return false;
+                }
+                return $$.forceTabRefresh();
+            }
+
+
             return true;
         }
 
