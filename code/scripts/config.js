@@ -6,11 +6,9 @@ const {define} = WebCardinal.components;
 const {setConfig, getConfig, addHook, addControllers} = WebCardinal.preload;
 const {FwController} = await import("./controllers/FwController.js");
 
-async function initializeWebCardinalConfig() {
-  const config = getConfig();
-  let userDetails;
+async function watchAndHandleExecution(fnc){
   try{
-    userDetails = await utils.getUserDetails();
+    await fnc();
   }catch(err) {
     if (window.confirm("Looks that your application is not properly initialized or in an invalid state. Would you like to reset it?")) {
       try {
@@ -29,11 +27,26 @@ async function initializeWebCardinalConfig() {
         }
       } catch (err) {
         alert(`Failed to reset the application. RootCause: ${err.message}`);
+        window.disableRefreshSafetyAlert = true;
+        location.reload();
       }
     } else {
       alert(`Application is an undesired state! Contact support!`);
+      window.disableRefreshSafetyAlert = true;
+      location.reload();
     }
   }
+  return true;
+}
+
+async function initializeWebCardinalConfig() {
+
+  const config = getConfig();
+  let userDetails;
+
+  await watchAndHandleExecution(async ()=>{
+    userDetails = await utils.getUserDetails();
+  });
 
   config.identity = {
     avatar: "assets/images/user.png"
@@ -106,12 +119,17 @@ function finishInit(){
     const scAPI = openDSU.loadAPI("sc");
     const w3cdid = openDSU.loadAPI("w3cdid");
     const LogService = gtinResolver.loadApi("services").LogService;
-    let userRights = await utils.getUserRights();
+
+    await watchAndHandleExecution(async ()=>{
+      let userRights = await utils.getUserRights();
+      FwController.prototype.userRights = userRights;
+      FwController.prototype.canWrite = ()=>{
+        return userRights === "readwrite";
+      };
+    });
+
     let userGroupName = "-";
-    FwController.prototype.userRights = userRights;
-    FwController.prototype.canWrite = ()=>{
-      return userRights === "readwrite";
-    };
+
     try {
       let storageService = await $$.promisify(getSharedStorage)();
       FwController.prototype.storageService = storageService;
