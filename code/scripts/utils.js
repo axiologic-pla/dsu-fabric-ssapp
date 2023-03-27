@@ -237,7 +237,7 @@ async function getUserRights() {
   }
 
   if(!userRights){
-    throw new Error("Failed to check user rights!!!!");
+    throw new Error("Failed to check user rights!");
   }
 
   return userRights;
