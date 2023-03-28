@@ -1,4 +1,3 @@
-import constants from "../constants.js";
 export default function getSharedStorage(callback) {
   if (typeof window.sharedStorageSingleton !== "undefined") {
     return callback(undefined, window.sharedStorageSingleton);
@@ -10,31 +9,7 @@ export default function getSharedStorage(callback) {
     if (err) {
       return callback(err);
     }
-
-    sharedEnclave.addIndex(constants.PRODUCTS_TABLE, "gtin", err => {
-      if (err) {
-        return callback(err);
-      }
-
-      sharedEnclave.addIndex(constants.BATCHES_STORAGE_TABLE, "gtin", err => {
-        if (err) {
-          return callback(err);
-        }
-        sharedEnclave.addIndex(constants.PRODUCTS_TABLE, "__timestamp", err => {
-          if (err) {
-            return callback(err);
-          }
-
-          sharedEnclave.addIndex(constants.BATCHES_STORAGE_TABLE, "__timestamp", err => {
-            if (err) {
-              return callback(err);
-            }
-
-            window.sharedStorageSingleton = sharedEnclave;
-            callback(undefined, window.sharedStorageSingleton);
-          })
-        })
-      })
-    })
+    window.sharedStorageSingleton = sharedEnclave;
+    callback(undefined, window.sharedStorageSingleton);
   })
 }

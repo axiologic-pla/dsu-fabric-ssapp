@@ -1,6 +1,7 @@
 {
   "theme": "citrus-theme",
   "version": "1.0.0-alpha",
+  "logLevel": "warn",
   "identity": {
     "avatar": "assets/images/factory.png",
     "name": "DSU Fabric",

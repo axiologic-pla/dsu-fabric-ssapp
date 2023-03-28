@@ -6,12 +6,13 @@ const {define} = WebCardinal.components;
 const {setConfig, getConfig, addHook, addControllers} = WebCardinal.preload;
 const {FwController} = await import("./controllers/FwController.js");
 
-async function initializeWebCardinalConfig() {
-  const config = getConfig();
-  let userDetails;
+async function watchAndHandleExecution(fnc){
   try{
-    userDetails = await utils.getUserDetails();
+    await fnc();
   }catch(err) {
+    if(err.rootCause === "security"){
+      return $$.navigateToPage("generate-did");
+    }
     if (window.confirm("Looks that your application is not properly initialized or in an invalid state. Would you like to reset it?")) {
       try {
         const response = await fetch("/removeSSOSecret/DSU_Fabric", {
@@ -19,21 +20,33 @@ async function initializeWebCardinalConfig() {
           cache: "no-cache"
         })
         if (response.ok) {
-          window.disableRefreshSafetyAlert = true;
           const basePath = window.location.href.split("loader")[0];
-          window.location.replace(basePath + "loader/newWallet.html");
+          $$.forceRedirect(basePath + "loader/newWallet.html");
         } else {
           let er = new Error(`Reset request failed (${response.status})`);
           er.rootCause = `statusCode: ${response.status}`;
           throw er;
         }
       } catch (err) {
-        alert(`Failed to reset the application. RootCause: ${err.message}`);
+        $$.showErrorAlert(`Failed to reset the application. RootCause: ${err.message}`);
+        $$.forceTabRefresh();
       }
     } else {
-      alert(`Application is an desired state! Contact support!`);
+      $$.showErrorAlert(`Application is an undesired state! It is a good idea to close all browser windows and try again!`);
+      $$.forceTabRefresh();
     }
   }
+  return true;
+}
+
+async function initializeWebCardinalConfig() {
+
+  const config = getConfig();
+  let userDetails;
+
+  await watchAndHandleExecution(async ()=>{
+    userDetails = await utils.getUserDetails();
+  });
 
   config.identity = {
     avatar: "assets/images/user.png"
@@ -69,18 +82,28 @@ function finishInit(){
     const scAPI = openDSU.loadAPI("sc");
     const typicalBusinessLogicHub = didAPI.getTypicalBusinessLogicHub();
     const onUserRemovedMessage = (message) => {
+      $$.disableAlerts();
+      typicalBusinessLogicHub.stop();
       scAPI.getMainEnclave(async (err, mainEnclave) => {
         if (err) {
           console.log(err);
         }
 
-        await $$.promisify(mainEnclave.writeKey)(constants.CREDENTIAL_KEY, constants.CREDENTIAL_DELETED);
-        await $$.promisify(scAPI.deleteSharedEnclave)();
-        scAPI.refreshSecurityContext();
-        window.disableRefreshSafetyAlert = true;
-        window.location.reload();
-        return $$.history.go("generate-did");
-      })
+        try{
+          await $$.promisify(mainEnclave.writeKey)(constants.CREDENTIAL_KEY, constants.CREDENTIAL_DELETED);
+          await $$.promisify(scAPI.deleteSharedEnclave)();
+          //scAPI.refreshSecurityContext();
+        }catch(err){
+          try{
+            scAPI.refreshSecurityContext();
+            await $$.promisify(scAPI.deleteSharedEnclave)();
+            await $$.promisify(mainEnclave.writeKey)(constants.CREDENTIAL_KEY, constants.CREDENTIAL_DELETED);
+          }catch(e){
+            console.log(e);
+          }
+        }
+        return $$.forceTabRefresh();
+      });
     }
 
     typicalBusinessLogicHub.strongSubscribe(constants.MESSAGE_TYPES.USER_REMOVED, onUserRemovedMessage);
@@ -94,9 +117,17 @@ function finishInit(){
     const scAPI = openDSU.loadAPI("sc");
     const w3cdid = openDSU.loadAPI("w3cdid");
     const LogService = gtinResolver.loadApi("services").LogService;
-    let userRights = await utils.getUserRights();
+
+    await watchAndHandleExecution(async ()=>{
+      let userRights = await utils.getUserRights();
+      FwController.prototype.userRights = userRights;
+      FwController.prototype.canWrite = ()=>{
+        return userRights === "readwrite";
+      };
+    });
+
     let userGroupName = "-";
-    FwController.prototype.userRights = userRights;
+
     try {
       let storageService = await $$.promisify(getSharedStorage)();
       FwController.prototype.storageService = storageService;
@@ -142,16 +173,15 @@ function finishInit(){
 
     } catch (e) {
       console.log("Could not initialise properly FwController", e);
-      alert("Could not initialise the app properly. Contact support!");
+      $$.showErrorAlert("Could not initialise the app properly. It is a good idea to close all browser windows and try again!");
     }
 
     try {
-
       let disabledFeatures = await gtinResolver.DSUFabricFeatureManager.getDisabledFeatures();
       FwController.prototype.disabledFeatures = disabledFeatures;
     } catch (e) {
       console.log("Could not initialise properly FwController", e);
-      alert("Could not initialise the app properly. Contact support!");
+      $$.showErrorAlert("Could not initialise the app properly. It is a good idea to close all browser windows and try again!");
     }
   });
 

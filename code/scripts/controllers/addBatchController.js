@@ -19,12 +19,12 @@ export default class addBatchController extends FwController {
     const editMode = state != null && state.batchData != null;
     let editData = editMode ? JSON.parse(state.batchData) : undefined;
 
-    if(editMode){
+    if (editMode) {
       let pk = gtinResolverUtils.getBatchMetadataPK(editData.gtin, editData.batchNumber);
       gtinResolver.DSUFabricUtils.getBatchMetadata(editData.batchNumber, editData.gtin, (err, batchMetadata) => {
-        if(err){
+        if (err) {
           return this.storageService.getRecord(constants.BATCHES_STORAGE_TABLE, pk, (e, batch) => {
-            if(e){
+            if (e) {
               return this.showErrorModal(`Unable to read product info from database! ${e.message}`, "Error", () => {
                 this.navigateToPageTag("batches");
               });
@@ -33,18 +33,18 @@ export default class addBatchController extends FwController {
           });
         }
 
-        if(batchMetadata){
+        if (batchMetadata) {
           editData = batchMetadata;
         }
 
         this.initialize(editMode, editData);
       });
-    }else{
+    } else {
       this.initialize(editMode, editData);
     }
   }
 
-  initialize(editMode, editData){
+  initialize(editMode, editData) {
     let batch = new Batch(editData);
     this.versionOffset = 1;
     this.model.batch = batch;
@@ -127,67 +127,79 @@ export default class addBatchController extends FwController {
   }
 
   handlerUnknownError(state, batch){
-    this.showErrorModal(
-        new Error(`Would you like to recover?`),
-        'Unknown error while loading data.',
-        async ()=>{
-          //yes
-          setTimeout(async ()=>{
-            this.createWebcModal({
-              disableExpanding: true,
-              disableClosing: true,
-              disableFooter: true,
-              modalTitle: "Info",
-              modalContent: "Recovery process in progress..."
-            });
+    if(!this.canWrite()){
+      this.showErrorModalAndRedirect("Failed to retrieve information about the selected batch", "Error", {tag: "batches"});
+      return;
+    }
 
-            if(typeof state.batchData === "string" && state.batchData.length > 0){
-              state.batch = JSON.parse(state.batchData);
-            }
+    let batchData = JSON.parse(state.batchData);
+    gtinResolver.DSUFabricUtils.checkIfWeHaveDataForThis(batchData.gtin, batchData.batchNumber, (err)=> {
+      if (!err) {
+        return this.showErrorModal(
+            new Error(`Would you like to recover?`),
+            'Unknown error while loading data.',
+            async () => {
+              //yes
+              setTimeout(async () => {
+                this.createWebcModal({
+                  disableExpanding: true,
+                  disableClosing: true,
+                  disableFooter: true,
+                  modalTitle: "Info",
+                  modalContent: "Recovery process in progress..."
+                });
 
-            let recoveryMessage = await utils.initMessage("Batch");
-            recoveryMessage.batch = batch;
-            if(!recoveryMessage.batch){
-              recoveryMessage.batch = {
-                productCode: state.batch ? state.batch.gtin : undefined
-              };
-            }
-
-            if(!recoveryMessage.batch.productCode){
-              recoveryMessage.batch.productCode = state.batch.gtin;
-            }
-            if(!recoveryMessage.batch.batch){
-              recoveryMessage.batch.batch = batch ? batch.batchNumber : "recovered data";
-            }
-            if(!recoveryMessage.batch.expiryDate){
-              recoveryMessage.batch.expiryDate = batch ? batch.expiry : "recovered data";
-            }
-            recoveryMessage.force = true;
-
-            //by setting this refreshState if all goes when we will return to edit the product
-            this.refreshState = {
-              tag: "home",
-              state: {
-                refreshTo: {
-                  tag: "add-batch",
-                  state: {batchData: JSON.stringify(batch)}
+                if (typeof state.batchData === "string" && state.batchData.length > 0) {
+                  state.batch = JSON.parse(state.batchData);
                 }
-              }
-            };
-            this.sendMessagesToProcess([recoveryMessage]);
-          }, 100);
-        },
-        ()=>{
-          console.log("Rejected the recover process by choosing no option.");
-          this.showErrorModalAndRedirect("Refused the recovery process. Redirecting...", "Info", {tag: "batches"});
-        },
-        {
-          disableExpanding: true,
-          cancelButtonText: 'No',
-          confirmButtonText: 'Yes',
-          id: 'feedback-modal'
-        }
-    )
+
+                let recoveryMessage = await utils.initMessage("Batch");
+                recoveryMessage.batch = batch;
+                if (!recoveryMessage.batch) {
+                  recoveryMessage.batch = {
+                    productCode: state.batch ? state.batch.gtin : undefined
+                  };
+                }
+
+                if (!recoveryMessage.batch.productCode) {
+                  recoveryMessage.batch.productCode = state.batch.gtin;
+                }
+                if (!recoveryMessage.batch.batch) {
+                  recoveryMessage.batch.batch = batch ? batch.batchNumber : "recovered data";
+                }
+                if (!recoveryMessage.batch.expiryDate) {
+                  recoveryMessage.batch.expiryDate = batch ? batch.expiry : "recovered data";
+                }
+                recoveryMessage.force = true;
+
+                //by setting this refreshState if all goes when we will return to edit the product
+                this.refreshState = {
+                  tag: "home",
+                  state: {
+                    refreshTo: {
+                      tag: "add-batch",
+                      state: {batchData: JSON.stringify(batch)}
+                    }
+                  }
+                };
+                this.sendMessagesToProcess([recoveryMessage]);
+              }, 100);
+            },
+            () => {
+              console.log("Rejected the recover process by choosing no option.");
+              this.showErrorModalAndRedirect("Refused the recovery process. Redirecting...", "Info", {tag: "batches"});
+            },
+            {
+              disableExpanding: true,
+              cancelButtonText: 'No',
+              confirmButtonText: 'Yes',
+              id: 'feedback-modal'
+            }
+        )
+      }
+      this.showErrorModalAndRedirect("Unable to verify if data exists in Blockchain. Try later!", "Error", {tag: "batches"});
+      return;
+    });
   }
 
   async addOrUpdateBatch(operation) {
@@ -287,11 +299,11 @@ export default class addBatchController extends FwController {
     button.disabled = JSON.stringify(this.model.languageTypeCards) === JSON.stringify(this.initialCards) && JSON.stringify(this.model.batch) === JSON.stringify(this.initialModel.batch) && !serialIsUpdated;
   }
 
-  getNumberLogs(){
+  getNumberLogs() {
 
     const featManager = require("gtin-resolver").DSUFabricFeatureManager;
-    featManager.isFeatureEnabled("07", (err, enabled)=>{
-      if(enabled){
+    featManager.isFeatureEnabled("07", (err, enabled) => {
+      if (enabled) {
         //await $$.promisify(this.storageService.addIndex.bind(this.storageService))(this.model.batch.batchNumber, "__timestamp");
         this.storageService.filter(this.model.batch.batchNumber, "__timestamp > 0", (err, logs) => {
           if (err || typeof logs === "undefined") {
@@ -313,13 +325,27 @@ export default class addBatchController extends FwController {
       }
     })
     this.onTagClick("cancel", () => {
+      if (this.savingInProgress) {
+        return
+      }
+      this.savingInProgress = true;
       this.navigateToPageTag("batches");
     });
     this.onTagClick("update-batch", async () => {
+      if (this.savingInProgress) {
+        return
+      }
+
       await this.addOrUpdateBatch("update");
+
     })
     this.onTagClick("add-batch", async () => {
+      if (this.savingInProgress) {
+        return
+      }
+
       await this.addOrUpdateBatch("create");
+
     })
 
     this.model.onChange('batch.videos.defaultSource', async (...props) => {
@@ -384,17 +410,17 @@ export default class addBatchController extends FwController {
       messageArr.push(videoMessage);
 
     }
-
+    this.savingInProgress = true;
     MessagesService.processMessagesWithoutGrouping(messageArr, MessagesService.getStorageService(this.storageService), async (err, undigestedMessages) => {
       let handler = this.getHandlerForMessageDigestingProcess(messageArr, this.prepareModalInformation);
       //managing popus ...
       await handler(err, undigestedMessages);
-
+      this.savingInProgress = false;
       this.showMessageError(undigestedMessages);
     });
   }
 
-  prepareModalInformation(err, undigested, messages){
+  prepareModalInformation(err, undigested, messages) {
     return {
       title: `There was an error during saving process. Cause: ${err.message ? err.message : ''}`,
       content: 'Saving failed'
@@ -417,10 +443,10 @@ export default class addBatchController extends FwController {
       }, () => {
       }, {model: {errors: errors}});
     } else {
-      if(this.refreshState){
+      if (this.refreshState) {
         //this.refreshState is controlled above in unknownHandler before force recovery
         console.log("Refreshing the edit batch page after recovery");
-        return setTimeout(()=>{
+        return setTimeout(() => {
           this.navigateToPageTag(this.refreshState.tag, this.refreshState.state);
         }, 500);
       }
@@ -429,23 +455,23 @@ export default class addBatchController extends FwController {
   }
 
   getProductFromGtin(gtin, callback) {
-    this.storageService.addIndex(constants.PRODUCTS_TABLE, "gtin", (error) => {
-      if (error) {
-        printOpenDSUError(createOpenDSUErrorWrapper("Failed to get a valid product", error));
+    /*    this.storageService.addIndex(constants.PRODUCTS_TABLE, "gtin", (error) => {
+          if (error) {
+            printOpenDSUError(createOpenDSUErrorWrapper("Failed to get a valid product", error));
+            return this.showErrorModalAndRedirect("Failed to get a valid product", "Product not found", {tag: "batches"});
+          }*/
+    this.storageService.filter(constants.PRODUCTS_TABLE, `gtin == ${gtin}`, (err, products) => {
+      if (err) {
+        printOpenDSUError(createOpenDSUErrorWrapper("Failed to get a valid product", err));
         return this.showErrorModalAndRedirect("Failed to get a valid product", "Product not found", {tag: "batches"});
       }
-      this.storageService.filter(constants.PRODUCTS_TABLE, `gtin == ${gtin}`, (err, products) => {
-        if (err) {
-          printOpenDSUError(createOpenDSUErrorWrapper("Failed to get a valid product", err));
-          return this.showErrorModalAndRedirect("Failed to get a valid product", "Product not found", {tag: "batches"});
-        }
-        let product = products[0];
-        if (!product) {
-          return callback(new Error(`No product found for gtin ${gtin}`));
-        }
-        callback(undefined, product);
-      });
-    })
+      let product = products[0];
+      if (!product) {
+        return callback(new Error(`No product found for gtin ${gtin}`));
+      }
+      callback(undefined, product);
+    });
+    /*  })*/
 
   }
 

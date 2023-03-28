@@ -31,6 +31,10 @@ export default {
     DID_CREATED: "didCreated",
     ADD_MEMBER_TO_GROUP: "AddMemberToGroup"
   },
+  USER_RIGHTS:{
+    READ:"readonly",
+    WRITE:"readWrite"
+  },
   IDENTITY_KEY: "did",
   CREDENTIAL_KEY: "credential",
   CREDENTIAL_DELETED: "deleted"
