@@ -335,7 +335,7 @@ export default class addBatchController extends FwController {
       if (this.savingInProgress) {
         return
       }
-      this.savingInProgress = true;
+
       await this.addOrUpdateBatch("update");
 
     })
@@ -343,7 +343,7 @@ export default class addBatchController extends FwController {
       if (this.savingInProgress) {
         return
       }
-      this.savingInProgress = true;
+
       await this.addOrUpdateBatch("create");
 
     })
@@ -410,7 +410,7 @@ export default class addBatchController extends FwController {
       messageArr.push(videoMessage);
 
     }
-
+    this.savingInProgress = true;
     MessagesService.processMessagesWithoutGrouping(messageArr, MessagesService.getStorageService(this.storageService), async (err, undigestedMessages) => {
       let handler = this.getHandlerForMessageDigestingProcess(messageArr, this.prepareModalInformation);
       //managing popus ...
