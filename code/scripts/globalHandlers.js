@@ -28,14 +28,15 @@ if ($$) {
         window.top.location.replace(url);
     }
 
+    $$.disableAlerts = ()=>{
+        $$.refreshInProgres = true;
+    }
+
     const originalHTTPHandler = $$.httpUnknownResponseGlobalHandler;
     $$.httpUnknownResponseGlobalHandler = function (res) {
         let err = res ? res.err : undefined;
         if (err && err.rootCause == "network") {
             originalHTTPHandler(res);
-            if (window.disableRefreshSafetyAlert || $$.refreshInProgress) {
-                return;
-            }
             $$.showErrorAlert("Network issues detected!");
         }
     }

@@ -32,7 +32,7 @@ async function watchAndHandleExecution(fnc){
         $$.forceTabRefresh();
       }
     } else {
-      $$.showErrorAlert(`Application is an undesired state! Contact support!`);
+      $$.showErrorAlert(`Application is an undesired state! It is a good idea to close all browser windows and try again!`);
       $$.forceTabRefresh();
     }
   }
@@ -82,7 +82,7 @@ function finishInit(){
     const scAPI = openDSU.loadAPI("sc");
     const typicalBusinessLogicHub = didAPI.getTypicalBusinessLogicHub();
     const onUserRemovedMessage = (message) => {
-      window.disableRefreshSafetyAlert = true;
+      $$.disableAlerts();
       typicalBusinessLogicHub.stop();
       scAPI.getMainEnclave(async (err, mainEnclave) => {
         if (err) {
@@ -173,7 +173,7 @@ function finishInit(){
 
     } catch (e) {
       console.log("Could not initialise properly FwController", e);
-      $$.showErrorAlert("Could not initialise the app properly. Contact support!");
+      $$.showErrorAlert("Could not initialise the app properly. It is a good idea to close all browser windows and try again!");
     }
 
     try {
@@ -181,7 +181,7 @@ function finishInit(){
       FwController.prototype.disabledFeatures = disabledFeatures;
     } catch (e) {
       console.log("Could not initialise properly FwController", e);
-      $$.showErrorAlert("Could not initialise the app properly. Contact support!");
+      $$.showErrorAlert("Could not initialise the app properly. It is a good idea to close all browser windows and try again!");
     }
   });
 
