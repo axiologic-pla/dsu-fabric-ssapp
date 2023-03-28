@@ -15,17 +15,26 @@ if ($$) {
 
     $$.forceTabRefresh = ()=>{
         $$.refreshInProgress = true;
-        window.top.location.reload();
+        setTimeout(()=>{
+            window.top.location.reload();
+        }, 1500);
+        console.warn("Refreshing...");
     }
 
     $$.navigateToPage = (page)=>{
         $$.refreshInProgress = true;
-        $$.history.go(page);
+        setTimeout(()=>{
+            $$.history.go(page);
+        }, 1500);
+        console.warn("Navigating to a new page...");
     }
 
     $$.forceRedirect = (url)=>{
         $$.refreshInProgress = true;
-        window.top.location.replace(url);
+        setTimeout(()=>{
+            window.top.location.replace(url);
+        }, 1500);
+        console.warn("Redirecting...");
     }
 
     $$.disableAlerts = ()=>{
