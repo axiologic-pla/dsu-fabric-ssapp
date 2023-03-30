@@ -122,7 +122,7 @@ function finishInit(){
       let userRights = await utils.getUserRights();
       FwController.prototype.userRights = userRights;
       FwController.prototype.canWrite = ()=>{
-        return userRights === "readwrite";
+        return userRights === constants.USER_RIGHTS.WRITE;
       };
     });
 

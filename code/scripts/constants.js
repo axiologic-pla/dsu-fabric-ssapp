@@ -33,7 +33,7 @@ export default {
   },
   USER_RIGHTS:{
     READ:"readonly",
-    WRITE:"readWrite"
+    WRITE:"readwrite"
   },
   IDENTITY_KEY: "did",
   CREDENTIAL_KEY: "credential",

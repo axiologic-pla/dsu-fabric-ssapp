@@ -208,7 +208,7 @@ export default class importController extends FwController {
         }, {model: this.model});
     })
 
-    this.onTagEvent("retry-all-click", "change", (model, target, evt) => {
+    this.onTagEvent("retry-all-click", "change", async (model, target, evt) => {
       this.querySelectorAll(".failed-message").forEach((elem) => {
         elem.checked = target.checked;
         elem.value = target.checked;
@@ -239,23 +239,26 @@ export default class importController extends FwController {
       this.updateRetryBtnState();
     })
 
-    function getSelectedFailed(prepareFnc) {
+    async function getSelectedFailed(prepareFnc) {
       let messages = [];
-      this.model.failedImportedLogs.forEach(elem => {
-        if (elem.retry) {
-          let msg = elem.message;
+
+      for(let elem of this.model.failedImportedLogs){
+        if(elem.retry){
+          let message = await utils.getLogDetails(elem.details)
           if (prepareFnc) {
-            msg = prepareFnc(msg);
+            message = prepareFnc(message.logInfo);
+          }else{
+            message = message.logInfo;
           }
-          messages.push(msg);
+          messages.push(message);
         }
-      });
+      }
       return messages;
     }
 
     function prepareCallback(prepareFnc) {
       return async (model, target, event) => {
-        let messages = getSelectedFailed.call(this, prepareFnc);
+        let messages = await getSelectedFailed.call(this, prepareFnc);
         if (messages.length > 0) {
           this.model.selectedTab = 1;
           window.WebCardinal.loader.hidden = false;
@@ -274,7 +277,7 @@ export default class importController extends FwController {
     }
 
     this.onTagClick("retry-failed", async (model, target, event) => {
-      let messages = getSelectedFailed.call(this);
+      let messages = await getSelectedFailed.call(this);
       if (messages.length > 0) {
         this.model.selectedTab = 1;
         window.WebCardinal.loader.hidden = false;
