@@ -228,12 +228,13 @@ export default class importController extends FwController {
     })
 
     this.onTagEvent("retry-item-click", "change", (model, target, evt) => {
-      model.retry = target.checked;
+      let item = target.getDataTagModel();
+      item.retry = target.checked;
       if (!target.checked) {
-        this.model.failedImportedLogs.splice(this.model.failedImportedLogs.indexOf(model), 1);
+        this.model.failedImportedLogs.splice(this.model.failedImportedLogs.indexOf(item), 1);
         document.querySelector("#retry-all-checkbox").checked = target.checked;
       } else {
-        this.model.failedImportedLogs.push(model);
+        this.model.failedImportedLogs.push(item);
       }
 
       this.updateRetryBtnState();
