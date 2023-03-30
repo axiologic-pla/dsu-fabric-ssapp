@@ -27,7 +27,6 @@ export default class importController extends FwController {
       retryBtnIsDisabled: true,
       forceRetryBtnIsDisabled: true,
       successfullyImportedLogs: [],
-      failedImportedLogs: [],
       retryAll: false,
       successDataSource: new SuccessLogDataSource(this.storageService),
       failedDataSource: new FailedLogDataSource(this.storageService),
@@ -67,7 +66,6 @@ export default class importController extends FwController {
 
       await this.manageProcessedMessages(failedMessages);
       if (failedMessages.length) {
-        this.model.failedImportedLogs = [];
         this.model.retryAll = false;
       }
 
@@ -78,7 +76,7 @@ export default class importController extends FwController {
     }
 
     this.onTagClick("import", async () => {
-      if (this.filesArray.length === 0 ||  this.model.importIsDisabled) {
+      if (this.filesArray.length === 0 || this.model.importIsDisabled) {
         return;
       }
       this.model.importIsDisabled = true;
@@ -214,27 +212,13 @@ export default class importController extends FwController {
         elem.value = target.checked;
       });
 
-      if (target.checked) {
-        this.model.failedImportedLogs = model.data.map(item => {
-          item.retry = true;
-          return item
-        });
-      } else {
-        this.model.failedImportedLogs = [];
-      }
-
       this.updateRetryBtnState();
 
     })
 
     this.onTagEvent("retry-item-click", "change", (model, target, evt) => {
-      let item = target.getDataTagModel();
-      item.retry = target.checked;
       if (!target.checked) {
-        this.model.failedImportedLogs.splice(this.model.failedImportedLogs.indexOf(item), 1);
         document.querySelector("#retry-all-checkbox").checked = target.checked;
-      } else {
-        this.model.failedImportedLogs.push(item);
       }
 
       this.updateRetryBtnState();
@@ -242,15 +226,16 @@ export default class importController extends FwController {
 
     async function getSelectedFailed(prepareFnc) {
       let messages = [];
-
-      for(let elem of this.model.failedImportedLogs){
-        if(elem.retry){
-          let message = await utils.getLogDetails(elem.details)
+      let failedImportedLogs = Array.from(this.querySelectorAll(".failed-message"))
+      for (let elem of failedImportedLogs) {
+        if (elem.checked) {
+          let itemModel = elem.getDataTagModel();
+          let logDetails = await utils.getLogDetails(itemModel.details);
+          let message = logDetails.logInfo;
           if (prepareFnc) {
-            message = prepareFnc(message.logInfo);
-          }else{
-            message = message.logInfo;
+            message = prepareFnc(message);
           }
+
           messages.push(message);
         }
       }
@@ -267,7 +252,6 @@ export default class importController extends FwController {
           await MessagesService.processMessages(messages, MessagesService.getStorageService(this.storageService), async (undigestedMessages) => {
             await this.manageProcessedMessages(undigestedMessages);
             await this.logUndigestedMessages(undigestedMessages);
-            this.model.failedImportedLogs = [];
           });
 
           this.model.retryAll = false;
@@ -292,6 +276,7 @@ export default class importController extends FwController {
     });
 
     this.onTagClick("force-retry-failed", prepareCallback.call(self, (msg) => {
+      msg = JSON.parse(JSON.stringify(msg));
       msg.force = true;
       return msg;
     }));
