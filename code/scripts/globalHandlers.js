@@ -49,4 +49,24 @@ if ($$) {
             $$.showErrorAlert("Network issues detected!");
         }
     }
+
+    $$.disableBrowserConfirm = function(){
+        $$.confirmDisabled = true;
+    }
+
+    $$.enableBrowserConfirm = function(){
+        $$.confirmDisabled = false;
+    };
+
+    $$.hookConfirm = function(){
+        let confirm = window.confirm;
+        window.confirm = function(message){
+            if($$.confirmDisabled){
+                return true;
+            }
+            return confirm.call(window, message);
+        }
+    }
+
+    $$.hookConfirm();
 }
