@@ -202,9 +202,20 @@ async function processMessages(messages, dsuStorage, callback) {
             let digestedMessagesCounter = 0;
             let undigestedMessages = [];
             messagesPipe.onNewGroup(async (groupMessages) => {
+                let isForceRecovery = false;
                 try {
+                    if(groupMessages.length && groupMessages[0] && groupMessages[0].force){
+                        isForceRecovery = true;
+                        $$.disableBrowserConfirm();
+                    }
                     undigestedMessages = [...undigestedMessages, ...await mappingEngine.digestMessages(groupMessages)];
+                    if(isForceRecovery){
+                        $$.enableBrowserConfirm();
+                    }
                 } catch (err) {
+                    if(isForceRecovery){
+                        $$.enableBrowserConfirm();
+                    }
                     reject(err);
                 }
 
@@ -251,10 +262,22 @@ async function processMessagesWithoutGrouping(messages, dsuStorage, callback) {
 
     let undigestedMessages = [];
     let error;
+    let isForceRecovery = false;
     try {
+        if(messages.length && messages[0] && messages[0].force){
+            isForceRecovery = true;
+            $$.disableBrowserConfirm();
+        }
         undigestedMessages = await mappingEngine.digestMessages(messages);
+        if(isForceRecovery){
+            $$.enableBrowserConfirm();
+        }
+
         console.log("undigested messages ", undigestedMessages);
     } catch (err) {
+        if(isForceRecovery){
+            $$.enableBrowserConfirm();
+        }
         console.log("Error on digestMessages", err);
         undigestedMessages.concat(skipMessages(messages));
         error = err;
