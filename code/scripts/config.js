@@ -15,7 +15,7 @@ async function initializeWebCardinalConfig() {
   try {
     userDetails = await utils.getUserDetails();
   } catch (err) {
-    if (window.confirm("Looks that your application is not properly initialized or in an invalid state. Would you like to reset it?")) {
+    if (window.confirm("Looks that your application is not properly initialized or in an invalid state. If it is the first time when you see this click on the cancel button and follow the instructions. If you keep receiving this please click confirm button in order to reset you wallet!")) {
       try {
         const response = await fetch("/removeSSOSecret/DSU_Fabric", {
           method: "DELETE",
