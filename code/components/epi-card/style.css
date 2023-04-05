@@ -1,0 +1,48 @@
+.leaflet-container {
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.6);
+    border-radius: 4px;
+    border: 1.5px solid #328569;
+    margin-top: 1em;
+    padding: 0.5em;
+}
+
+.epi-card {
+    border: 1.5px solid #328569;
+    width: fit-content;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.6);
+    border-radius: 4px;
+    min-width: 265px;
+    justify-content: space-between;
+}
+
+.card-actions {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+}
+
+.epi-card .card-action-button {
+    position: relative;
+    background: none;
+    border: none;
+    padding: 1px;
+    font-size: 20px;
+    line-height: 20px;
+    color: #328569;;
+    right: 7px;
+    box-shadow: 0 0 5px #328569;
+}
+
+.epi-card .preview-button {
+    pointer-events: all;
+}
+
+.epi-card .card-action-button:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.epi-card .card-action-button:hover {
+    color: #328569;
+    box-shadow: 0 0 8px #328569;
+}

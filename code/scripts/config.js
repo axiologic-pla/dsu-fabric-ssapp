@@ -196,7 +196,7 @@ function finishInit() {
     }
   });
 
-  define('dsu-leaflet', 'leaflet-component/dsu-leaflet');
+  define('epi-card', 'epi-card/template');
   define('page-template', {shadow: true});
 }
 

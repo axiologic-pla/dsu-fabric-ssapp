@@ -1,0 +1,21 @@
+<link href="modals/preview-epi/style.css" rel="stylesheet">
+<div class="custom-modal-header header-color" slot="header">
+    <h5>{{@previewModalTitle}}</h5>
+</div>
+<main>
+    <div id="leaflet-modal-content-wrapper" class="page-container leaflet-page info-modal">
+        <div class="modal-body">
+            <div class="page-header modal-header left-aligned-header">
+                <div class="product-name">{{@epiData.productName}}</div>
+                <div class="product-description">{{@epiData.productDescription}}</div>
+            </div>
+            <div class="page-content">
+                <div class="loader"></div>
+                <div class="leaflet-content-wrapper">
+                    <div id="leaflet-content">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>

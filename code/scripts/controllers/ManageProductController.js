@@ -41,7 +41,7 @@ export default class ManageProductController extends FwController {
         this.model.product.previousVersion = product.version;
         this.model.product.isCodeEditable = false;
         this.model.product.videos = product.videos || {defaultSource: ""};
-        gtinResolver.DSUFabricUtils.getDSUAttachments(product, this.disabledFeatures, (err, attachments) => {
+        gtinResolver.DSUFabricUtils.getDSUAttachments(this.model.product, this.disabledFeatures, (err, attachments) => {
           this.model.onChange("product", (...props) => {
             this.manageUpdateButtonState(this.submitButton);
           })
@@ -86,7 +86,6 @@ export default class ManageProductController extends FwController {
     utils.disableFeatures(this);
 
     this.model.videoSourceUpdated = false;
-
 
     this.addEventListeners();
 

@@ -1,0 +1,252 @@
+/* dm-sans-regular - latin-ext_latin */
+@font-face {
+    font-family: 'DM Sans';
+    font-style: normal;
+    font-weight: 400;
+    src: local(''),
+    url('./assets/fonts/dm-sans-v11-latin-ext_latin-regular.woff2') format('woff2'), url('./assets/fonts/dm-sans-v11-latin-ext_latin-regular.woff') format('woff'),
+    url('./assets/fonts/DMSans-Regular.ttf') format('truetype'); /* Safari, Android, iOS */
+}
+
+/* dm-sans-500 - latin-ext_latin */
+@font-face {
+    font-family: 'DM Sans semi-bold';
+    font-style: normal;
+    font-weight: 500;
+    src: local(''),
+    url('./assets/fonts/dm-sans-v11-latin-ext_latin-500.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */ url('./assets/fonts/dm-sans-v11-latin-ext_latin-500.woff') format('woff'),
+    url('./assets/fonts/DMSans-Medium.ttf') format('truetype'); /* Safari, Android, iOS */
+    /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
+/* dm-sans-700 - latin-ext_latin */
+@font-face {
+    font-family: 'DM Sans bold';
+    font-style: normal;
+    font-weight: 700;
+    src: local(''),
+    url('./assets/fonts/dm-sans-v11-latin-ext_latin-700.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */ url('./assets/fonts/dm-sans-v11-latin-ext_latin-700.woff') format('woff'), /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */ url('./assets/fonts/DMSans-Bold.ttf') format('truetype'); /* Safari, Android, iOS */
+
+}
+
+webc-modal::part(header) {
+    background: #328569;
+    --header-button-color: #FFFFFF;
+    --header-border: none;
+}
+
+webc-modal .header-color {
+    color: #FFFFFF !important;
+}
+
+webc-modal::part(main) {
+    background: #646464
+}
+
+webc-modal::part(content) {
+    height: 95vh;
+}
+
+main {
+    max-width: 414px;
+    min-width: 414px;
+    margin-left: auto;
+    margin-right: auto;
+    height: 100%;
+}
+
+#leaflet-modal-content-wrapper .modal-header {
+    background-color: #013646;
+    color: #fff;
+}
+
+#leaflet-modal-content-wrapper.info-modal .modal-body {
+    padding: 0;
+    margin: 0px;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.info-modal .modal-body .modal-content {
+    padding: 0 24px 74px;
+    height: 100%;
+    max-height: 100%;
+}
+
+.page-header {
+    padding: 0px 35px;
+}
+
+.product-name {
+    font-size: calc(100% + 1.7vh);
+    font-family: 'DM Sans bold';
+}
+
+.product-description {
+    font-family: 'DM Sans bold';
+}
+
+.leaflet-page .page-header {
+    display: flex;
+    flex-direction: column;
+    height: 20%;
+    justify-content: center;
+}
+
+.leaflet-page .page-content {
+    height: 88%;
+    position: relative;
+    color: #04313B;
+    background: #fff;
+    border-bottom-left-radius: 30px;
+    border-bottom-right-radius: 30px;
+    font-size: calc(100% + 0.3vmin);
+}
+
+.leaflet-page ul {
+    padding-left: 40px;
+}
+
+.page-container {
+    background: #013646;
+    color: #fff;
+    border-radius: 30px;
+    align-self: center;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.page-container.leaflet-page {
+    padding: 0px;
+    justify-content: normal;
+}
+
+
+#leaflet-content .select-lang-text {
+    padding: 35px;
+}
+
+#leaflet-content .languages-list li {
+    text-underline-position: under;
+    text-decoration: underline;
+    padding: 0px 0px 55px 0px;
+    color: blue;
+}
+
+#leaflet-content h5 {
+    font-family: 'DM Sans bold';
+    font-size: 100%;
+    margin-right: 1rem;
+}
+
+.leaflet-content-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+#leaflet-content {
+    text-align: start;
+    overflow-y: auto;
+    position: absolute;
+    height: 95%;
+    width: 100%;
+}
+
+#leaflet-content table {
+    display: block;
+    overflow-x: auto;
+}
+
+/* Force hidden content for images because xslt rule not working for safari < 16. */
+#leaflet-content figure *:not(img) {
+    display: none;
+}
+
+#leaflet-content img {
+    width: 100%;
+}
+
+.leaflet-link {
+    color: #4f4edf;;
+    text-decoration: underline;
+}
+
+.leaflet-accordion-item {
+    padding: 0px 1vh;
+    border-bottom: 1px solid #E5EAEB;
+}
+
+.leaflet-accordion-item h5 {
+    margin-block-end: 1em;
+    margin-block-start: 1em;
+}
+
+.leaflet-accordion-item-content {
+    display: none;
+    margin-right: 5px;
+    height: fit-content;
+}
+
+.leaflet-accordion-item.active .leaflet-accordion-item-content {
+    height: fit-content;
+    display: block;
+    position: relative;
+    font-style: normal;
+    font-family: 'DM Sans';
+}
+
+.leaflet-accordion-item:before {
+    content: "";
+    visibility: visible;
+    position: relative;
+    float: right;
+    width: 38px;
+    height: 28px;
+    background-image: url(./assets/images/accordion-open.svg);
+    background-position: top;
+    background-size: contain;
+    background-repeat: no-repeat;
+    top: 2px;
+}
+
+.leaflet-accordion-item.active:before {
+    background-image: url("./assets/images/accordion-close.svg");
+}
+
+.leaflet-accordion-item table,
+.leaflet-accordion-item table td,
+.leaflet-accordion-item table th {
+    border: 1px solid;
+    border-collapse: collapse;
+    font-size: inherit;
+
+}
+
+.leaflet-accordion-item td, th {
+    padding: 15px;
+    width: 100%;
+    height: 100%;
+}
+
+.modal-header.left-aligned-header {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-radius: 30px 30px 0px 0px;
+    height: fit-content;
+    padding: 2.5rem 1.5rem;
+    min-height: 7%;
+    height: fit-content;
+}
+
+.modal-header.left-aligned-header .modal-title {
+    text-align: left;
+    margin-right: 12px;
+}
+
