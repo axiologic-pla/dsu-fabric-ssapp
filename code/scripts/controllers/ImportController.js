@@ -78,7 +78,7 @@ export default class importController extends FwController {
     }
 
     this.onTagClick("import", async () => {
-      if (this.filesArray.length === 0 ||  this.model.importIsDisabled) {
+      if (this.filesArray.length === 0 || this.model.importIsDisabled) {
         return;
       }
       this.model.importIsDisabled = true;
@@ -269,6 +269,8 @@ export default class importController extends FwController {
           this.model.retryAll = false;
 
           this.querySelector("#retry-all-checkbox").checked = false;
+          this.model.retryBtnIsDisabled = true;
+          this.model.forceRetryBtnIsDisabled = true;
         }
       }
     }
@@ -284,6 +286,8 @@ export default class importController extends FwController {
         this.model.retryAll = false;
 
         this.querySelector("#retry-all-checkbox").checked = false;
+        this.model.retryBtnIsDisabled = true;
+        this.model.forceRetryBtnIsDisabled = true;
       }
     });
 
