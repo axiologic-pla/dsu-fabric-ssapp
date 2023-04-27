@@ -95,6 +95,8 @@ function finishInit() {
     const scAPI = openDSU.loadAPI("sc");
     const typicalBusinessLogicHub = didAPI.getTypicalBusinessLogicHub();
     const onUserRemovedMessage = (message) => {
+      let notificationHandler = openDSU.loadAPI("error");
+      notificationHandler.reportUserRelevantWarning("Your account was deleted. Please contact an admin to see the reason");
       window.disableRefreshSafetyAlert = true;
       typicalBusinessLogicHub.stop();
       scAPI.getMainEnclave(async (err, mainEnclave) => {
