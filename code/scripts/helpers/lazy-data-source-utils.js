@@ -6,7 +6,9 @@ function attachHandlers(controller, datasource, searchInputSelector = "#code-sea
     /*clean all listeners and attach new listener */
     let new_element = searchInput.cloneNode(true);
     new_element.addEventListener("search", async (event) => {
-      await controller.model[datasource].searchHandler(event.target.value, foundIcon, notFoundIcon)
+      window.WebCardinal.loader.hidden = false;
+      await controller.model[datasource].searchHandler(event.target.value, foundIcon, notFoundIcon);
+      window.WebCardinal.loader.hidden = true;
     })
     searchInput.parentNode.replaceChild(new_element, searchInput);
   }
