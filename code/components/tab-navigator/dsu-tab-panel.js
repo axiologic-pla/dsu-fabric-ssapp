@@ -1,3 +1,5 @@
+import constants from "../../scripts/constants.js";
+
 customElements.define(
   "dsu-tab-panel",
   class _ extends HTMLElement {
@@ -49,9 +51,9 @@ customElements.define(
     }
 
     attachEvents() {
-      this.dom.tabSlot.addEventListener("click", this.onTabClick);
-      this.dom.tabSlot.addEventListener("slotchange", this.onTabSlotChange);
-      this.dom.contentSlot.addEventListener("slotchange", this.onContentSlotChange);
+      this.dom.tabSlot.addEventListener(constants.HTML_EVENTS.CLICK, this.onTabClick);
+      this.dom.tabSlot.addEventListener(constants.HTML_EVENTS.SLOTCHANGE, this.onTabSlotChange);
+      this.dom.contentSlot.addEventListener(constants.HTML_EVENTS.SLOTCHANGE, this.onContentSlotChange);
     }
 
     onTabSlotChange() {

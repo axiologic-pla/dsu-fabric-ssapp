@@ -1,3 +1,5 @@
+import constants from "../constants.js";
+
 const {WebcController} = WebCardinal.controllers;
 const gtinResolver = require("gtin-resolver");
 const openDSU = require("opendsu");
@@ -24,7 +26,7 @@ export default class FeaturesModalController extends WebcController {
     })
 
     this.onTagClick("close-window", () => {
-      this.element.dispatchEvent(new Event('closed'));
+      this.element.dispatchEvent(new Event(constants.HTML_EVENTS.CLOSED));
     });
     this.onTagClick("submit-window", () => {
       let checkboxes = this.element.querySelectorAll(".features-container input[type='checkbox']:checked");
@@ -33,7 +35,7 @@ export default class FeaturesModalController extends WebcController {
         disabledFeatures = disabledFeatures + (index !== 0 ? "," : "") + checkbox.name;
       })
       config.setEnv("disabledFeatures", disabledFeatures, (err, env) => {
-        this.element.dispatchEvent(new Event('confirmed'));
+        this.element.dispatchEvent(new Event(constants.HTML_EVENTS.CONFIRMED));
         if (err) {
           this.notificationHandler.reportUserRelevantError("Could not update environment with disabled features")
         }

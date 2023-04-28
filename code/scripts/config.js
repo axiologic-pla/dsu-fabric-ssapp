@@ -56,21 +56,21 @@ let config = await initializeWebCardinalConfig();
 async function setupGlobalErrorHandlers() {
   let errHandler = openDSU.loadAPI("error");
 
-  errHandler.observeUserRelevantMessages('warn', (notification) => {
-    utils.renderToast(notification.message, "warn")
+  errHandler.observeUserRelevantMessages(constants.NOTIFICATION_TYPES.WARN, (notification) => {
+    utils.renderToast(notification.message, constants.NOTIFICATION_TYPES.WARN)
   });
 
-  errHandler.observeUserRelevantMessages('info', (notification) => {
-    utils.renderToast(notification.message, "info")
+  errHandler.observeUserRelevantMessages(constants.NOTIFICATION_TYPES.INFO, (notification) => {
+    utils.renderToast(notification.message, constants.NOTIFICATION_TYPES.INFO)
   });
 
-  errHandler.observeUserRelevantMessages('error', (notification) => {
+  errHandler.observeUserRelevantMessages(constants.NOTIFICATION_TYPES.ERROR, (notification) => {
     let errMsg = "";
     if (notification.err && notification.err.message) {
       errMsg = notification.err.message;
     }
     let toastMsg = `${notification.message} ${errMsg}`
-    utils.renderToast(toastMsg, "error")
+    utils.renderToast(toastMsg, constants.NOTIFICATION_TYPES.ERROR)
 
   });
 }
@@ -78,15 +78,15 @@ async function setupGlobalErrorHandlers() {
 function finishInit() {
   setConfig(config);
 
-  addHook('beforePageLoads', 'generate-did', () => {
+  addHook(constants.HOOKS.BEFORE_PAGE_LOADS, 'generate-did', () => {
     WebCardinal.root.disableHeader = true;
   });
 
-  addHook('whenPageClose', 'generate-did', () => {
+  addHook(constants.HOOKS.WHEN_PAGE_CLOSE, 'generate-did', () => {
     WebCardinal.root.disableHeader = false;
   });
 
-  addHook("beforeAppLoads", async () => {
+  addHook(constants.HOOKS.BEFORE_APP_LOADS, async () => {
     // load fabric base Controller
     addControllers({FwController});
 
@@ -129,7 +129,7 @@ function finishInit() {
     await setupGlobalErrorHandlers();
   })
 
-  addHook("beforePageLoads", "home", async () => {
+  addHook(constants.HOOKS.BEFORE_PAGE_LOADS, "home", async () => {
     const gtinResolver = require("gtin-resolver");
     const openDSU = require("opendsu");
     const scAPI = openDSU.loadAPI("sc");

@@ -2,6 +2,7 @@ import MessagesService from "../services/MessagesService.js";
 import FailedLogDataSource from "../datasources/Import/FailedLogDataSource.js";
 import SuccessLogDataSource from "../datasources/Import/SuccessLogDataSource.js";
 import utils from "../utils.js";
+import constants from "../constants.js";
 
 const {FwController} = WebCardinal.controllers;
 
@@ -20,7 +21,7 @@ export default class importController extends FwController {
         accept: ".json",
         listFiles: false,
         filesAppend: true,
-        "event-name": "uploadProducts",
+        "event-name": constants.HTML_EVENTS.UPLOADPRODUCTS,
         "list-files": false
       },
       importIsDisabled: true,
@@ -33,7 +34,7 @@ export default class importController extends FwController {
       failedDataSource: new FailedLogDataSource(this.storageService),
     };
 
-    this.on('uploadProducts', (event) => {
+    this.on(constants.HTML_EVENTS.UPLOADPRODUCTS, (event) => {
       this.filesArray = event.data || [];
       this.model.importIsDisabled = this.filesArray.length === 0;
       if (this.filesArray.length !== 0) {
@@ -147,7 +148,7 @@ export default class importController extends FwController {
     let foundIcon = this.querySelector(".fa-check");
     let notFoundIcon = this.querySelector(".fa-ban");
     if (searchInput) {
-      searchInput.addEventListener("search", async (event) => {
+      searchInput.addEventListener(constants.HTML_EVENTS.SEARCH, async (event) => {
         notFoundIcon.style.display = "none";
         foundIcon.style.display = "none";
         if (event.target.value) {
@@ -208,7 +209,7 @@ export default class importController extends FwController {
         }, {model: this.model});
     })
 
-    this.onTagEvent("retry-all-click", "change", (model, target, evt) => {
+    this.onTagEvent("retry-all-click", constants.HTML_EVENTS.CHANGE, (model, target, evt) => {
       this.querySelectorAll(".failed-message").forEach((elem) => {
         elem.checked = target.checked;
         elem.value = target.checked;
@@ -227,7 +228,7 @@ export default class importController extends FwController {
 
     })
 
-    this.onTagEvent("retry-item-click", "change", (model, target, evt) => {
+    this.onTagEvent("retry-item-click", constants.HTML_EVENTS.CHANGE, (model, target, evt) => {
       model.retry = target.checked;
       if (!target.checked) {
         this.model.failedImportedLogs.splice(this.model.failedImportedLogs.indexOf(model), 1);

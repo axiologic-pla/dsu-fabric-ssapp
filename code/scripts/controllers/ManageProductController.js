@@ -180,7 +180,7 @@ export default class ManageProductController extends FwController {
   }
 
   addEventListeners() {
-    this.onTagEvent("productcode-edit", "focusout", (model, target, event) => {
+    this.onTagEvent("productcode-edit", constants.HTML_EVENTS.FOCUSOUT, (model, target, event) => {
       this.validateGTIN(target.value);
     })
 
