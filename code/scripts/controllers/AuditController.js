@@ -140,7 +140,7 @@ export default class AuditController extends FwController {
       let row = "";
       for (let colTitle of titles) {
         if ("details" === colTitle) {
-          let details = JSON.parse(item[colTitle]);
+          let details = item[colTitle];
           let auditDetails = await utils.getLogDetails(details);
           if (auditDetails.diffs && Object.keys(auditDetails.diffs).length > 0) {
             row += "diffs: " + JSON.stringify(auditDetails.diffs).replace(/,/g, ";") + ";";

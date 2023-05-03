@@ -80,20 +80,17 @@ function GenerateDIDController(...props) {
     }
 
     if (sharedEnclave) {
+      let userRights;
+      try{
+        userRights = await utils.getUserRights();
+      }catch(err){
+        if(err.rootCause === "security"){
+          return false;
+        }
+        return $$.forceTabRefresh();
+      }
       return true;
     }
-
-    //TO be verified if this is needed
-
-    /* let credential;
-     try {
-         credential = await $$.promisify(self.mainEnclave.readKey)(constants.CREDENTIAL_KEY);
-     } catch (e) {
-     }
-
-     if (credential && credential !== constants.CREDENTIAL_DELETED) {
-         return true;
-     }*/
 
     return false;
   }
@@ -122,21 +119,6 @@ function GenerateDIDController(...props) {
     await saveCredential(message);
     await setSharedEnclave(message)
 
-
-    /*
-        self.mainEnclave.writeKey(constants.CREDENTIAL_KEY, message.credential, err => {
-          if (err) {
-            return self.notificationHandler.reportUserRelevantError("Failed to save wallet credentials", err);
-            //  console.log(err);
-          }
-
-          self.setSharedEnclaveFromMessage(message)
-            .then(() => {
-              self.authorizationIsDone();
-            }).catch(e => {
-            self.notificationHandler.reportUserRelevantError("Failed to finish authorisation process", e);
-          })
-        })*/
   }
 
   self.createDID = async () => {

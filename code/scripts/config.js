@@ -7,36 +7,47 @@ const {define} = WebCardinal.components;
 const {setConfig, getConfig, addHook, addControllers} = WebCardinal.preload;
 const {FwController} = await import("./controllers/FwController.js");
 
-utils.overrideConsoleError();
-
-async function initializeWebCardinalConfig() {
-  const config = getConfig();
-  let userDetails;
+async function watchAndHandleExecution(fnc) {
   try {
-    userDetails = await utils.getUserDetails();
+    await fnc();
   } catch (err) {
-    if (window.confirm("Looks that your application is not properly initialized or in an invalid state. If it is the first time when you see this click on the cancel button and follow the instructions. If you keep receiving this please click confirm button in order to reset you wallet!")) {
+    if (err.rootCause === "security") {
+      return $$.navigateToPage("generate-did");
+    }
+    if (window.confirm("Looks that your application is not properly initialized or in an invalid state. Would you like to reset it?")) {
       try {
         const response = await fetch("/removeSSOSecret/DSU_Fabric", {
           method: "DELETE",
           cache: "no-cache"
         })
         if (response.ok) {
-          window.disableRefreshSafetyAlert = true;
           const basePath = window.location.href.split("loader")[0];
-          window.location.replace(basePath + "loader/newWallet.html");
+          $$.forceRedirect(basePath + "loader/newWallet.html");
         } else {
           let er = new Error(`Reset request failed (${response.status})`);
           er.rootCause = `statusCode: ${response.status}`;
           throw er;
         }
       } catch (err) {
-        alert(`Failed to reset the application. RootCause: ${err.message}`);
+        $$.showErrorAlert(`Failed to reset the application. RootCause: ${err.message}`);
+        $$.forceTabRefresh();
       }
     } else {
-      alert(`Application is an undesired state! Contact support!`);
+      $$.showErrorAlert(`Application is an undesired state! It is a good idea to close all browser windows and try again!`);
+      $$.forceTabRefresh();
     }
   }
+  return true;
+}
+
+async function initializeWebCardinalConfig() {
+
+  const config = getConfig();
+  let userDetails;
+
+  await watchAndHandleExecution(async () => {
+    userDetails = await utils.getUserDetails();
+  });
 
   config.identity = {
     avatar: "assets/images/user.png"
@@ -51,7 +62,6 @@ async function initializeWebCardinalConfig() {
 }
 
 let config = await initializeWebCardinalConfig();
-
 
 async function setupGlobalErrorHandlers() {
   let errHandler = openDSU.loadAPI("error");
@@ -87,6 +97,7 @@ function finishInit() {
   });
 
   addHook(constants.HOOKS.BEFORE_APP_LOADS, async () => {
+
     // load fabric base Controller
     addControllers({FwController});
 
@@ -95,9 +106,7 @@ function finishInit() {
     const scAPI = openDSU.loadAPI("sc");
     const typicalBusinessLogicHub = didAPI.getTypicalBusinessLogicHub();
     const onUserRemovedMessage = (message) => {
-      let notificationHandler = openDSU.loadAPI("error");
-      notificationHandler.reportUserRelevantWarning("Your account was deleted. Please contact an admin to see the reason");
-      window.disableRefreshSafetyAlert = true;
+      $$.disableAlerts();
       typicalBusinessLogicHub.stop();
       scAPI.getMainEnclave(async (err, mainEnclave) => {
         if (err) {
@@ -117,10 +126,8 @@ function finishInit() {
             console.log(e);
           }
         }
-        window.disableRefreshSafetyAlert = true;
-        window.top.location.reload();
-        return $$.history.go("generate-did");
-      })
+        return $$.forceTabRefresh();
+      });
     }
 
     typicalBusinessLogicHub.strongSubscribe(constants.MESSAGE_TYPES.USER_REMOVED, onUserRemovedMessage);
@@ -135,12 +142,17 @@ function finishInit() {
     const scAPI = openDSU.loadAPI("sc");
     const w3cdid = openDSU.loadAPI("w3cdid");
     const LogService = gtinResolver.loadApi("services").LogService;
-    let userRights = await utils.getUserRights();
+
+    await watchAndHandleExecution(async () => {
+      let userRights = await utils.getUserRights();
+      FwController.prototype.userRights = userRights;
+      FwController.prototype.canWrite = () => {
+        return userRights === constants.USER_RIGHTS.WRITE;
+      };
+    });
+
     let userGroupName = "-";
-    FwController.prototype.userRights = userRights;
-    FwController.prototype.canWrite = () => {
-      return userRights === "readwrite";
-    };
+
     try {
       let storageService = await $$.promisify(getSharedStorage)();
       FwController.prototype.storageService = storageService;
@@ -186,7 +198,7 @@ function finishInit() {
 
     } catch (e) {
       console.log("Could not initialise properly FwController", e);
-      alert("Could not initialise the app properly. Contact support!");
+      $$.showErrorAlert("Could not initialise the app properly. It is a good idea to close all browser windows and try again!");
     }
 
     try {
@@ -194,7 +206,7 @@ function finishInit() {
       FwController.prototype.disabledFeatures = disabledFeatures;
     } catch (e) {
       console.log("Could not initialise properly FwController", e);
-      alert("Could not initialise the app properly. Contact support!");
+      $$.showErrorAlert("Could not initialise the app properly. It is a good idea to close all browser windows and try again!");
     }
   });
 

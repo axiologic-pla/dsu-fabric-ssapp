@@ -58,5 +58,9 @@ export default {
     VALID: "validSerialNumbers",
     RECALLED: "recalledSerialNumbers",
     DECOMMISSIONED: "decommissionedSerialNumbers"
+  },
+  USER_RIGHTS:{
+    READ:"readonly",
+    WRITE:"readwrite"
   }
 }
