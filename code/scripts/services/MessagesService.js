@@ -46,54 +46,59 @@ function skipMessages(messages){
     return undigestedMessages;
 }
 
+async function _acquireLock(identifier, period, attempts, timeout){
+    const opendsu = require("opendsu");
+    const utils = opendsu.loadApi("utils");
+    const lockApi = opendsu.loadApi("lock");
+    const crypto = opendsu.loadApi("crypto");
+    let secret = crypto.encodeBase58(crypto.generateRandom(32));
+
+    let lockAcquired;
+    let noAttempts = attempts;
+    while(noAttempts>0){
+        noAttempts--;
+        lockAcquired = await lockApi.lockAsync(identifier, secret, period);
+        if(!lockAcquired){
+            await utils.sleepAsync(timeout);
+        }else{
+            break;
+        }
+        if(noAttempts === 0){
+            if (window.confirm("Other user is editing right now. Do you want to wait for him to finish?")) {
+                noAttempts = attempts;
+            }
+        }
+    }
+    if (!lockAcquired) {
+        secret = undefined;
+    }
+
+    return secret;
+}
+
+async function _releaseLock(identifier, secret){
+    const opendsu = require("opendsu");
+    const lockApi = opendsu.loadApi("lock");
+    try{
+        await lockApi.unlockAsync(identifier, secret);
+    }catch(err){
+        console.error("Failed to release lock", err);
+    }
+}
+
 function getStorageService(dsuStorage) {
     if(dsuStorage.wrapped){
        return dsuStorage;
     }
 
-
     async function acquireLock(period, attempts, timeout){
         let identifier = await dsuStorage.getUniqueIdAsync();
-
-        const opendsu = require("opendsu");
-        const utils = opendsu.loadApi("utils");
-        const lockApi = opendsu.loadApi("lock");
-        const crypto = opendsu.loadApi("crypto");
-        let secret = crypto.encodeBase58(crypto.generateRandom(32));
-
-        let lockAcquired;
-        let noAttempts = attempts;
-        while(noAttempts>0){
-            noAttempts--;
-            lockAcquired = await lockApi.lockAsync(identifier, secret, period);
-            if(!lockAcquired){
-                await utils.sleepAsync(timeout);
-            }else{
-                break;
-            }
-            if(noAttempts === 0){
-                if (window.confirm("Other user is editing right now. Do you want to wait for him to finish?")) {
-                    noAttempts = attempts;
-                }
-            }
-        }
-        if (!lockAcquired) {
-            secret = undefined;
-        }
-
-        return secret;
+        return await _acquireLock(identifier, period, attempts, timeout);
     }
 
     async function releaseLock(secret){
         let identifier = await dsuStorage.getUniqueIdAsync();
-
-        const opendsu = require("opendsu");
-        const lockApi = opendsu.loadApi("lock");
-        try{
-            await lockApi.unlockAsync(identifier, secret);
-        }catch(err){
-            console.error("Failed to release lock", err);
-        }
+        await _releaseLock(identifier, secret);
     }
 
 
@@ -323,5 +328,8 @@ export default {
     processMessages,
     digestMessagesOneByOne,
     processMessagesWithoutGrouping,
-    getStorageService
+    getStorageService,
+    acquireLock:_acquireLock,
+    releaseLock:_releaseLock
 }
+

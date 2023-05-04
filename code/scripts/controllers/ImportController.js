@@ -45,6 +45,8 @@ export default class importController extends FwController {
     let self = this;
 
     async function digest(messages) {
+      await this.predigest(messages);
+
       let failedMessages = [];
       for (let msg of messages) {
         let promisified = $$.promisify(MessagesService.processMessagesWithoutGrouping);
@@ -288,6 +290,69 @@ export default class importController extends FwController {
 
   }
 
+  async predigest(messages){
+    let digestLog = await this.buildDigestLog(messages);
+    let auditEnclave = await this.getEnclaveBypassingAnyCache();
+    let id = await auditEnclave.getUniqueIdAsync();
+    let secret = await MessagesService.acquireLock(id, 60000, 100, 500);
+    let pk = require("opendsu").loadApi("crypto").generateRandom(32);
+    auditEnclave.insertRecord(undefined, "logs", pk, digestLog, async (err)=>{
+      await MessagesService.releaseLock(id, secret);
+      if(err){
+        alert("There was an error during audit save: "+err.message+" "+err.stack);
+      }
+    });
+  }
+
+  async getEnclaveBypassingAnyCache(){
+    return new Promise(async (resolve, reject)=>{
+      try{
+        let keySSI = await $$.promisify(this.storageService.getKeySSI, this.storageService)();
+        let storageDSU = await $$.promisify(this.storageService.getDSU, this.storageService)();
+        storageDSU.marked = true;
+        let auditEnclave = require("opendsu").loadApi("enclave").initialiseWalletDBEnclave(keySSI);
+        auditEnclave.on("initialised", async ()=>{
+          let storageDSU = await $$.promisify(auditEnclave.getDSU, auditEnclave)();
+          if(storageDSU.marked){
+            return reject(Error('Failed to obtain a clean sharedEnclave instance'));
+          }
+          resolve(auditEnclave);
+        })
+      }catch (err){
+        reject(err);
+      }
+    });
+  }
+
+  async buildDigestLog(messages){
+    let summary = [];
+    let log = {reason:`The processing of ${messages.length} message(s) has been initiated.`, logInfo:{summary, messages}};
+    // we try to be sure that we capture the username of the current user even if there was a problem and the message array is empty
+    let dummyMessage = await utils.ensureMinimalInfoOnMessage({});
+    log.username = dummyMessage.senderId;
+
+    for(let index in messages){
+      let msg = messages[index];
+      let summaryItem = `[${index}] Message type ${msg.messageType} for `;
+      let identifiedTarget = false;
+      let target = msg.product || msg.batch || msg.videos || msg;
+      if(target.productCode){
+        summaryItem += `GTIN=${target.productCode} `;
+        identifiedTarget = true;
+      }
+      if(target.batch){
+        summaryItem += `Batch=${target.batch} `;
+        identifiedTarget = true;
+      }
+
+      if(!identifiedTarget){
+        summaryItem += "unidentified product/batch (possible wrong message format)";
+      }
+      summary.push(summaryItem);
+    }
+    return log;
+  }
+
   prepareModalInformation(err, undigested, messages) {
     return {
       title: 'Import failed',
@@ -368,3 +433,4 @@ export default class importController extends FwController {
   }
 
 }
+
