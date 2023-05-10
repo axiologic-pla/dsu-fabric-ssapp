@@ -126,11 +126,13 @@ export default class ProductsController extends FwController {
               return callback(err);
             }
             product.transferred = false;
-            this.storageService.insertRecord(constants.PRODUCTS_TABLE, `${product.gtin}`, product,
-              () => {
-                this.model.prodDataSource.forceUpdate(true);
-              }
-            );
+            this.storageService.safeBeginBatch(err => {
+                this.storageService.insertRecord(constants.PRODUCTS_TABLE, `${product.gtin}`, product,
+                    async () => {
+                        this.model.prodDataSource.forceUpdate(true);
+                        await this.storageService.commitBatchAsync();
+                    });
+                })
           }
         );
       }

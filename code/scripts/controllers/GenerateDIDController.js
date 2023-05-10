@@ -46,7 +46,9 @@ function GenerateDIDController(...props) {
         typicalBusinessLogicHub.subscribe(constants.MESSAGE_TYPES.ADD_MEMBER_TO_GROUP, self.onMessageReceived);
 
         self.model.identity = did;
+        await self.mainEnclave.safeBeginBatchAsync();
         await $$.promisify(self.mainEnclave.writeKey)(constants.IDENTITY_KEY, self.model.identity);
+        await self.mainEnclave.commitBatchAsync();
     })
 
     self.on("copy-text", (event) => {
@@ -151,8 +153,9 @@ function GenerateDIDController(...props) {
         env[openDSU.constants.SHARED_ENCLAVE.TYPE] = message.enclave.enclaveType;
         env[openDSU.constants.SHARED_ENCLAVE.DID] = message.enclave.enclaveDID;
         env[openDSU.constants.SHARED_ENCLAVE.KEY_SSI] = message.enclave.enclaveKeySSI;
-        await $$.promisify(self.mainDSU.refresh)();
+        await self.mainDSU.safeBeginBatchAsync();
         await $$.promisify(self.mainDSU.writeFile)("/environment.json", JSON.stringify(env));
+        await self.mainDSU.commitBatchAsync();
         scAPI.refreshSecurityContext();
     }
 
