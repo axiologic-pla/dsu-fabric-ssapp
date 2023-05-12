@@ -542,8 +542,9 @@ export default class addBatchController extends FwController {
       }
 
       this.model.serial_update_options.value = "Select an option";
-
+      await this.storageService.safeBeginBatchAsync();
       await $$.promisify(this.storageService.insertRecord.bind(this.storageService))(this.model.batch.batchNumber, serialNumbersLog.creationTime, serialNumbersLog);
+      await this.storageService.commitBatchAsync();
       this.manageUpdateButtonState();
       return;
     }, () => {

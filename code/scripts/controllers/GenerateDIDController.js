@@ -62,9 +62,11 @@ function GenerateDIDController(...props) {
     self.denyAccess();
     typicalBusinessLogicHub.subscribe(constants.MESSAGE_TYPES.ADD_MEMBER_TO_GROUP, self.onMessageReceived);
 
-    self.model.identity = did;
-    await $$.promisify(self.mainEnclave.writeKey)(constants.IDENTITY_KEY, self.model.identity);
-  })
+        self.model.identity = did;
+        await self.mainEnclave.safeBeginBatchAsync();
+        await $$.promisify(self.mainEnclave.writeKey)(constants.IDENTITY_KEY, self.model.identity);
+        await self.mainEnclave.commitBatchAsync();
+    })
 
   self.on("copy-text", (event) => {
     copyToClipboard(event.data);
@@ -165,16 +167,17 @@ function GenerateDIDController(...props) {
     self.hideSpinner();
   }
 
-  self.setSharedEnclaveFromMessage = async (message) => {
-    let env = await $$.promisify(self.mainDSU.readFile)("/environment.json");
-    env = JSON.parse(env.toString());
-    env[openDSU.constants.SHARED_ENCLAVE.TYPE] = message.enclave.enclaveType;
-    env[openDSU.constants.SHARED_ENCLAVE.DID] = message.enclave.enclaveDID;
-    env[openDSU.constants.SHARED_ENCLAVE.KEY_SSI] = message.enclave.enclaveKeySSI;
-    await $$.promisify(self.mainDSU.refresh)();
-    await $$.promisify(self.mainDSU.writeFile)("/environment.json", JSON.stringify(env));
-    scAPI.refreshSecurityContext();
-  }
+    self.setSharedEnclaveFromMessage = async (message) => {
+        let env = await $$.promisify(self.mainDSU.readFile)("/environment.json");
+        env = JSON.parse(env.toString());
+        env[openDSU.constants.SHARED_ENCLAVE.TYPE] = message.enclave.enclaveType;
+        env[openDSU.constants.SHARED_ENCLAVE.DID] = message.enclave.enclaveDID;
+        env[openDSU.constants.SHARED_ENCLAVE.KEY_SSI] = message.enclave.enclaveKeySSI;
+        await self.mainDSU.safeBeginBatchAsync();
+        await $$.promisify(self.mainDSU.writeFile)("/environment.json", JSON.stringify(env));
+        await self.mainDSU.commitBatchAsync();
+        scAPI.refreshSecurityContext();
+    }
 
   return self;
 }
