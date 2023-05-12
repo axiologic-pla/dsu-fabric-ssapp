@@ -296,11 +296,13 @@ export default class importController extends FwController {
     let id = await auditEnclave.getUniqueIdAsync();
     let secret = await MessagesService.acquireLock(id, 60000, 100, 500);
     let pk = require("opendsu").loadApi("crypto").generateRandom(32);
+    await auditEnclave.safeBeginBatchAsync();
     auditEnclave.insertRecord(undefined, "logs", pk, digestLog, async (err)=>{
       await MessagesService.releaseLock(id, secret);
       if(err){
         alert("There was an error during audit save: "+err.message+" "+err.stack);
       }
+      await auditEnclave.commitBatchAsync();
     });
   }
 
