@@ -63,7 +63,7 @@ psk-checkbox .form-check-inline {
 .background-container textarea:focus,
 .background-container .form-control,
 .background-container .form-control:focus,
-psk-date-input .form-control[readonly],
+df-date-input .form-control[readonly],
 .read-only-container .form-control[readonly] {
     border: none;
     background: none;
@@ -134,13 +134,13 @@ psk-select.default-select select {
     padding-right: 15px;
 }
 
-psk-date-input .form-group {
+df-date-input .form-group {
     margin: 0px;
     width: calc(100% + 25px);
     position: relative;
 }
 
-psk-date-input .formated-date:before {
+df-date-input .formated-date:before {
     left: 0px;
 }
 
@@ -210,7 +210,7 @@ input[type="date"]::after {
     font-weight: bolder;
     position: absolute;
     right: 15px;
-    top: 5px;
+    top: 6px;
 }
 
 input[type="month"]::after {
@@ -237,3 +237,4 @@ input[type="month"]::-webkit-calendar-picker-indicator {
     width: calc(100% - 15px);
     z-index: 1;
 }
+

@@ -35,20 +35,21 @@
                         <div class="p-0 col-sm-12 col-lg-6">
                             <i class="fa fa-pencil-square-o editable-icon"></i>
                             <div class="form-label pl-3">Expiry date</div>
+
                             <div class="background-container col mb-3" data-if="@batch.enableExpiryDay">
-
-                                <psk-date-input data-format="DD MM YYYY" placeholder="dd/mm/yyyy" required slot="true"
-                                                value="@batch.expiryForDisplay"></psk-date-input>
-                                <psk-date-input data-format="MM YYYY" placeholder="mm/yyyy" required slot="false"
-                                                type="month"
-                                                value="@batch.expiryForDisplay"></psk-date-input>
-
+                                <df-date-input type="date" slot="true"
+                                               data-format="DD MM YYYY"
+                                               placeholder="dd/mm/yyyy" required
+                                               value="@batch.expiryForDisplay"></df-date-input>
+                                <df-date-input type="month" slot="false"
+                                               data-format="MM YYYY"
+                                               placeholder="mm/yyyy" required
+                                               value="@batch.expiryForDisplay"></df-date-input>
                             </div>
                         </div>
                         <div class="col-sm-12 col-lg-auto ml-auto p-0">
                             <div class="checkbox-container">
-                                <input type="checkbox"
-                                       value="@batch.enableExpiryDay">
+                                <input type="checkbox" id="enable-day-checkbox" value="@batch.enableExpiryDay">
                                 <span class="checkbox-label">Enable day selection</span>
                             </div>
                         </div>

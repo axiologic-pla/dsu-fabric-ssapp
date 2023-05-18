@@ -1,6 +1,7 @@
 import utils from "./utils.js";
 import constants from "./constants.js";
 import getSharedStorage from "./services/SharedDBStorageService.js";
+import WebcDateInput from "../components/date-input/df-date-input.js";
 
 const openDSU = require("opendsu");
 const {define} = WebCardinal.components;
@@ -208,10 +209,13 @@ function finishInit() {
       console.log("Could not initialise properly FwController", e);
       $$.showErrorAlert("Could not initialise the app properly. It is a good idea to close all browser windows and try again!");
     }
+
+
   });
 
   define('epi-card', 'epi-card/template');
   define('page-template', {shadow: true});
+  customElements.define("df-date-input", WebcDateInput);
 }
 
 if (config.identity.name) {
