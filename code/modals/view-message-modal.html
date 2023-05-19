@@ -5,19 +5,37 @@
 
     <div data-if="@actionModalModel.showSecondMessage">
         <div slot="true">
-            <psk-accordion id="orange-tab-navigator" selected="0">
-                <psk-accordion-item title="Invalid fields info">
-                    <ul data-for="@actionModalModel.secondMessageData">
-                        <li> <h6 class="pl-4 mb-2 text-primary"><small><i class="fa fa-asterisk"></i></small> {{@field}} - {{@message}} </h6></li>
+            <!--   <psk-accordion>
+                   <psk-accordion-item title="Invalid fields info">
+                       <ul data-for="@actionModalModel.secondMessageData">
+                           <li><h6 class="pl-4 mb-2 text-primary"><small><i class="fa fa-asterisk"></i></small> {{@field}}
+                               - {{@message}} </h6></li>
+                       </ul>
+                   </psk-accordion-item>
+                   <psk-accordion-item opened="true" title="Message">
+                       <psk-code id="view-json" language="json">
+                           {{@actionModalModel.messageData}}
+                       </psk-code>
+                   </psk-accordion-item>
+
+               </psk-accordion>-->
+
+            <df-accordion id="orange-tab-navigator" selected="0" class="hydrated">
+                <df-accordion-item>
+                    <div class="title" slot="accordion-item-title">Invalid fields info</div>
+                    <ul slot="accordion-item-content" data-for="@actionModalModel.secondMessageData">
+                        <li><h6 class="pl-4 mb-2 text-primary"><small><i class="fa fa-asterisk"></i></small> {{@field}}
+                            - {{@message}} </h6></li>
                     </ul>
-                </psk-accordion-item>
-                <psk-accordion-item opened="true" title="Message">
-                    <psk-code id="view-json" language="json">
+                </df-accordion-item>
+                <df-accordion-item class="active">
+                    <div class="title" slot="accordion-item-title">Message</div>
+                    <psk-code id="view-json" language="json" slot="accordion-item-content">
                         {{@actionModalModel.messageData}}
                     </psk-code>
-                </psk-accordion-item>
+                </df-accordion-item>
 
-            </psk-accordion>
+            </df-accordion>
         </div>
 
         <div class="code-container" slot="false">
@@ -41,7 +59,35 @@
         max-height: 55vh;
         max-width: 99vw;
     }
-   webc-modal{
-       --max-width: 992px;
-   }
+
+    webc-modal {
+        --max-width: 992px;
+    }
+
+
+    df-accordion-item::part(acc-item-content) {
+        margin: 0 auto;
+    }
+
+    df-accordion-item::part( acc-item-title) {
+        position: relative;
+        cursor: pointer;
+        color: rgb(94, 127, 226);
+        font-family: "Open Sans", "Helvetica Neue", sans-serif;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        outline: none;
+        border: 2px solid transparent;
+    }
+
+    df-accordion-item::part( acc-item-title):after {
+        border-right: 3px solid rgb(94, 127, 226);
+        border-top: 3px solid rgb(94, 127, 226);
+    }
+
+    df-accordion-item.active::part( acc-item-title) {
+        background-color: rgba(94, 127, 226, 0.145);
+        border-radius: 5px 5px 0px 0px;
+    }
 </style>
