@@ -1,9 +1,11 @@
 import utils from "./utils.js";
 import constants from "./constants.js";
 import getSharedStorage from "./services/SharedDBStorageService.js";
-import WebcDateInput from "../components/date-input/df-date-input.js";
-import WebcAccordion from "../components/accordion/webc-accordion.js";
-import WebcAccordionItem from "../components/accordion/webc-accordion-item.js";
+
+import WebcAccordion from "../components/web-components/accordion/webc-accordion.js";
+import WebcAccordionItem from "../components/web-components/accordion/webc-accordion-item.js";
+import WebcTabNavigator from "../components/web-components/tab-navigator/webc-tab-panel.js";
+import WebcDateInput from "../components/web-components/date-input/webc-date-input.js";
 
 const openDSU = require("opendsu");
 const {define} = WebCardinal.components;
@@ -220,7 +222,7 @@ function finishInit() {
   customElements.define("df-date-input", WebcDateInput);
   customElements.define("df-accordion-item", WebcAccordionItem);
   customElements.define("df-accordion", WebcAccordion);
-
+  customElements.define("df-tab-panel", WebcTabNavigator);
 
 }
 
