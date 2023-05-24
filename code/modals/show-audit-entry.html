@@ -3,9 +3,9 @@
 </div>
 <main>
     <div class="code-container">
-        <psk-code id="view-json" language="json">
-            {{@actionModalModel.messageData}}
-        </psk-code>
+        <div id="view-json">
+            <pre> <code> {{@actionModalModel.messageData}} </code></pre>
+        </div>
     </div>
 </main>
 <footer class="modal-action-menu" slot="footer">
@@ -20,7 +20,8 @@
         max-height: 55vh;
         max-width: 99vw;
     }
-    webc-modal{
+
+    webc-modal {
         --max-width: 992px;
     }
 </style>

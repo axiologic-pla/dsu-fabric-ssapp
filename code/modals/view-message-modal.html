@@ -24,24 +24,24 @@
                 <df-accordion-item>
                     <div class="title" slot="accordion-item-title">Invalid fields info</div>
                     <ul slot="accordion-item-content" data-for="@actionModalModel.secondMessageData">
-                        <li><h6 class="pl-4 mb-2 text-primary"><small><i class="fa fa-asterisk"></i></small> {{@field}}
+                        <li><h6 class="pl-4 mb-2 "><small><i class="fa fa-asterisk"></i></small> {{@field}}
                             - {{@message}} </h6></li>
                     </ul>
                 </df-accordion-item>
                 <df-accordion-item class="active">
                     <div class="title" slot="accordion-item-title">Message</div>
-                    <psk-code id="view-json" language="json" slot="accordion-item-content">
-                        {{@actionModalModel.messageData}}
-                    </psk-code>
+                    <div slot="accordion-item-content">
+                        <pre> <code>{{@actionModalModel.messageData}} </code></pre>
+                    </div>
                 </df-accordion-item>
 
             </df-accordion>
         </div>
 
         <div class="code-container" slot="false">
-            <psk-code id="view-json" language="json">
-                {{@actionModalModel.messageData}}
-            </psk-code>
+            <div>
+                <pre> <code> {{@actionModalModel.messageData}}</code></pre>
+            </div>
         </div>
     </div>
 
@@ -64,26 +64,41 @@
         --max-width: 992px;
     }
 
+    df-accordion-item::part(acc-item-container) {
+        padding: 0px;
+        background: #95C5B2;
+    }
+
+    df-accordion-item.active::part(acc-item-container) {
+        background: #3B7D63;
+    }
 
     df-accordion-item::part(acc-item-content) {
         margin: 0 auto;
+        background: #FFFFFF;
+        color: #565656;
+    }
+
+    df-accordion-item.active::part(acc-item-content) {
+        padding: 1rem 0;
     }
 
     df-accordion-item::part( acc-item-title) {
         position: relative;
         cursor: pointer;
-        color: rgb(94, 127, 226);
+        color: #FFFFFF;
         font-family: "Open Sans", "Helvetica Neue", sans-serif;
         font-size: 20px;
         display: flex;
         align-items: center;
         outline: none;
         border: 2px solid transparent;
+
     }
 
     df-accordion-item::part( acc-item-title):after {
-        border-right: 3px solid rgb(94, 127, 226);
-        border-top: 3px solid rgb(94, 127, 226);
+        border-right: 3px solid #FFFFFF;
+        border-top: 3px solid #FFFFFF;
     }
 
     df-accordion-item.active::part( acc-item-title) {

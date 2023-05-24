@@ -34,10 +34,10 @@ export default class HolderController extends FwController {
           readableCredentialElement.remove();
         }
 
-        readableCredentialElement = document.createElement('psk-code');
+        readableCredentialElement = document.createElement('div');
         readableCredentialElement.id = "readableCredential";
         readableCredentialElement.language = "json";
-        readableCredentialElement.innerHTML = this.model.readableCredential;
+        readableCredentialElement.innerHTML = `<pre><code> ${this.model.readableCredential} </code></pre>`;
         readableContainer.appendChild(readableCredentialElement);
         /*
          * hidden for MVP1
@@ -145,10 +145,10 @@ export default class HolderController extends FwController {
     if (environmentDataElement) {
       environmentDataElement.remove();
     }
-    environmentDataElement = document.createElement('psk-code');
+    environmentDataElement = document.createElement('div');
     environmentDataElement.id = "environmentData";
     environmentDataElement.language = "json";
-    environmentDataElement.innerHTML = JSON.stringify(envFile, null, 4);
+    environmentDataElement.innerHTML = `<pre><code>${JSON.stringify(envFile, null, 4)}</code></pre>`;
     environmentContainer.appendChild(environmentDataElement);
   }
 }

@@ -28,7 +28,6 @@
 }
 
 
-psk-input div input,
 psk-textarea div textarea,
 .context-group {
     box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.3);
@@ -134,13 +133,8 @@ psk-select.default-select select {
     padding-right: 15px;
 }
 
-df-date-input .form-group {
-    margin: 0px;
-    width: calc(100% + 25px);
-    position: relative;
-}
 
-df-date-input .formated-date:before {
+df-date-input::part(input-element):before {
     left: 0px;
 }
 
@@ -203,38 +197,6 @@ df-date-input .formated-date:before {
     margin-top: 15px;
 }
 
-input[type="date"]::after {
-    content: '\f073';
-    font-family: 'FontAwesome';
-    color: black;
-    font-weight: bolder;
-    position: absolute;
-    right: 15px;
-    top: 6px;
+df-date-input::part(input-element) {
+    font-family: sans-serif;
 }
-
-input[type="month"]::after {
-    content: '\f133';
-    font-family: 'FontAwesome';
-    color: black;
-    font-weight: bolder;
-    position: absolute;
-    right: 15px;
-    top: 5px;
-}
-
-input[type="date"]::-webkit-calendar-picker-indicator,
-input[type="month"]::-webkit-calendar-picker-indicator {
-    background: transparent;
-    bottom: 0;
-    color: transparent;
-    cursor: pointer;
-    height: auto;
-    left: 0;
-    position: absolute;
-    right: 0px;
-    top: 0px;
-    width: calc(100% - 15px);
-    z-index: 1;
-}
-
