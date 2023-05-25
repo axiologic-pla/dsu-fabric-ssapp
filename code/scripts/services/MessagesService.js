@@ -135,21 +135,11 @@ function getStorageService(dsuStorage) {
             await $$.promisify(dsuStorage.cancelBatch)();
 
             try{
-                await $$.promisify(dsuStorage.refresh, dsuStorage)();
-                originalBegin.call(dsuStorage);
                 await $$.promisify(_logFailedMessages)(failedMessages, dsuStorage);
             }catch(err){
                 console.log(err);
                 error = err;
             }
-        }
-
-        try{
-            await $$.promisify(originalCommit, dsuStorage)();
-        }catch(err){
-            console.log(err);
-            alert(err);
-            error = err;
         }
 
         await releaseLock(lock);
