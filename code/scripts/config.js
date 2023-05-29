@@ -136,8 +136,6 @@ function finishInit() {
     }
 
     typicalBusinessLogicHub.strongSubscribe(constants.MESSAGE_TYPES.USER_REMOVED, onUserRemovedMessage);
-    // load Custom Components
-    await import("../components/tab-navigator/dsu-tab-panel.js");
     await setupGlobalErrorHandlers();
   })
 
