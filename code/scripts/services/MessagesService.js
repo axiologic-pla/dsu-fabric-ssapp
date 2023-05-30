@@ -101,28 +101,6 @@ function getStorageService(dsuStorage) {
         await _releaseLock(identifier, secret);
     }
 
-
-    let originalCommit = dsuStorage.commitBatch;
-    let originalBegin = dsuStorage.beginBatch;
-    let originalCancel = dsuStorage.cancelBatch;
-
-    dsuStorage.commitBatch = function(forDID, callback){
-        //originalCommit.call(dsuStorage, ...args);
-        if(typeof forDID === "function"){
-            callback = forDID;
-            forDID = undefined;
-        }
-        callback();
-    }
-
-    dsuStorage.beginBatch = function(forDID){
-        originalBegin.call(dsuStorage, forDID);
-    }
-
-    dsuStorage.cancelBatch = function(...args){
-        originalCancel.call(dsuStorage, ...args);
-    }
-
     dsuStorage.failureAwareCommit = async function(failedMessages, callback){
         let lock;
         let error;

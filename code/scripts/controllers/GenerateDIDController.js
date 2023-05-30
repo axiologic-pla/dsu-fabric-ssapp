@@ -61,12 +61,25 @@ function GenerateDIDController(...props) {
 
     self.denyAccess();
     typicalBusinessLogicHub.subscribe(constants.MESSAGE_TYPES.ADD_MEMBER_TO_GROUP, self.onMessageReceived);
-
-        self.model.identity = did;
-        await self.mainEnclave.safeBeginBatchAsync();
-        await $$.promisify(self.mainEnclave.writeKey)(constants.IDENTITY_KEY, self.model.identity);
-        await self.mainEnclave.commitBatchAsync();
-    })
+    self.model.identity = did;
+    try{
+      await self.mainEnclave.safeBeginBatchAsync();
+    }catch (e) {
+      throw e;
+    }
+    try{
+      await $$.promisify(self.mainEnclave.writeKey)(constants.IDENTITY_KEY, self.model.identity);
+      await self.mainEnclave.commitBatchAsync();
+    } catch (e) {
+      const writeKeyError = createOpenDSUErrorWrapper(`Failed to write key`, e);
+      try {
+        await self.mainEnclave.cancelBatchAsync();
+      } catch (error) {
+        throw createOpenDSUErrorWrapper(`Failed to cancel batch`, error, writeKeyError);
+      }
+      throw writeKeyError;
+    }
+  })
 
   self.on("copy-text", (event) => {
     copyToClipboard(event.data);
@@ -173,9 +186,24 @@ function GenerateDIDController(...props) {
         env[openDSU.constants.SHARED_ENCLAVE.TYPE] = message.enclave.enclaveType;
         env[openDSU.constants.SHARED_ENCLAVE.DID] = message.enclave.enclaveDID;
         env[openDSU.constants.SHARED_ENCLAVE.KEY_SSI] = message.enclave.enclaveKeySSI;
-        await self.mainDSU.safeBeginBatchAsync();
-        await $$.promisify(self.mainDSU.writeFile)("/environment.json", JSON.stringify(env));
-        await self.mainDSU.commitBatchAsync();
+        try{
+          await self.mainDSU.safeBeginBatchAsync();
+        } catch (e) {
+            throw e;
+        }
+
+        try {
+          await $$.promisify(self.mainDSU.writeFile)("/environment.json", JSON.stringify(env));
+          await self.mainDSU.commitBatchAsync();
+        } catch (e) {
+          const writeFileError = createOpenDSUErrorWrapper(`Failed to write file`, e);
+          try {
+              await self.mainDSU.cancelBatchAsync();
+          } catch (error) {
+              throw createOpenDSUErrorWrapper(`Failed to cancel batch`, error, writeFileError);
+          }
+          throw writeFileError;
+        }
         scAPI.refreshSecurityContext();
     }
 

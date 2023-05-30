@@ -296,14 +296,25 @@ export default class importController extends FwController {
     let id = await auditEnclave.getUniqueIdAsync();
     let secret = await MessagesService.acquireLock(id, 60000, 100, 500);
     let pk = require("opendsu").loadApi("crypto").generateRandom(32);
-    await auditEnclave.safeBeginBatchAsync();
-    auditEnclave.insertRecord(undefined, "logs", pk, digestLog, async (err)=>{
-      await MessagesService.releaseLock(id, secret);
-      if(err){
-        alert("There was an error during audit save: "+err.message+" "+err.stack);
-      }
+    try{
+      await auditEnclave.safeBeginBatchAsync();
+    } catch(err){
+      throw err;
+    }
+
+    try{
+      await $$.promisify(auditEnclave.insertRecord)(undefined, "logs", pk, digestLog)
+      await MessagesService.releaseLock(id, secret)
       await auditEnclave.commitBatchAsync();
-    });
+    }catch (err) {
+      const insertError = createOpenDSUErrorWrapper(`Failed to insert record in enclave`, err);
+      try{
+        await auditEnclave.cancelBatchAsync();
+      }catch (e) {
+        console.log(createOpenDSUErrorWrapper(`Failed to cancel batch`, e, insertError));
+      }
+      alert("There was an error during audit save: "+insertError.message+" "+insertError.stack);
+    }
   }
 
   async getEnclaveBypassingAnyCache(){

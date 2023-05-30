@@ -546,9 +546,24 @@ export default class addBatchController extends FwController {
       }
 
       this.model.serial_update_options.value = "Select an option";
-      await this.storageService.safeBeginBatchAsync();
-      await $$.promisify(this.storageService.insertRecord.bind(this.storageService))(this.model.batch.batchNumber, serialNumbersLog.creationTime, serialNumbersLog);
-      await this.storageService.commitBatchAsync();
+      try{
+        await this.storageService.safeBeginBatchAsync();
+      }catch (e) {
+        this.manageUpdateButtonState();
+        throw e;
+      }
+      try{
+        await $$.promisify(this.storageService.insertRecord.bind(this.storageService))(this.model.batch.batchNumber, serialNumbersLog.creationTime, serialNumbersLog);
+        await this.storageService.commitBatchAsync();
+      }catch (e) {
+        this.manageUpdateButtonState();
+        const insertError = createOpenDSUErrorWrapper(`Failed to insert serial numbers log for batch ${this.model.batch.batchNumber}`, e);
+        try{
+          await this.storageService.cancelBatchAsync();
+        }catch (error) {
+          throw createOpenDSUErrorWrapper(`Failed to cancel batch for batch ${this.model.batch.batchNumber}`, error, insertError);
+        }
+      }
       this.manageUpdateButtonState();
       return;
     }, () => {
