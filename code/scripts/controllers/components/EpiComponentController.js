@@ -4,7 +4,8 @@ const Languages = gtinResolver.Languages
 const UploadTypes = gtinResolver.UploadTypes
 const {FwController} = WebCardinal.controllers;
 
-const utils = gtinResolver.utils
+import epiUtils from "./epiUtils.js";
+import utils from "./../../utils.js"
 
 
 export default class EpiComponentController extends FwController {
@@ -17,70 +18,30 @@ export default class EpiComponentController extends FwController {
 
     this.onTagClick("delete-language-leaflet", (model, target, event) => {
       let eventData = target.firstElementChild.innerText.split('/');
-      let cardIndex = this.gettypeAndLanguageIndex(eventData[0], eventData[1]);
-      this.model.languageTypeCards[cardIndex].action = LeafletService.LEAFLET_CARD_STATUS.DELETE;
-      if (this.model.languageTypeCards[cardIndex].videoSource) {
+      let selectedEpiCard = epiUtils.getSelectedEpiCard(this.model.languageTypeCards, eventData[0], eventData[1]);
+      selectedEpiCard.action = LeafletService.LEAFLET_CARD_STATUS.DELETE;
+      if (selectedEpiCard.videoSource) {
         this.model.videoSourceUpdated = true;
       }
       this.updateCardsForDisplay();
     });
 
 
-    this.onTagClick("preview-epi", async (model, target, event) => {
-      this.model.previewModalTitle = `Preview ${model.language.label} ${model.type.label}`;
+    this.onTagClick("preview-epi", async (epiModel, target, event) => {
 
-      let productName;
-      let productDescription;
-      if (this.model.batch) {
-        productName = this.model.batch.productName;
-        productDescription = this.model.productDescription;
-      } else {
-        productName = this.model.product.name;
-        productDescription = this.model.product.description;
-      }
-      productName = productName || "Brand/invented name is empty";
-      productDescription = productDescription || "Name of Medicinal Product is empty";
-
-      try {
-        let {xmlContent, leafletImages} = await this.getEpiContent(model);
-        this.model.epiData = {xmlContent, leafletImages, productName, productDescription};
-      } catch (e) {
-        return this.notificationHandler.reportUserRelevantError("Could not get data form EPI files", e);
-      }
+      utils.displayLoader();
+      let selectedEpi = epiUtils.getSelectedEpiCard(this.model.languageTypeCards, epiModel.language.value, epiModel.type.value);
+      let {previewModalTitle, epiData} = await epiUtils.getPreviewModel(this.model, selectedEpi);
+      this.model.previewModalTitle = previewModalTitle;
+      this.model.epiData = epiData;
 
       this.showModalFromTemplate("preview-epi/template", () => {
       }, () => {
-      }, {disableExpanding: true, disableFooter: true, model: this.model, controller: "modals/PreviewEpiController"})
+      }, {disableExpanding: true, disableFooter: true, model: this.model, controller: "modals/PreviewEpiController"});
+      utils.hideLoader();
 
     })
   }
-
-  async getEpiContent(model) {
-    let cardIndex = this.gettypeAndLanguageIndex(model.language.value, model.type.value);
-    let selectedLeafletCard = this.model.languageTypeCards[cardIndex];
-    let xmlContent;
-    let leafletImages = {};
-    for (let file of selectedLeafletCard.files) {
-      if (typeof file !== "object") {
-        //TODO create a service to get leaflet content and unify with get-leaflet api endpoint
-        let fileContent = await LeafletService.getLeafletFile(selectedLeafletCard.type.value, selectedLeafletCard.language.value, file, this.model);
-        if (file.endsWith('.xml')) {
-          xmlContent = fileContent.toString();
-        } else {
-          leafletImages[file] = utils.getImageAsBase64(fileContent)
-        }
-      } else {
-        if (file.name.endsWith('.xml')) {
-          xmlContent = await LeafletService.getFileContent(file);
-        } else {
-          let fileContent = await LeafletService.getFileContentAsBuffer(file);
-          leafletImages[file.name] = utils.getImageAsBase64(fileContent);
-        }
-      }
-    }
-    return {xmlContent, leafletImages}
-  }
-
 
   addLanguageTypeFilesListener(event) {
     let disabledFeatures = this.model.disabledFeatures.map(feature => {
@@ -124,9 +85,9 @@ export default class EpiComponentController extends FwController {
       let selectedType = select.options[select.selectedIndex].value;
       let selectedLanguage = Languages.getListAsVM().find(lang => lang.value === this.model.modalData.product.language);
       let leafletAction;
-      let cardIndex = this.gettypeAndLanguageIndex(selectedLanguage.value, selectedType);
-      if (cardIndex !== -1) {
-        if (this.model.languageTypeCards[cardIndex].action !== LeafletService.LEAFLET_CARD_STATUS.DELETE) {
+      let selectedEpi = epiUtils.getSelectedEpiCard(this.model.languageTypeCards, selectedLanguage.value, selectedType);
+      if (selectedEpi) {
+        if (selectedEpi.action !== LeafletService.LEAFLET_CARD_STATUS.DELETE) {
           alert(`You are about to update an existing leaflet for ${selectedLanguage.label} language`);
         }
         leafletAction = LeafletService.LEAFLET_CARD_STATUS.UPDATE;
@@ -150,10 +111,6 @@ export default class EpiComponentController extends FwController {
     }, {model: this.model});
   }
 
-
-  gettypeAndLanguageIndex(language, type) {
-    return this.model.languageTypeCards.findIndex(lf => lf.type.value === type && lf.language.value === language)
-  }
 
   updateCardsForDisplay() {
     this.model.languageTypeCardsForDisplay = this.model.languageTypeCards.filter(card => card.action !== LeafletService.LEAFLET_CARD_STATUS.DELETE)

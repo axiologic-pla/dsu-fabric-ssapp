@@ -8,6 +8,8 @@ const {FwController} = WebCardinal.controllers;
 const holderService = HolderService.getHolderService();
 const gtinResolverUtils = require("gtin-resolver").getMappingsUtils();
 const mappings = require("gtin-resolver").loadApi("mappings");
+const LogService = require("gtin-resolver").loadApi("services").LogService;
+
 const ModelMessageService = require("gtin-resolver").loadApi("services").ModelMessageService;
 const gtinResolver = require("gtin-resolver");
 
@@ -73,7 +75,7 @@ export default class addBatchController extends FwController {
 
     this.model.videoSourceUpdated = false;
     this.videoInitialDefaultSource = this.model.batch.videos.defaultSource;
-
+    this.initialModel = JSON.parse(JSON.stringify(this.model));
     if (editMode) {
       this.gtin = this.model.batch.gtin;
       //this.model.batch.version++;
@@ -85,6 +87,7 @@ export default class addBatchController extends FwController {
         submitButton.disabled = true;
         this.model.languageTypeCards = attachments.languageTypeCards;
         this.model.languageTypeCardsForDisplay = attachments.languageTypeCards;
+        this.model.batch.enableExpiryDay = this.model.batch.expiry.slice(-2) !== "00";
         this.initialCards = JSON.parse(JSON.stringify(this.model.languageTypeCards));
         this.initialModel = JSON.parse(JSON.stringify(this.model));
         this.model.onChange("batch", (...props) => {
@@ -94,7 +97,7 @@ export default class addBatchController extends FwController {
           this.manageUpdateButtonState();
         })
       });
-      this.model.batch.enableExpiryDay = this.model.batch.expiry.slice(-2) !== "00";
+
 
       this.getProductFromGtin(this.gtin, (err, product) => {
         this.model.batch.productName = product.name;
@@ -201,41 +204,7 @@ export default class addBatchController extends FwController {
     });
   }
 
-  async addOrUpdateBatch(operation) {
-    if (!this.model.batch.gtin) {
-      return this.notificationHandler.reportUserRelevantWarning("Invalid product code. Please select a valid code");
-    }
-    let batch = this.initBatch();
-
-    if (!batch.expiryForDisplay) {
-      return this.notificationHandler.reportUserRelevantWarning("Invalid date");
-    }
-    // manage ignore date if day is not used we save it as last day of the month
-    if (!batch.enableExpiryDay) {
-      batch.expiryForDisplay = utils.getIgnoreDayDate(batch.expiryForDisplay)
-    }
-    batch.expiry = utils.convertDateToGS1Format(batch.expiryForDisplay, batch.enableExpiryDay);
-
-    if (this.model.hasAcdcAuthFeature && !batch.acdcAuthFeatureSSI) {
-      return this.notificationHandler.reportUserRelevantWarning("You have enabled Authentication Feature. Please add a value or disable it");
-    }
-
-    let error = batch.validate();
-
-    if (error) {
-      return this.notificationHandler.reportUserRelevantWarning(error, createOpenDSUErrorWrapper("Invalid batch info ", error))
-    }
-
-    if (operation === "create") {
-      try {
-        let batchWithIdExists = await $$.promisify(this.storageService.getRecord, this.storageService)(constants.BATCHES_STORAGE_TABLE, gtinResolverUtils.getBatchMetadataPK(this.model.batch.gtin, this.model.batch.batchNumber));
-        return this.notificationHandler.reportUserRelevantWarning(`Batch ID is already in use for product with gtin ${this.model.batch.gtin}`, createOpenDSUErrorWrapper("Batch ID validation failed: ", "Batch ID is already in use"))
-      } catch (e) {
-        //do nothing just check if batch with batchId exists
-      }
-
-    }
-
+  async confirmSave(batch) {
     this.createWebcModal({
       disableExpanding: true,
       disableClosing: true,
@@ -271,7 +240,108 @@ export default class addBatchController extends FwController {
     } catch (e) {
       this.showErrorModal(e.message);
     }
+  }
+
+  async addOrUpdateBatch(operation) {
+    if (!this.model.batch.gtin) {
+      return this.notificationHandler.reportUserRelevantWarning("Invalid product code. Please select a valid code");
+    }
+    let batch = this.initBatch();
+
+    if (!batch.expiryForDisplay) {
+      return this.notificationHandler.reportUserRelevantWarning("Invalid date");
+    }
+    // manage ignore date if day is not used we save it as last day of the month
+    if (!batch.enableExpiryDay) {
+      batch.expiryForDisplay = utils.getIgnoreDayDate(batch.expiryForDisplay)
+    }
+    batch.expiry = utils.convertDateToGS1Format(batch.expiryForDisplay, batch.enableExpiryDay);
+
+    if (this.model.hasAcdcAuthFeature && !batch.acdcAuthFeatureSSI) {
+      return this.notificationHandler.reportUserRelevantWarning("You have enabled Authentication Feature. Please add a value or disable it");
+    }
+
+    let error = batch.validate();
+
+    if (error) {
+      return this.notificationHandler.reportUserRelevantWarning(error, createOpenDSUErrorWrapper("Invalid batch info ", error))
+    }
+
+    if (operation === "create") {
+      try {
+        let batchWithIdExists = await $$.promisify(this.storageService.getRecord, this.storageService)(constants.BATCHES_STORAGE_TABLE, gtinResolverUtils.getBatchMetadataPK(this.model.batch.gtin, this.model.batch.batchNumber));
+        return this.notificationHandler.reportUserRelevantWarning(`Batch ID is already in use for product with gtin ${this.model.batch.gtin}`, createOpenDSUErrorWrapper("Batch ID validation failed: ", "Batch ID is already in use"))
+      } catch (e) {
+        //do nothing just check if batch with batchId exists
+      }
+
+    }
+    this.model.diffs = this.getDiffs();
+
+    this.showModalFromTemplate("view-edit-changes/template", () => {
+      this.confirmSave(batch);
+    }, () => {
+      return
+    }, {
+      disableClosing: true,
+      model: this.model,
+      controller: "modals/PreviewEditChangesController"
+    })
+
   };
+
+  getDiffs() {
+    let result = [];
+    try {
+      let mappingLogService = mappings.getMappingLogsInstance(this.storageService, new LogService());
+      let diffs = mappingLogService.getDiffsForAudit(this.model.batch, this.initialModel.batch);
+      let epiDiffs = mappingLogService.getDiffsForAudit(this.model.languageTypeCards, this.initialCards);
+      Object.keys(diffs).forEach(key => {
+        if (key === "expiry") {
+          return;
+        }
+        if (key === "expiryForDisplay") {
+          result.push({
+            "changedProperty": constants.MODEL_LABELS_MAP.BATCH[key],
+            "oldValue": {
+              "isDate": !!diffs[key].oldValue,
+              "value": diffs[key].oldValue || " ",
+              "directDisplay": true,
+              "enableExpiryDay": diffs.enableExpiryDay ? diffs.enableExpiryDay.oldValue : this.model.batch.enableExpiryDay
+            },
+            "newValue": {
+              "isDate": !!diffs[key].newValue,
+              "value": diffs[key].newValue || " ",
+              "directDisplay": true,
+              "enableExpiryDay": diffs.enableExpiryDay ? diffs.enableExpiryDay.newValue : this.model.batch.enableExpiryDay
+            }
+          })
+          return;
+        }
+        result.push({
+          "changedProperty": constants.MODEL_LABELS_MAP.BATCH[key],
+          "oldValue": {"value": diffs[key].oldValue || " ", "directDisplay": true},
+          "newValue": {"value": diffs[key].newValue || " ", "directDisplay": true},
+        })
+      });
+      Object.keys(epiDiffs).forEach(key => {
+        result.push({
+          "changedProperty": `${epiDiffs[key].newValue.language.label} ${epiDiffs[key].newValue.type.label}`,
+          "oldValue": {"value": epiDiffs[key].oldValue || " ", "directDisplay": !!!epiDiffs[key].oldValue},
+          "newValue": {
+            "value": epiDiffs[key].newValue && epiDiffs[key].newValue.action !== "delete" ? epiDiffs[key].newValue : " ",
+            "directDisplay": !!!epiDiffs[key].newValue || epiDiffs[key].newValue.action === "delete"
+          },
+          "dataType": "epi"
+        })
+      });
+
+    } catch (e) {
+      console.log(e);
+    }
+
+    return result
+  }
 
   batchWasUpdated() {
     if (!this.model.editMode) {
@@ -461,9 +531,11 @@ export default class addBatchController extends FwController {
 
   initBatch() {
     let result = this.model.batch;
-    result.serialNumbers = this.stringToArray(this.model.serialNumbers);
-    result.recalledSerialNumbers = this.stringToArray(this.model.recalledSerialNumbers);
-    result.decommissionedSerialNumbers = this.stringToArray(this.model.decommissionedSerialNumbers);
+    //removed for MVP1
+    /* result.serialNumbers = this.stringToArray(this.model.serialNumbers);
+     result.recalledSerialNumbers = this.stringToArray(this.model.recalledSerialNumbers);
+     result.decommissionedSerialNumbers = this.stringToArray(this.model.decommissionedSerialNumbers);
+ */
     return result;
   }
 
@@ -546,21 +618,21 @@ export default class addBatchController extends FwController {
       }
 
       this.model.serial_update_options.value = "Select an option";
-      try{
+      try {
         await this.storageService.safeBeginBatchAsync();
-      }catch (e) {
+      } catch (e) {
         this.manageUpdateButtonState();
         throw e;
       }
-      try{
+      try {
         await $$.promisify(this.storageService.insertRecord.bind(this.storageService))(this.model.batch.batchNumber, serialNumbersLog.creationTime, serialNumbersLog);
         await this.storageService.commitBatchAsync();
-      }catch (e) {
+      } catch (e) {
         this.manageUpdateButtonState();
         const insertError = createOpenDSUErrorWrapper(`Failed to insert serial numbers log for batch ${this.model.batch.batchNumber}`, e);
-        try{
+        try {
           await this.storageService.cancelBatchAsync();
-        }catch (error) {
+        } catch (error) {
           throw createOpenDSUErrorWrapper(`Failed to cancel batch for batch ${this.model.batch.batchNumber}`, error, insertError);
         }
       }

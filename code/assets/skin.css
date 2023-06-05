@@ -7,7 +7,7 @@ webc-app-container {
     position: relative;
 }
 
-webc-app-error-toast{
+webc-app-error-toast {
     z-index: 100;
 }
 
@@ -37,8 +37,8 @@ webc-modal::part(main) {
     word-break: break-word;
 }
 
-webc-modal .header-color {
-    color: #565656 !important;
+.webc-modal-content::part(header) {
+    --header-color: #565656;
 }
 
 

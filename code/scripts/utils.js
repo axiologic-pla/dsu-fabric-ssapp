@@ -199,14 +199,14 @@ async function getUserDetails() {
   return await response.json();
 }
 
-async function isInGroup(groupDID, did){
+async function isInGroup(groupDID, did) {
   const openDSU = require("opendsu");
   let resolveDID = $$.promisify(openDSU.loadApi("w3cdid").resolveDID);
   let groupDIDDocument = await resolveDID(groupDID);
   let groupMembers = await $$.promisify(groupDIDDocument.listMembersByIdentity, groupDIDDocument)();
 
-  for(let member of groupMembers){
-    if(member === did){
+  for (let member of groupMembers) {
+    if (member === did) {
       return true;
     }
   }
@@ -220,11 +220,11 @@ async function getUserRights() {
   const mainEnclave = await $$.promisify(scAPI.getMainEnclave)();
   let credential = await $$.promisify(mainEnclave.readKey)(constants.CREDENTIAL_KEY);
 
-  if(credential.allPossibleGroups){
+  if (credential.allPossibleGroups) {
     const did = await $$.promisify(mainEnclave.readKey)(constants.IDENTITY_KEY);
-    for(let group of credential.allPossibleGroups){
-      if(await isInGroup(group.did, did)){
-        switch(group.accessMode){
+    for (let group of credential.allPossibleGroups) {
+      if (await isInGroup(group.did, did)) {
+        switch (group.accessMode) {
           case "read":
             userRights = constants.USER_RIGHTS.READ;
             break;
@@ -238,7 +238,7 @@ async function getUserRights() {
   }
 
 
-  if(!userRights){
+  if (!userRights) {
     //todo: add new constant in opendsu.containts for root-cause security
     throw createOpenDSUErrorWrapper("Unable to get user rights!", new Error("User is not present in any group."), "security");
   }
@@ -349,6 +349,18 @@ function overrideConsoleError() {
   }
 }
 
+function displayLoader() {
+  if (!window.WebCardinal.loader.hidden) {
+    //ignore other view calls until not finished last one;
+    return;
+  }
+  window.WebCardinal.loader.hidden = false;
+}
+
+function hideLoader() {
+  window.WebCardinal.loader.hidden = true;
+}
+
 export default {
   convertDateFromISOToGS1Format,
   convertDateToISO,
@@ -369,5 +381,7 @@ export default {
   ensureMinimalInfoOnMessage,
   getLogDetails,
   renderToast,
-  overrideConsoleError
+  overrideConsoleError,
+  displayLoader,
+  hideLoader
 }

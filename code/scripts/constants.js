@@ -51,16 +51,34 @@ export default {
     CLICK: "click",
     SLOTCHANGE: "slotchange",
     FOCUSOUT: "focusout",
-    CHANGE:"change",
-    UPLOADPRODUCTS:"uploadProducts"
+    CHANGE: "change",
+    UPLOADPRODUCTS: "uploadProducts"
   },
   BLOOMFILTER_SERIAL_TYPES: {
     VALID: "validSerialNumbers",
     RECALLED: "recalledSerialNumbers",
     DECOMMISSIONED: "decommissionedSerialNumbers"
   },
-  USER_RIGHTS:{
-    READ:"readonly",
-    WRITE:"readwrite"
+  USER_RIGHTS: {
+    READ: "readonly",
+    WRITE: "readwrite"
+  },
+  MODEL_LABELS_MAP: {
+    PRODUCT: {
+      gtin: "Product Code",
+      name: "Brand/Invented name",
+      description: "Name of Medicinal Product",
+      internalMaterialCode: "Internal material code",
+      strength: "Strength",
+      photo: "Product Photo",
+    },
+    BATCH: {
+      batchNumber: "Batch",
+      packagingSiteName: "Packaging site name",
+      expiryForDisplay: "Expiry date",
+      enableExpiryDay: "Enable day selection",
+      gtin: "Product Code",
+      productName: "Product Brand/Invented name"
+    }
   }
 }
