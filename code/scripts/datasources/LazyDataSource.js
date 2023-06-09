@@ -30,7 +30,7 @@ export class LazyDataSource extends DataSource {
     foundIcon.style.display = "none";
     if (inputValue) {
       await $$.promisify(this.storageService.refresh, this.storageService)();
-      let result = await $$.promisify(this.storageService.filter, this.storageService)(this.tableName, `${this.searchField} == ${inputValue}`, "dsc");
+      let result = await $$.promisify(this.storageService.filter, this.storageService)(this.tableName, ["__timestamp > 0", `${this.searchField} == ${inputValue}`], "dsc");
 
       if (result && result.length > 0) {
         foundIcon.style.display = "inline";

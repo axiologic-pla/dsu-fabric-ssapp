@@ -152,7 +152,7 @@ export default class importController extends FwController {
         notFoundIcon.style.display = "none";
         foundIcon.style.display = "none";
         if (event.target.value) {
-          let results = await $$.promisify(this.storageService.filter)('import-logs', `itemCode == ${event.target.value}`);
+          let results = await $$.promisify(this.storageService.filter)('import-logs', ["__timestamp > 0", `itemCode == ${event.target.value}`], "dsc");
           if (results && results.length > 0) {
             foundIcon.style.display = "inline";
             this.model.successDataSource.filterResult = results.filter(item => item.status === "success");
