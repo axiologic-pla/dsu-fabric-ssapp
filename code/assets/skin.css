@@ -24,6 +24,7 @@ webc-app-menu[mode=mobile] {
     --background: #328569;
 }
 
+
 webc-modal {
     --header-button-background: none !important;
     --confirm-button-background: #328569;
@@ -33,8 +34,24 @@ webc-modal::part(position) {
     overflow: auto;
 }
 
+webc-modal::part(dialog) {
+    max-height: 95vh;
+    height: 95%;
+}
+
+
+webc-modal::part(content) {
+    min-width: 785px;
+    max-width: 95%;
+    max-height: 95vh;
+    margin: auto;
+    height: fit-content;
+}
+
 webc-modal::part(main) {
     word-break: break-word;
+    overflow: auto;
+    height: 100%;
 }
 
 .webc-modal-content::part(header) {

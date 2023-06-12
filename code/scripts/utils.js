@@ -361,6 +361,70 @@ function hideLoader() {
   window.WebCardinal.loader.hidden = true;
 }
 
+function getPropertyDiffViewObj(diff, property, modelLabelsMap) {
+  let oldValue = diff.oldValue;
+  let newValue = diff.newValue;
+  if (typeof oldValue !== "string") {
+    oldValue = JSON.stringify(oldValue);
+  }
+  if (typeof newValue !== "string") {
+    newValue = JSON.stringify(newValue);
+  }
+  return {
+    "changedProperty": modelLabelsMap[property],
+    "oldValue": {"value": oldValue || " ", "directDisplay": true},
+    "newValue": {"value": newValue || " ", "directDisplay": true}
+  }
+}
+
+function getEpiDiffViewObj(epiDiffObj) {
+  let changedProperty = epiDiffObj.newValue ? `${epiDiffObj.newValue.language.label}  ${epiDiffObj.newValue.type.label}` : `${epiDiffObj.oldValue.language.label}  ${epiDiffObj.oldValue.type.label}`
+  return {
+    "changedProperty": changedProperty,
+    "oldValue": {"value": epiDiffObj.oldValue || "-", "directDisplay": !!!epiDiffObj.oldValue},
+    "newValue": {
+      "value": epiDiffObj.newValue && epiDiffObj.newValue.action !== "delete" ? epiDiffObj.newValue : "-",
+      "directDisplay": !!!epiDiffObj.newValue || epiDiffObj.newValue.action === "delete"
+    },
+    "dataType": "epi"
+  }
+}
+
+
+function getPhotoDiffViewObj(diff, property, modelLabelsMap) {
+  const gtinResolverUtils = require("gtin-resolver").getMappingsUtils();
+  return {
+    "changedProperty": modelLabelsMap[property],
+    "oldValue": {
+      "value": diff.oldValue ? gtinResolverUtils.getImageAsBase64(diff.oldValue) : " ",
+      "directDisplay": true
+    },
+    "newValue": {
+      "value": diff.newValue ? gtinResolverUtils.getImageAsBase64(diff.newValue) : " ",
+      "directDisplay": true
+    },
+    "isPhoto": true
+  }
+}
+
+function getDateDiffViewObj(diff, property, enableDaySelection, modelLabelsMap) {
+  return {
+    "changedProperty": modelLabelsMap[property],
+    "oldValue": {
+      "isDate": !!diff.oldValue,
+      "value": diff.oldValue || false,
+      "directDisplay": true,
+      "enableExpiryDay": enableDaySelection.oldValue
+    },
+    "newValue": {
+      "isDate": !!diff.newValue,
+      "value": diff.newValue || false,
+      "directDisplay": true,
+      "enableExpiryDay": enableDaySelection.newValue
+    }
+  }
+}
+
 export default {
   convertDateFromISOToGS1Format,
   convertDateToISO,
@@ -383,5 +447,9 @@ export default {
   renderToast,
   overrideConsoleError,
   displayLoader,
-  hideLoader
+  hideLoader,
+  getPropertyDiffViewObj,
+  getEpiDiffViewObj,
+  getPhotoDiffViewObj,
+  getDateDiffViewObj
 }

@@ -64,18 +64,19 @@ export default class addBatchController extends FwController {
     }
 
     this.model.serial_update_options = {
-      options: [
-        {label: "Update Valid", value: "update-valid-serial"},
-        {label: "Update Recalled", value: "update-recalled-serial"},
-        {label: "Update decommissioned", value: "update-decommissioned-serial"},
-        {label: "See update history", value: "update-history"}
-      ],
-      placeholder: "Select an option"
+      options: [{label: "Update Valid", value: "update-valid-serial"}, {
+        label: "Update Recalled",
+        value: "update-recalled-serial"
+      }, {label: "Update decommissioned", value: "update-decommissioned-serial"}, {
+        label: "See update history",
+        value: "update-history"
+      }], placeholder: "Select an option"
     }
 
     this.model.videoSourceUpdated = false;
     this.videoInitialDefaultSource = this.model.batch.videos.defaultSource;
     this.initialModel = JSON.parse(JSON.stringify(this.model));
+    this.initialCards = [];
     if (editMode) {
       this.gtin = this.model.batch.gtin;
       //this.model.batch.version++;
@@ -115,8 +116,7 @@ export default class addBatchController extends FwController {
       }
       const options = [];
       Object.values(products).forEach(prod => options.push({
-        label: prod.gtin + ' - ' + prod.name,
-        value: prod.gtin
+        label: prod.gtin + ' - ' + prod.name, value: prod.gtin
       }));
       this.model.products.options = options;
     });
@@ -137,67 +137,56 @@ export default class addBatchController extends FwController {
     let batchData = JSON.parse(state.batchData);
     gtinResolver.DSUFabricUtils.checkIfWeHaveDataForThis(batchData.gtin, batchData.batchNumber, (err) => {
       if (!err) {
-        return this.showErrorModal(
-          new Error(`Would you like to recover?`),
-          'Unknown error while loading data.',
-          async () => {
-            //yes
-            setTimeout(async () => {
-              this.createWebcModal({
-                disableExpanding: true,
-                disableClosing: true,
-                disableFooter: true,
-                modalTitle: "Info",
-                modalContent: "Recovery process in progress..."
-              });
+        return this.showErrorModal(new Error(`Would you like to recover?`), 'Unknown error while loading data.', async () => {
+          //yes
+          setTimeout(async () => {
+            this.createWebcModal({
+              disableExpanding: true,
+              disableClosing: true,
+              disableFooter: true,
+              modalTitle: "Info",
+              modalContent: "Recovery process in progress..."
+            });
 
-              if (typeof state.batchData === "string" && state.batchData.length > 0) {
-                state.batch = JSON.parse(state.batchData);
-              }
+            if (typeof state.batchData === "string" && state.batchData.length > 0) {
+              state.batch = JSON.parse(state.batchData);
+            }
 
-              let recoveryMessage = await utils.initMessage("Batch");
-              recoveryMessage.batch = batch;
-              if (!recoveryMessage.batch) {
-                recoveryMessage.batch = {
-                  productCode: state.batch ? state.batch.gtin : undefined
-                };
-              }
-
-              if (!recoveryMessage.batch.productCode) {
-                recoveryMessage.batch.productCode = state.batch.gtin;
-              }
-              if (!recoveryMessage.batch.batch) {
-                recoveryMessage.batch.batch = batch ? batch.batchNumber : "recovered data";
-              }
-              if (!recoveryMessage.batch.expiryDate) {
-                recoveryMessage.batch.expiryDate = batch ? batch.expiry : "recovered data";
-              }
-              recoveryMessage.force = true;
-
-              //by setting this refreshState if all goes when we will return to edit the product
-              this.refreshState = {
-                tag: "home",
-                state: {
-                  refreshTo: {
-                    tag: "add-batch",
-                    state: {batchData: JSON.stringify(batch)}
-                  }
-                }
+            let recoveryMessage = await utils.initMessage("Batch");
+            recoveryMessage.batch = batch;
+            if (!recoveryMessage.batch) {
+              recoveryMessage.batch = {
+                productCode: state.batch ? state.batch.gtin : undefined
               };
-              this.sendMessagesToProcess([recoveryMessage]);
-            }, 100);
-          },
-          () => {
-            console.log("Rejected the recover process by choosing no option.");
-            this.showErrorModalAndRedirect("Refused the recovery process. Redirecting...", "Info", {tag: "batches"});
-          },
-          {
-            disableExpanding: true,
-            cancelButtonText: 'No',
-            confirmButtonText: 'Yes',
-            id: 'feedback-modal'
-          }
-        )
+            }
+
+            if (!recoveryMessage.batch.productCode) {
+              recoveryMessage.batch.productCode = state.batch.gtin;
+            }
+            if (!recoveryMessage.batch.batch) {
+              recoveryMessage.batch.batch = batch ? batch.batchNumber : "recovered data";
+            }
+            if (!recoveryMessage.batch.expiryDate) {
+              recoveryMessage.batch.expiryDate = batch ? batch.expiry : "recovered data";
+            }
+            recoveryMessage.force = true;
+
+            //by setting this refreshState if all goes when we will return to edit the product
+            this.refreshState = {
+              tag: "home", state: {
+                refreshTo: {
+                  tag: "add-batch", state: {batchData: JSON.stringify(batch)}
+                }
+              }
+            };
+            this.sendMessagesToProcess([recoveryMessage]);
+          }, 100);
+        }, () => {
+          console.log("Rejected the recover process by choosing no option.");
+          this.showErrorModalAndRedirect("Refused the recovery process. Redirecting...", "Info", {tag: "batches"});
+        }, {
+          disableExpanding: true, cancelButtonText: 'No', confirmButtonText: 'Yes', id: 'feedback-modal'
+        })
       }
       this.showErrorModalAndRedirect("Unable to verify if data exists in Blockchain. Try later!", "Error", {tag: "batches"});
       return;
@@ -283,9 +272,7 @@ export default class addBatchController extends FwController {
     }, () => {
       return
     }, {
-      disableClosing: true,
-      model: this.model,
-      controller: "modals/PreviewEditChangesController"
+      disableClosing: true, model: this.model, controller: "modals/PreviewEditChangesController"
     })
 
   };
@@ -301,39 +288,19 @@ export default class addBatchController extends FwController {
           return;
         }
         if (key === "expiryForDisplay") {
-          result.push({
-            "changedProperty": constants.MODEL_LABELS_MAP.BATCH[key],
-            "oldValue": {
-              "isDate": !!diffs[key].oldValue,
-              "value": diffs[key].oldValue || " ",
-              "directDisplay": true,
-              "enableExpiryDay": diffs.enableExpiryDay ? diffs.enableExpiryDay.oldValue : this.model.batch.enableExpiryDay
-            },
-            "newValue": {
-              "isDate": !!diffs[key].newValue,
-              "value": diffs[key].newValue || " ",
-              "directDisplay": true,
-              "enableExpiryDay": diffs.enableExpiryDay ? diffs.enableExpiryDay.newValue : this.model.batch.enableExpiryDay
-            }
-          })
+          let daySelectionObj = {
+            oldValue: this.initialModel.batch.enableExpiryDay,
+            newValue: this.model.batch.enableExpiryDay
+          }
+
+          result.push(utils.getDateDiffViewObj(diffs[key], key, daySelectionObj, constants.MODEL_LABELS_MAP.BATCH))
           return;
         }
-        result.push({
-          "changedProperty": constants.MODEL_LABELS_MAP.BATCH[key],
-          "oldValue": {"value": diffs[key].oldValue || " ", "directDisplay": true},
-          "newValue": {"value": diffs[key].newValue || " ", "directDisplay": true},
-        })
+        result.push(utils.getPropertyDiffViewObj(diffs[key], key, constants.MODEL_LABELS_MAP.BATCH));
+
       });
       Object.keys(epiDiffs).forEach(key => {
-        result.push({
-          "changedProperty": `${epiDiffs[key].newValue.language.label} ${epiDiffs[key].newValue.type.label}`,
-          "oldValue": {"value": epiDiffs[key].oldValue || " ", "directDisplay": !!!epiDiffs[key].oldValue},
-          "newValue": {
-            "value": epiDiffs[key].newValue && epiDiffs[key].newValue.action !== "delete" ? epiDiffs[key].newValue : " ",
-            "directDisplay": !!!epiDiffs[key].newValue || epiDiffs[key].newValue.action === "delete"
-          },
-          "dataType": "epi"
-        })
+        result.push(utils.getEpiDiffViewObj(epiDiffs[key]));
       });
 
     } catch (e) {
@@ -357,7 +324,7 @@ export default class addBatchController extends FwController {
       return;
     }
     let serialIsUpdated = this.model.serialNumbers || this.model.recalledSerialNumbers || this.model.decommissionedSerialNumbers;
-    button.disabled = JSON.stringify(this.model.languageTypeCards) === JSON.stringify(this.initialCards) && JSON.stringify(this.model.batch) === JSON.stringify(this.initialModel.batch) && !serialIsUpdated;
+    button.disabled = JSON.stringify(this.model.languageTypeCardsForDisplay) === JSON.stringify(this.initialCards) && JSON.stringify(this.model.batch) === JSON.stringify(this.initialModel.batch) && !serialIsUpdated;
   }
 
   getNumberLogs() {
@@ -452,8 +419,7 @@ export default class addBatchController extends FwController {
     if (this.model.videoSourceUpdated) {
       let videoMessage = await utils.initMessage("VideoSource");
       videoMessage.videos = {
-        productCode: this.model.batch.gtin,
-        batch: this.model.batch.batchNumber
+        productCode: this.model.batch.gtin, batch: this.model.batch.batchNumber
       }
 
       videoMessage.videos.source = btoa(this.model.batch.videos.defaultSource);
@@ -565,10 +531,8 @@ export default class addBatchController extends FwController {
       decommissionedType: false,
       reason: {
         options: [{label: "Lost", value: "lost"}, {label: "Stolen", value: "stolen"}, {
-          label: "Damaged",
-          value: "damaged"
-        }],
-        placeholder: "Select a reason"
+          label: "Damaged", value: "damaged"
+        }], placeholder: "Select a reason"
       }
     }
     switch (type) {

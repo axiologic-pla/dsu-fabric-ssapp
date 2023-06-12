@@ -28,6 +28,8 @@ psk-form-row {
 
 .product-image {
     max-height: 175px;
+    aspect-ratio: 1;
+    max-width: 100%;
 }
 
 .product-image img {

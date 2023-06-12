@@ -71,6 +71,12 @@ export default {
       internalMaterialCode: "Internal material code",
       strength: "Strength",
       photo: "Product Photo",
+      patientLeafletInfo: "Patient Specific Information Leaflet",
+      practitionerInfo: "Healthcare practitioner information",
+      videoSource: "Video Source",
+      adverseEventsReportingEnabled: "Enable Adverse Events Reporting",
+      antiCounterfeitingEnabled: "Enable Anti-Counterfeiting check for this product",
+      markets: "Markets management"
     },
     BATCH: {
       batchNumber: "Batch",

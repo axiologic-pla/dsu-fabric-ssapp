@@ -71,6 +71,7 @@ export default class ManageProductController extends FwController {
     } else {
       this.model.submitLabel = "Save Product";
       this.model.product = new Product();
+      this.model.languageTypeCardsForDisplay = [];
       this.model.product.videos.defaultSource = atob(this.model.product.videos.defaultSource);
       this.videoInitialDefaultSource = this.model.product.videos.defaultSource;
       // ensureHolderCredential();
@@ -169,7 +170,7 @@ export default class ManageProductController extends FwController {
   }
 
   manageUpdateButtonState(updateButton) {
-    updateButton.disabled = JSON.stringify(this.model.languageTypeCards) === JSON.stringify(this.initialCards) && JSON.stringify(this.model.product) === JSON.stringify(this.initialModel.product) && !this.productPhoto;
+    updateButton.disabled = JSON.stringify(this.model.languageTypeCardsForDisplay) === JSON.stringify(this.initialCards) && JSON.stringify(this.model.product) === JSON.stringify(this.initialModel.product) && !this.productPhoto;
   }
 
   addEventListeners() {
@@ -373,22 +374,14 @@ export default class ManageProductController extends FwController {
       let diffs = mappingLogService.getDiffsForAudit(this.model.product, this.initialModel.product);
       let epiDiffs = mappingLogService.getDiffsForAudit(this.model.languageTypeCards, this.initialCards);
       Object.keys(diffs).forEach(key => {
-        result.push({
-          "changedProperty": constants.MODEL_LABELS_MAP.PRODUCT[key],
-          "oldValue": {"value": diffs[key].oldValue || " ", "directDisplay": true},
-          "newValue": {"value": diffs[key].newValue || " ", "directDisplay": true}
-        })
+        if (key === "photo") {
+          result.push(utils.getPhotoDiffViewObj(diffs[key], key, constants.MODEL_LABELS_MAP.PRODUCT));
+          return;
+        }
+        result.push(utils.getPropertyDiffViewObj(diffs[key], key, constants.MODEL_LABELS_MAP.PRODUCT));
       });
       Object.keys(epiDiffs).forEach(key => {
-        result.push({
-          "changedProperty": `${epiDiffs[key].newValue.language.label} ${epiDiffs[key].newValue.type.label}`,
-          "oldValue": {"value": epiDiffs[key].oldValue || " ", "directDisplay": !!!epiDiffs[key].oldValue},
-          "newValue": {
-            "value": epiDiffs[key].newValue && epiDiffs[key].newValue.action !== "delete" ? epiDiffs[key].newValue : " ",
-            "directDisplay": !!!epiDiffs[key].newValue || epiDiffs[key].newValue.action === "delete"
-          },
-          "dataType": "epi"
-        })
+        result.push(utils.getEpiDiffViewObj(epiDiffs[key]));
       });
 
     } catch (e) {

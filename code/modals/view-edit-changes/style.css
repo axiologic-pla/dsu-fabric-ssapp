@@ -5,6 +5,7 @@ webc-modal::part(content) {
     max-width: 95%;
     max-height: 95%;
     margin: auto;
+    height: 100%;
 }
 
 webc-modal::part(header) {
@@ -23,6 +24,7 @@ webc-modal::part(footer) {
 main.view-changes {
     background: #FFFFFF;
     border-radius: 4px;
+
 }
 
 .changes-header, .changes-row {
