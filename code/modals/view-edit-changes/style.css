@@ -1,11 +1,6 @@
 webc-modal::part(content) {
     --background: #DEDEDE;
-    min-width: 785px;
     --radius: 4px;
-    max-width: 95%;
-    max-height: 95%;
-    margin: auto;
-    height: 100%;
 }
 
 webc-modal::part(header) {

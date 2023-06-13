@@ -24,7 +24,9 @@
     },
     {
       "name": "My Account",
-      "tag": "my-account"
+      "tag": "my-account",
+      "src": "./myAccount/my-account.html",
+      "path": "./my-account"
     },
     {
       "name": "Products",
