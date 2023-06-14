@@ -11,7 +11,6 @@
     width: fit-content;
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.6);
     border-radius: 4px;
-    min-width: 265px;
     justify-content: space-between;
 }
 
