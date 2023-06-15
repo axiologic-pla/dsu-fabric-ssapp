@@ -2,32 +2,48 @@
     <h5>{{@actionModalModel.title}}</h5>
 </div>
 <main>
-    <psk-layout align-items="center" template-columns="20fr 20fr" column-gap="20px">
-        <psk-layout-item>
-            <psk-label label="Valid"></psk-label>
+
+    <div class="matrix-layout">
+        <div>
+            <label>Valid</label>
             <psk-barcode-generator  data="@actionModalModel.batchData.code" size="16" type="gs1datamatrix"></psk-barcode-generator>
-        </psk-layout-item>
-        <psk-layout-item>
-            <psk-label label="Wrong"></psk-label>
+        </div>
+        <div>
+            <label>Wrong</label>
             <psk-barcode-generator  data="@actionModalModel.batchData.wrongCode" size="16" type="gs1datamatrix"></psk-barcode-generator>
-        </psk-layout-item>
-    </psk-layout>
-    <psk-layout align-items="center" class="mt-5" template-columns="20fr 20fr" column-gap="20px">
-        <psk-layout-item>
-            <psk-label label="Recalled"></psk-label>
+        </div>
+
+    </div>
+
+    <div class="matrix-layout mt-5">
+        <div>
+            <label>Recalled</label>
             <psk-barcode-generator  data="@actionModalModel.batchData.recalledCode" size="16" type="gs1datamatrix"></psk-barcode-generator>
-        </psk-layout-item>
-        <psk-layout-item>
-            <psk-label label="Decommissioned"></psk-label>
+        </div>
+        <div>
+            <label>Decommissioned</label>
             <psk-barcode-generator  data="@actionModalModel.batchData.decommissionedCode" size="16" type="gs1datamatrix"></psk-barcode-generator>
-        </psk-layout-item>
-    </psk-layout>
+        </div>
+    </div>
+
 </main>
 <footer class="modal-action-menu" slot="footer">
-    <psk-button class="marketplace-manager-button" data-confirm label="@actionModalModel.acceptButtonText"></psk-button>
+    <button class="marketplace-manager-button" data-confirm>{{@actionModalModel.acceptButtonText}}</button>
 </footer>
 <style>
-.align-center{
-    margin: auto;
+.marketplace-manager-button{
+    background-color: #328569;
+    box-shadow: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 5px;
+    border: 0;
+}
+
+.matrix-layout {
+    display: grid;
+    grid-template-columns: 2fr 2fr;
+    column-gap: 20px;
+    align-items: center;
 }
 </style>
