@@ -8,7 +8,9 @@
         <webc-container controller="AuditController">
             <div class="audit-logs-container">
                 <df-tab-panel data-view-model="@" shadow>
-                    <div slot="tab" data-tag="change-tab" tab-name="actions">Action logs</div>
+                    <div slot="tab" data-tag="change-tab" tab-name="actions">
+                        <div class="nav-tab-title">Action logs</div>
+                    </div>
                     <div slot="content" class="edit-actions-tab">
 
                         <div class="search-container audit-search-container">
@@ -57,7 +59,9 @@
                         </webc-datatable>
 
                     </div>
-                    <div slot="tab" data-tag="change-tab" tab-name="logins">Access logs</div>
+                    <div slot="tab" data-tag="change-tab" tab-name="logins">
+                        <div class="nav-tab-title">Access logs</div>
+                    </div>
                     <div slot="content" class="login-actions-tab">
 
                         <div class="search-container login-search-container">
