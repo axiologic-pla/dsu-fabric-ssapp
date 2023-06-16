@@ -8,10 +8,11 @@
 
 .epi-card {
     border: 1.5px solid #328569;
-    width: fit-content;
+    width: 255px;
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.6);
     border-radius: 4px;
     justify-content: space-between;
+    margin-right: 0px !important;
 }
 
 .card-actions {
