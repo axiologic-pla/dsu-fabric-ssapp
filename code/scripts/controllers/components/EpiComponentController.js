@@ -73,8 +73,9 @@ export default class EpiComponentController extends FwController {
       },
       filesWereNotSelected: true,
     }
+
     this.on("uploadLeaflet", (event) => {
-      this.model.modalData.files = event.data;
+      this.model.modalData.files = event.detail;
       if (this.model.modalData.files.length > 0) {
         this.model.modalData.filesWereNotSelected = false;
       }
