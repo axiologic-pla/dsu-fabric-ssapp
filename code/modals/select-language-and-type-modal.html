@@ -47,8 +47,8 @@
 <!--    </psk-card>-->
 </main>
 <footer class="modal-action-menu" slot="footer">
-    <button class="marketplace-manager-button" data-close>{{@modalData.denyButtonText}}</button>
-    <button class="marketplace-manager-button" data-confirm>{{@modalData.acceptButtonText}}</button>
+    <button class="footer-button" data-close>{{@modalData.denyButtonText}}</button>
+    <button class="footer-button" disabled="@modalData.filesWereNotSelected" data-confirm>{{@modalData.acceptButtonText}}</button>
 
 <!--    <psk-button class="marketplace-manager-button" data-close>{{@modalData.denyButtonText}}</psk-button>-->
 <!--    <psk-button class="marketplace-manager-button" data-confirm disabled="@modalData.filesWereNotSelected">-->
@@ -118,5 +118,18 @@
         height: 260px;
         margin-bottom: 10px;
         margin-top: 15px;
+    }
+
+    .footer-button {
+        background-color: #328569;
+        box-shadow: none;
+        color: white;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 5px;
+    }
+
+    .footer-button:disabled {
+        background-color: #6c757d;
     }
 </style>
