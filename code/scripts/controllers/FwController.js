@@ -63,8 +63,6 @@ class FwController extends WebcController {
     }
 
     async logUndigestedMessages(undigested) {
-        window.WebCardinal.loader.hidden = false;
-
         try {
             await $$.promisify(MessagesService.logFailedMessages)(undigested, this.storageService);
         } catch (err) {
@@ -83,8 +81,6 @@ class FwController extends WebcController {
                     id: 'failed-to-log-modal'
                 });
         }
-
-        window.WebCardinal.loader.hidden = true;
     }
 }
 

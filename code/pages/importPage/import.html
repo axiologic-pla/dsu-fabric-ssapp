@@ -1,7 +1,8 @@
 <link href="pages/importPage/import.css" rel="stylesheet"/>
-<psk-page>
+
+<div class="page-container">
     <webc-container controller="ImportController">
-        <div class="m-5">
+        <div class="m-5 page-content">
             <p>Select your files</p>
 
             <psk-files-chooser data-view-model="@filesChooser" id="import-files">
@@ -101,5 +102,6 @@
             </psk-tab-navigator>
         </div>
     </webc-container>
-</psk-page>
+</div>
+
 

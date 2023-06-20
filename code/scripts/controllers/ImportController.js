@@ -62,7 +62,6 @@ export default class importController extends FwController {
         }
 
         let handler = this.getHandlerForMessageDigestingProcess(messages, this.prepareModalInformation);
-        window.WebCardinal.loader.hidden = true;
         //managing popus ...
         await handler(error, undigested);
       }
@@ -287,7 +286,6 @@ export default class importController extends FwController {
       msg.force = true;
       return msg;
     }));
-
   }
 
   async predigest(messages){
