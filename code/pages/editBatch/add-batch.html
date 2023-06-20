@@ -100,13 +100,17 @@
                     </div>
 
                     <div class="d-flex flex-row mt-5">
-                        <psk-button data-tag="cancel" label="Cancel" class="batch-cancel-btn"></psk-button>
+                        <button data-tag="cancel" class="batch-cancel-btn">Cancel</button>
+<!--                        <psk-button data-tag="cancel" label="Cancel" class="batch-cancel-btn"></psk-button>-->
                         <div data-if="@editMode">
-                            <psk-button class="submit-batch-btn" data-tag="update-batch" id="submit-batch"
-                                        label="Update batch"
-                                        slot="true"></psk-button>
-                            <psk-button class="submit-batch-btn" data-tag="add-batch" label="Add batch"
-                                        slot="false"></psk-button>
+                            <button class="submit-batch-btn" data-tag="update-batch" id="submit-batch" slot="true">Update batch</button>
+                            <button class="submit-batch-btn" data-tag="add-batch" slot="false">Add batch</button>
+
+<!--                            <psk-button class="submit-batch-btn" data-tag="update-batch" id="submit-batch"-->
+<!--                                        label="Update batch"-->
+<!--                                        slot="true"></psk-button>-->
+<!--                            <psk-button class="submit-batch-btn" data-tag="add-batch" label="Add batch"-->
+<!--                                        slot="false"></psk-button>-->
                         </div>
 
                     </div>
