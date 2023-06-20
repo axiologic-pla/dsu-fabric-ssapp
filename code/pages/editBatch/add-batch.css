@@ -19,6 +19,36 @@
 .batch-cancel-btn {
     pointer-events: initial;
     opacity: 1;
+
+    background-color: #328569;
+    border: none;
+    box-shadow: none;
+    color: white;
+    padding: 10px 16px;
+    margin-right: 10px;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+    cursor: pointer;
+}
+
+.submit-batch-btn {
+    background-color: #328569;
+    border: none;
+    box-shadow: none;
+    color: white;
+    padding: 10px 16px;
+    margin-right: 10px;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+}
+
+.submit-batch-btn:not(:disabled) {
+    cursor: pointer;
+}
+
+.submit-batch-btn:disabled {
+    background: #dee2e6;
+    color: grey;
 }
 
 .batch-version {
