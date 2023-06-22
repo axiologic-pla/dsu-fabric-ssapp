@@ -44,10 +44,13 @@ export default class importController extends FwController {
 
     let self = this;
 
-    async function digest(messages) {
+    async function digest(messages, progressModalModel = {}) {
+      let progressModal = this.showProgressModal(progressModalModel);
+
       await this.predigest(messages);
 
       let failedMessages = [];
+
       for (let msg of messages) {
         let promisified = $$.promisify(MessagesService.processMessagesWithoutGrouping);
         let error;
@@ -64,9 +67,11 @@ export default class importController extends FwController {
         let handler = this.getHandlerForMessageDigestingProcess(messages, this.prepareModalInformation);
         //managing popus ...
         await handler(error, undigested);
+        progressModal.updateCurrentStep();
       }
-
+      progressModal.hide();
       await this.manageProcessedMessages(failedMessages);
+
       if (failedMessages.length) {
         this.model.retryAll = false;
       }
@@ -84,14 +89,18 @@ export default class importController extends FwController {
       this.model.importIsDisabled = true;
       let messages;
       try {
-        window.WebCardinal.loader.hidden = false;
         messages = await this.getMessagesFromFiles(this.filesArray);
 
       } catch (err) {
         this.showErrorModal(`Unable to read selected files.`, "Error");
       }
+      let progressModalModel = {
+        steps: messages.length, updateProgressInfo: function (currentStep, steps) {
+          return `Processing file ${currentStep} of ${steps}`
+        }
+      }
 
-      await digest.call(self, messages);
+      await digest.call(self, messages, progressModalModel);
 
     });
     /*
@@ -214,7 +223,7 @@ export default class importController extends FwController {
         elem.value = target.checked;
       });
 
-       this.updateRetryBtnState();
+      this.updateRetryBtnState();
 
     })
 
@@ -249,9 +258,11 @@ export default class importController extends FwController {
         let messages = await getSelectedFailed.call(this, prepareFnc);
         if (messages.length > 0) {
           this.model.selectedTab = 1;
-          window.WebCardinal.loader.hidden = false;
 
+          window.WebCardinal.loader.hidden = false;
+          this.progressModal = this.showProgressModal();
           await MessagesService.processMessages(messages, MessagesService.getStorageService(this.storageService), async (undigestedMessages) => {
+            window.WebCardinal.loader.hidden = true;
             await this.manageProcessedMessages(undigestedMessages);
             await this.logUndigestedMessages(undigestedMessages);
           });
@@ -269,9 +280,12 @@ export default class importController extends FwController {
       let messages = await getSelectedFailed.call(this);
       if (messages.length > 0) {
         this.model.selectedTab = 1;
-        window.WebCardinal.loader.hidden = false;
-
-        await digest.call(self, messages);
+        let progressModalModel = {
+          steps: messages.length, updateProgressInfo: function (currentStep, steps) {
+            return `Processing message ${currentStep} of ${steps}`
+          }
+        }
+        await digest.call(self, messages, progressModalModel);
 
         this.model.retryAll = false;
 
@@ -288,75 +302,78 @@ export default class importController extends FwController {
     }));
   }
 
-  async predigest(messages){
+  async predigest(messages) {
     let digestLog = await this.buildDigestLog(messages);
     let auditEnclave = await this.getEnclaveBypassingAnyCache();
     let id = await auditEnclave.getUniqueIdAsync();
     let secret = await MessagesService.acquireLock(id, 60000, 100, 500);
     let pk = require("opendsu").loadApi("crypto").generateRandom(32);
-    try{
+    try {
       await auditEnclave.safeBeginBatchAsync();
-    } catch(err){
+    } catch (err) {
       throw err;
     }
 
-    try{
+    try {
       await $$.promisify(auditEnclave.insertRecord)(undefined, "logs", pk, digestLog)
       await MessagesService.releaseLock(id, secret)
       await auditEnclave.commitBatchAsync();
-    }catch (err) {
+    } catch (err) {
       const insertError = createOpenDSUErrorWrapper(`Failed to insert record in enclave`, err);
-      try{
+      try {
         await auditEnclave.cancelBatchAsync();
-      }catch (e) {
+      } catch (e) {
         console.log(createOpenDSUErrorWrapper(`Failed to cancel batch`, e, insertError));
       }
-      alert("There was an error during audit save: "+insertError.message+" "+insertError.stack);
+      alert("There was an error during audit save: " + insertError.message + " " + insertError.stack);
     }
   }
 
-  async getEnclaveBypassingAnyCache(){
-    return new Promise(async (resolve, reject)=>{
-      try{
+  async getEnclaveBypassingAnyCache() {
+    return new Promise(async (resolve, reject) => {
+      try {
         let keySSI = await $$.promisify(this.storageService.getKeySSI, this.storageService)();
         let storageDSU = await $$.promisify(this.storageService.getDSU, this.storageService)();
         storageDSU.marked = true;
         let auditEnclave = require("opendsu").loadApi("enclave").initialiseWalletDBEnclave(keySSI);
-        auditEnclave.on("initialised", async ()=>{
+        auditEnclave.on("initialised", async () => {
           let storageDSU = await $$.promisify(auditEnclave.getDSU, auditEnclave)();
-          if(storageDSU.marked){
+          if (storageDSU.marked) {
             return reject(Error('Failed to obtain a clean sharedEnclave instance'));
           }
           resolve(auditEnclave);
         })
-      }catch (err){
+      } catch (err) {
         reject(err);
       }
     });
   }
 
-  async buildDigestLog(messages){
+  async buildDigestLog(messages) {
     let summary = [];
-    let log = {reason:`The processing of ${messages.length} message(s) has been initiated.`, logInfo:{summary, messages}};
+    let log = {
+      reason: `The processing of ${messages.length} message(s) has been initiated.`,
+      logInfo: {summary, messages}
+    };
     // we try to be sure that we capture the username of the current user even if there was a problem and the message array is empty
     let dummyMessage = await utils.ensureMinimalInfoOnMessage({});
     log.username = dummyMessage.senderId;
 
-    for(let index in messages){
+    for (let index in messages) {
       let msg = messages[index];
       let summaryItem = `[${index}] Message type ${msg.messageType} for `;
       let identifiedTarget = false;
       let target = msg.product || msg.batch || msg.videos || msg;
-      if(target.productCode){
+      if (target.productCode) {
         summaryItem += `GTIN=${target.productCode} `;
         identifiedTarget = true;
       }
-      if(target.batch){
+      if (target.batch) {
         summaryItem += `Batch=${target.batch} `;
         identifiedTarget = true;
       }
 
-      if(!identifiedTarget){
+      if (!identifiedTarget) {
         summaryItem += "unidentified product/batch (possible wrong message format)";
       }
       summary.push(summaryItem);
@@ -426,7 +443,6 @@ export default class importController extends FwController {
   }
 
   async manageProcessedMessages(undigestedMessages) {
-    window.WebCardinal.loader.hidden = true;
     this.querySelector(".prev-page-btn[msgType='success']").disabled = true;
     this.querySelector(".next-page-btn[msgType='success']").disabled = false;
     this.model.successDataSource.importLogs = [];
