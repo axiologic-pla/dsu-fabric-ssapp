@@ -1,7 +1,7 @@
 <link href="pages/editProduct/manage-product.css" rel="stylesheet"/>
 <link href="assets/css/disabled-component.css" rel="stylesheet"/>
 <psk-page title="Manage Product">
-    <h6>
+<!--    <h6>-->
         <webc-container controller="ManageProductController">
             <div class="form-label product-version"> version: {{@product.version}}</div>
 
@@ -180,16 +180,18 @@
             <div class="d-flex flex-row justify-content-around mt-5">
                 <div class="col-5 align-self-start p-0">
                     <div class="d-flex flex-row product-form-buttons">
-                        <psk-button data-tag="cancel" id="cancel-product">Cancel</psk-button>
-                        <psk-button userrights="@userrights" data-tag="add-product" id="submit-product">
-                            {{@submitLabel}}
-                        </psk-button>
+                        <button class="default-button" data-tag="cancel" id="cancel-product">Cancel</button>
+                        <button class="default-button" userrights="@userrights" data-tag="add-product" id="submit-product">{{@submitLabel}}</button>
+<!--                        <psk-button data-tag="cancel" id="cancel-product">Cancel</psk-button>-->
+<!--                        <psk-button userrights="@userrights" data-tag="add-product" id="submit-product">-->
+<!--                            {{@submitLabel}}-->
+<!--                        </psk-button>-->
                     </div>
                 </div>
                 <div class="col-5 align-self-start p-0">
                 </div>
             </div>
         </webc-container>
-    </h6>
+<!--    </h6>-->
 </psk-page>
 

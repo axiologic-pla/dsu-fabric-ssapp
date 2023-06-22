@@ -27,4 +27,22 @@ pre code{
   height: 100%;
 }
 
+.default-button {
+  background-color: #328569;
+  box-shadow: none;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 5px;
+  border: 0;
+  margin-right: 10px;
+  margin-bottom: 6px;
+}
 
+.default-button:not(:disabled) {
+  cursor: pointer;
+}
+
+.default-button:disabled {
+  background: #dee2e6;
+  color: grey;
+}

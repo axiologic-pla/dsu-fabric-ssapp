@@ -1,7 +1,7 @@
 <link href="pages/editBatch/add-batch.css" rel="stylesheet"/>
 <link href="assets/css/disabled-component.css" rel="stylesheet"/>
 <psk-page title="Edit batch">
-    <h6>
+<!--    <h6>-->
         <webc-container controller="addBatchController">
 
             <div class="form-label batch-version"> version: {{@batch.version}}</div>
@@ -100,11 +100,11 @@
                     </div>
 
                     <div class="d-flex flex-row mt-5">
-                        <button data-tag="cancel" class="batch-cancel-btn">Cancel</button>
+                        <button data-tag="cancel" class="default-button">Cancel</button>
 <!--                        <psk-button data-tag="cancel" label="Cancel" class="batch-cancel-btn"></psk-button>-->
                         <div data-if="@editMode">
-                            <button class="submit-batch-btn" data-tag="update-batch" id="submit-batch" slot="true">Update batch</button>
-                            <button class="submit-batch-btn" data-tag="add-batch" slot="false">Add batch</button>
+                            <button class="default-button" data-tag="update-batch" id="submit-batch" slot="true">Update batch</button>
+                            <button class="default-button" data-tag="add-batch" slot="false">Add batch</button>
 
 <!--                            <psk-button class="submit-batch-btn" data-tag="update-batch" id="submit-batch"-->
 <!--                                        label="Update batch"-->
@@ -169,7 +169,7 @@
 
 
         </webc-container>
-    </h6>
+<!--    </h6>-->
 </psk-page>
 
 

@@ -15,10 +15,14 @@
 
             <!-- removed for MVP1
                 <psk-button data-tag="view-all" label="View responses"></psk-button>-->
-            <psk-button data-tag="retry-failed" disabled="@retryBtnIsDisabled" label="Retry failed"
-                        style="float:right"></psk-button>
-            <psk-button data-tag="force-retry-failed" disabled="@forceRetryBtnIsDisabled" label="Force recover"
-                        style="float:right"></psk-button>
+
+            <button class="default-button" data-tag="retry-failed" disabled="@retryBtnIsDisabled" style="float:right">Retry failed</button>
+            <button class="default-button" data-tag="force-retry-failed" disabled="@forceRetryBtnIsDisabled" style="float:right">Force recover</button>
+
+<!--            <psk-button data-tag="retry-failed" disabled="@retryBtnIsDisabled" label="Retry failed"-->
+<!--                        style="float:right"></psk-button>-->
+<!--            <psk-button data-tag="force-retry-failed" disabled="@forceRetryBtnIsDisabled" label="Force recover"-->
+<!--                        style="float:right"></psk-button>-->
 
             <h3>Import Logs</h3>
             <div>
