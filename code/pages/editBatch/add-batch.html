@@ -1,7 +1,9 @@
 <link href="pages/editBatch/add-batch.css" rel="stylesheet"/>
 <link href="assets/css/disabled-component.css" rel="stylesheet"/>
-<psk-page title="Edit batch">
-<!--    <h6>-->
+
+<page-template>
+    <span slot="page-title">Edit Batch</span>
+    <div slot="page-content">
         <webc-container controller="addBatchController">
 
             <div class="form-label batch-version"> version: {{@batch.version}}</div>
@@ -101,16 +103,16 @@
 
                     <div class="d-flex flex-row mt-5">
                         <button data-tag="cancel" class="default-button">Cancel</button>
-<!--                        <psk-button data-tag="cancel" label="Cancel" class="batch-cancel-btn"></psk-button>-->
+                        <!--                        <psk-button data-tag="cancel" label="Cancel" class="batch-cancel-btn"></psk-button>-->
                         <div data-if="@editMode">
                             <button class="default-button" data-tag="update-batch" id="submit-batch" slot="true">Update batch</button>
                             <button class="default-button" data-tag="add-batch" slot="false">Add batch</button>
 
-<!--                            <psk-button class="submit-batch-btn" data-tag="update-batch" id="submit-batch"-->
-<!--                                        label="Update batch"-->
-<!--                                        slot="true"></psk-button>-->
-<!--                            <psk-button class="submit-batch-btn" data-tag="add-batch" label="Add batch"-->
-<!--                                        slot="false"></psk-button>-->
+                            <!--                            <psk-button class="submit-batch-btn" data-tag="update-batch" id="submit-batch"-->
+                            <!--                                        label="Update batch"-->
+                            <!--                                        slot="true"></psk-button>-->
+                            <!--                            <psk-button class="submit-batch-btn" data-tag="add-batch" label="Add batch"-->
+                            <!--                                        slot="false"></psk-button>-->
                         </div>
 
                     </div>
@@ -166,10 +168,6 @@
                     <epi-card></epi-card>
                 </div>
             </div>
-
-
         </webc-container>
-<!--    </h6>-->
-</psk-page>
-
-
+    </div>
+</page-template>
