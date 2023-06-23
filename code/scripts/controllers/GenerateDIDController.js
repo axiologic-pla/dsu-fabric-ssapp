@@ -81,9 +81,13 @@ function GenerateDIDController(...props) {
     }
   })
 
-  self.on("copy-text", (event) => {
-    copyToClipboard(event.data);
-  });
+  self.onTagClick("copy-text", (event) => {
+    copyToClipboard(event.identity);
+  })
+
+  // self.on("copy-text", (event) => {
+  //   copyToClipboard(event.data);
+  // });
 
   self.accessWasGranted = async () => {
     let sharedEnclave;
