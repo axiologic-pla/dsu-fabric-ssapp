@@ -1,56 +1,56 @@
 <link href="pages/myAccount/my-account.css" rel="stylesheet"/>
 
-<psk-page title="User Info">
-    <webc-container controller="HolderController">
-        <button class="download-debug-info-btn page-action-btn" data-tag="download-debug">Download Debug Info</button>
+<page-template>
+    <span slot="page-title">User Info</span>
+    <div slot="page-content">
+        <webc-container controller="HolderController">
+            <button class="download-debug-info-btn page-action-btn" data-tag="download-debug">Download Debug Info</button>
 
-        <psk-layout row-gap="1em">
-            <div class="d-flex">
-                <psk-label class="user-label ml-3" label="User Identity:"></psk-label>
-                <div class="d-flex align-items-center">
-                    <psk-label class="standard-label pl-3 pr-3 mr-3 ml-3 token string did" label="@did"></psk-label>
-                    <psk-button button-class="btn btn-success" event-data="@did" event-name="copy-text">
-                        <psk-icon color="rgb(255, 255, 255)" icon="copy"></psk-icon>
-                    </psk-button>
-                </div>
-            </div>
-
-
-            <div class="pl-3" id="readableContainer">
-                <psk-condition condition="@isInvalidCredential">
-                    <p><strong>Invalid credential specified</strong></p>
-                </psk-condition>
-            </div>
-
-            <div class="pl-3">
+            <psk-layout row-gap="1em">
                 <div class="d-flex">
-                    <p class="user-label">Wallet settings:</p>
-                    <div data-if="@editableFeatures">
-                        <button class="page-action-btn ml-3" data-tag="edit-settings" slot="true">EDIT</button>
+                    <psk-label class="user-label ml-3" label="User Identity:"></psk-label>
+                    <div class="d-flex align-items-center">
+                        <psk-label class="standard-label pl-3 pr-3 mr-3 ml-3 token string did" label="@did"></psk-label>
+                        <psk-button button-class="btn btn-success" event-data="@did" event-name="copy-text">
+                            <psk-icon color="rgb(255, 255, 255)" icon="copy"></psk-icon>
+                        </psk-button>
+                    </div>
+                </div>
+
+                <div class="pl-3" id="readableContainer">
+                    <psk-condition condition="@isInvalidCredential">
+                        <p><strong>Invalid credential specified</strong></p>
+                    </psk-condition>
+                </div>
+
+                <div class="pl-3">
+                    <div class="d-flex">
+                        <p class="user-label">Wallet settings:</p>
+                        <div data-if="@editableFeatures">
+                            <button class="page-action-btn ml-3" data-tag="edit-settings" slot="true">EDIT</button>
+                        </div>
+
                     </div>
 
+                    <div id="environmentContainer">
+                    </div>
+                </div>
+                <!--hidden for MVP1-->
+                <div class="wallet-ssi hiddenElement">
+                    <p class="ml-3">To configure the import API please use the following Wallet Identifier in your API-Hub
+                        config:</p>
+                    <div class="d-flex">
+                        <psk-label class="standard-label token string walletKeySSI pr-3 pl-3 mr-3 text-wrap"
+                                   label="@walletKeySSI"></psk-label>
+                        <psk-button button-class="btn btn-success" event-data="@walletKeySSI" event-name="copy-text">
+                            <psk-icon color="rgb(255, 255, 255)" icon="copy"></psk-icon>
+                        </psk-button>
+                    </div>
                 </div>
 
-                <div id="environmentContainer">
-                </div>
-            </div>
-            <!--hidden for MVP1-->
-            <div class="wallet-ssi hiddenElement">
-                <p class="ml-3">To configure the import API please use the following Wallet Identifier in your API-Hub
-                    config:</p>
-                <div class="d-flex">
-                    <psk-label class="standard-label token string walletKeySSI pr-3 pl-3 mr-3 text-wrap"
-                               label="@walletKeySSI"></psk-label>
-                    <psk-button button-class="btn btn-success" event-data="@walletKeySSI" event-name="copy-text">
-                        <psk-icon color="rgb(255, 255, 255)" icon="copy"></psk-icon>
-                    </psk-button>
-                </div>
-            </div>
+            </psk-layout>
 
-            </div>
-            </psk-condition>
-        </psk-layout>
-
-        <psk-list-feedbacks></psk-list-feedbacks>
-    </webc-container>
-</psk-page>
+            <psk-list-feedbacks></psk-list-feedbacks>
+        </webc-container>
+    </div>
+</page-template>
