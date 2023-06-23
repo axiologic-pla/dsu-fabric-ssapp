@@ -1,34 +1,37 @@
-<psk-page title="Audit">
-    <webc-container controller="AuditController">
-        <div data-if="@logListLoaded">
-            <div slot="true">
-                <div data-if="@listHeader">
-                    <psk-layout slot="true" class="audit-header" template-columns="1.7fr 1fr 1fr 1fr 0.3fr">
+<page-template>
+    <span slot="page-title">Audit</span>
+    <div slot="page-content">
+        <webc-container controller="AuditController">
+            <div data-if="@logListLoaded">
+                <div slot="true">
+                    <div data-if="@listHeader">
+                        <psk-layout slot="true" class="audit-header" template-columns="1.7fr 1fr 1fr 1fr 0.3fr">
 
-                        <psk-label label="Target"></psk-label>
-                        <psk-label label="Action"></psk-label>
-                        <psk-label label="User"></psk-label>
-                        <psk-label label="Creation Time"></psk-label>
-                        <psk-label label="Data"></psk-label>
-                    </psk-layout>
+                            <psk-label label="Target"></psk-label>
+                            <psk-label label="Action"></psk-label>
+                            <psk-label label="User"></psk-label>
+                            <psk-label label="Creation Time"></psk-label>
+                            <psk-label label="Data"></psk-label>
+                        </psk-layout>
+                    </div>
+                    <hr>
+                    <div data-for="@logs">
+                        <psk-layout class="audit-line" template-columns="1.7fr 1fr 1fr 1fr 0.3fr">
+                            <psk-label>{{@target}}</psk-label>
+                            <psk-label>{{@action}}</psk-label>
+                            <psk-label>{{@username}}</psk-label>
+                            <psk-label>{{@creationTime}}</psk-label>
+                            <button class="btn btn-link p-0 col align-self-center text-left" data-tag="show-audit-entry">
+                                View
+                            </button>
+                        </psk-layout>
+                        <div slot="no-data">No logs available.</div>
+                    </div>
                 </div>
-                <hr>
-                <div data-for="@logs">
-                    <psk-layout class="audit-line" template-columns="1.7fr 1fr 1fr 1fr 0.3fr">
-                        <psk-label>{{@target}}</psk-label>
-                        <psk-label>{{@action}}</psk-label>
-                        <psk-label>{{@username}}</psk-label>
-                        <psk-label>{{@creationTime}}</psk-label>
-                        <button class="btn btn-link p-0 col align-self-center text-left" data-tag="show-audit-entry">
-                            View
-                        </button>
-                    </psk-layout>
-                    <div slot="no-data">No logs available.</div>
+                <div slot="false">
+                    <psk-ui-loader should-be-rendered="true"></psk-ui-loader>
                 </div>
             </div>
-            <div slot="false">
-                <psk-ui-loader should-be-rendered="true"></psk-ui-loader>
-            </div>
-        </div>
-    </webc-container>
-</psk-page>
+        </webc-container>
+    </div>
+</page-template>
