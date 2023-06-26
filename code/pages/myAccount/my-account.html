@@ -46,11 +46,16 @@
                     <p class="ml-3">To configure the import API please use the following Wallet Identifier in your API-Hub
                         config:</p>
                     <div class="d-flex">
-                        <psk-label class="standard-label token string walletKeySSI pr-3 pl-3 mr-3 text-wrap"
-                                   label="@walletKeySSI"></psk-label>
-                        <psk-button button-class="btn btn-success" event-data="@walletKeySSI" event-name="copy-text">
-                            <psk-icon color="rgb(255, 255, 255)" icon="copy"></psk-icon>
-                        </psk-button>
+                        <label for="copy-keyssi">{{@walletKeySSI}}</label>
+                        <button id="copy-keyssi" class="default-button" data-tag="copy-text">
+                            <i class="fa fa-copy" style="color:white"></i>
+                        </button>
+                        
+<!--                        <psk-label class="standard-label token string walletKeySSI pr-3 pl-3 mr-3 text-wrap"-->
+<!--                                   label="@walletKeySSI"></psk-label>-->
+<!--                        <psk-button button-class="btn btn-success" event-data="@walletKeySSI" event-name="copy-text">-->
+<!--                            <psk-icon color="rgb(255, 255, 255)" icon="copy"></psk-icon>-->
+<!--                        </psk-button>-->
                     </div>
                 </div>
 
