@@ -8,12 +8,18 @@
 
             <psk-layout row-gap="1em">
                 <div class="d-flex">
-                    <psk-label class="user-label ml-3" label="User Identity:"></psk-label>
+                    <label class="user-label ml-3">User Identity:</label>
+<!--                    <psk-label class="user-label ml-3" label="User Identity:"></psk-label>-->
                     <div class="d-flex align-items-center">
-                        <psk-label class="standard-label pl-3 pr-3 mr-3 ml-3 token string did" label="@did"></psk-label>
-                        <psk-button button-class="btn btn-success" event-data="@did" event-name="copy-text">
-                            <psk-icon color="rgb(255, 255, 255)" icon="copy"></psk-icon>
-                        </psk-button>
+                        <label for="copy-did" class="standard-label pl-3 pr-3 mr-3 ml-3 token string did">{{@did}}</label>
+                        <button class="default-button" id="copy-did" data-tag="copy-text">
+                            <i class="fa fa-copy" style="color:white"></i>
+                        </button>
+
+<!--                        <psk-label class="standard-label pl-3 pr-3 mr-3 ml-3 token string did" label="@did"></psk-label>-->
+<!--                        <psk-button button-class="btn btn-success" event-data="@did" event-name="copy-text">-->
+<!--                            <psk-icon color="rgb(255, 255, 255)" icon="copy"></psk-icon>-->
+<!--                        </psk-button>-->
                     </div>
                 </div>
 

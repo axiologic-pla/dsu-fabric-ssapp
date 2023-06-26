@@ -85,9 +85,13 @@ export default class HolderController extends FwController {
       this.feedbackEmitter = e.detail;
     });
 
-    this.on('copy-text', (e) => {
-      copyToClipboard(e.data);
-    });
+    this.onTagClick("copy-text", (event) => {
+      copyToClipboard(event.did);
+    })
+
+    // this.on('copy-text', (e) => {
+    //   copyToClipboard(e.data);
+    // });
 
     this.onTagClick("edit-settings", (model, target, event) => {
       let oldValue = this.model.envData;
