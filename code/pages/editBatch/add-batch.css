@@ -1,3 +1,9 @@
+.product-gtin-container {
+    --select-padding: 0.375rem 0.75rem 0.375rem 0px;
+    --select-border: none;
+    --select-margin: 0px 0px 0px -4px;
+}
+
 .add-batch-container[userrights="readonly"]:before {
     content: "Read only mode";
     color: #328569;
@@ -103,8 +109,9 @@ df-date-input .form-control[readonly],
     overflow: auto;
 }
 
-psk-select .form-control,
-psk-select .form-control:focus {
+/*
+select.form-control,
+select.form-control:focus {
     background: none;
     box-shadow: none;
     padding: 0px;
@@ -113,6 +120,7 @@ psk-select .form-control:focus {
     overflow: auto;
     border-color: black;
 }
+*/
 
 .background-container input::placeholder,
 .background-container textarea::placeholder {
@@ -230,3 +238,8 @@ df-date-input::part(input-element):before {
 df-date-input::part(input-element) {
     font-family: sans-serif;
 }
+
+.hidden {
+    display: none;
+}
+

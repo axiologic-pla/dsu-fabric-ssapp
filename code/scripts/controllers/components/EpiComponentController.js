@@ -83,8 +83,8 @@ export default class EpiComponentController extends FwController {
 
     this.showModalFromTemplate('select-language-and-type-modal', () => {
       const select = document.getElementsByClassName('document-type-select')[0];
-      let selectedType = select.options[select.selectedIndex].value;
-      let selectedLanguage = Languages.getListAsVM().find(lang => lang.value === this.model.modalData.product.language);
+      let selectedType = this.model.modalData.types.value;
+      let selectedLanguage = Languages.getListAsVM().find(lang => lang.value === this.model.modalData.languages.value);
       let leafletAction;
       let selectedEpi = epiUtils.getSelectedEpiCard(this.model.languageTypeCards, selectedLanguage.value, selectedType);
       if (selectedEpi) {

@@ -5,7 +5,8 @@
     <psk-checkbox  checkbox-label="@actionModalModel.resetButtonLabel" name="@actionModalModel.type" value="@actionModalModel.resetAll"></psk-checkbox>
     <textarea class="w-100" value="@actionModalModel.serialNumbers"></textarea>
     <div data-if="@actionModalModel.decommissionedType">
-        <psk-select required slot="true" view-model="@actionModalModel.reason"></psk-select>
+        <!--use of data-if can cause lost of eventListener -->
+        <df-select-dropdown required slot="true" data-view-model="@actionModalModel.reason"></df-select-dropdown>
     </div>
 </main>
 <footer class="modal-action-menu" slot="footer">

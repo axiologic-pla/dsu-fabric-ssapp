@@ -105,7 +105,9 @@
                         <button data-tag="cancel" class="default-button">Cancel</button>
                         <!--                        <psk-button data-tag="cancel" label="Cancel" class="batch-cancel-btn"></psk-button>-->
                         <div data-if="@editMode">
-                            <button class="default-button" data-tag="update-batch" id="submit-batch" slot="true">Update batch</button>
+                            <button class="default-button" data-tag="update-batch" id="submit-batch" slot="true">Update
+                                batch
+                            </button>
                             <button class="default-button" data-tag="add-batch" slot="false">Add batch</button>
 
                             <!--                            <psk-button class="submit-batch-btn" data-tag="update-batch" id="submit-batch"-->
@@ -118,19 +120,25 @@
                     </div>
                 </div>
                 <div class="col-5 align-self-start p-0">
-                    <div data-if="@editMode">
-                        <div class="read-only-container col mb-3 mt-2 pl-3" slot="true">
+                    <div class="product-gtin-container">
+                        <div class="read-only-container col mb-3 mt-2 pl-3 hidden">
                             <div class="form-label">Product Code</div>
                             <input class="form-control" placeholder="-" readonly type="text"
                                    value="@batch.gtin"/>
                         </div>
-                        <i class="fa fa-pencil-square-o editable-icon" slot="false"></i>
-                        <div class="background-container col pl-3 mb-3 pl-3" slot="false">
-                            <div class="form-label">Product Code</div>
-                            <psk-select class="default-select" required slot="false"
-                                        view-model="@products"></psk-select>
-                        </div>
+                        <div class="read-write-container hidden">
+                            <i class="fa fa-pencil-square-o editable-icon"></i>
+                            <div class="background-container col pl-3 mb-3 pl-3">
+                                <div class="form-label">Product Code</div>
+                                <df-select-dropdown data-view-model="@products" shadow></df-select-dropdown>
 
+                                <!--                               <select id="products-code-select" class="df-select default-select"
+                                                                       data-for="@products.options" data-for-option="rerender"
+                                                                       model-value="@value">
+                                                                   <option value="@value">{{@label}}</option>
+                                                               </select>-->
+                            </div>
+                        </div>
                     </div>
                     <div class="read-only-container col mb-3 mt-2 pl-3">
                         <div class="form-label">Brand / invented name</div>
@@ -162,7 +170,7 @@
                         <div class="select-label d-flex flex-column justify-content-center">Manage serial numbers
                         </div>
                         <div class="custom-select d-flex flex-column justify-content-center">
-                            <psk-select required value="" view-model="@serial_update_options"></psk-select>
+                            <df-select-dropdown data-view-model="@serial_update_options"></df-select-dropdown>
                         </div>
                     </div>
                     <epi-card></epi-card>

@@ -218,6 +218,7 @@ function finishInit() {
   define('epi-card', 'epi-card/template');
   define('page-template', {shadow: true});
   define('df-upload-file', 'upload-file/template');
+  define('df-select-dropdown', 'select-dropdown/template');
   customElements.define("df-date-input", WebcDateInput);
   customElements.define("df-accordion-item", WebcAccordionItem);
   customElements.define("df-accordion", WebcAccordion);

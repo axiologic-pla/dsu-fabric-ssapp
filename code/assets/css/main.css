@@ -67,3 +67,9 @@ pre code{
   background: #dee2e6;
   color: grey;
 }
+.df-select-label {
+  padding-top: calc(0.375rem + 1px);
+  padding-bottom: calc(0.375rem + 1px);
+  font-size: inherit;
+  line-height: 1.5;
+}

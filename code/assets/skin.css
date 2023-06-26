@@ -2,6 +2,16 @@ body {
     background: url("../assets/images/background.svg");
 }
 
+:root {
+    --select-padding: 0.375rem 0.75rem;
+    --select-color: #495057;
+    --select-background-color: #fff;
+    --select-border: 1px solid #ced4da;
+    --select-border-radius: 0.25rem;
+    --select-transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+    --select-margin: 0px;
+}
+
 webc-app-container {
     --background: transparent;
     position: relative;
@@ -246,7 +256,7 @@ button.btn.btn-primary:disabled {
     pointer-events: all;
 }
 
-.nav-tab-title{
+.nav-tab-title {
     padding: 8px 16px;
     background: transparent;
 }

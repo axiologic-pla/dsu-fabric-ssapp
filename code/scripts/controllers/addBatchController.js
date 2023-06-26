@@ -16,7 +16,15 @@ const gtinResolver = require("gtin-resolver");
 export default class addBatchController extends FwController {
   constructor(...props) {
     super(...props);
-    this.model = {disabledFeatures: this.disabledFeatures, userrights: this.userRights, languageTypeCards: []};
+    this.model = {
+      disabledFeatures: this.disabledFeatures,
+      userrights: this.userRights,
+      languageTypeCards: [],
+      products: {
+        placeholder: "Select a product",
+        options: []
+      }
+    };
     let state = this.history.location.state;
     const editMode = state != null && state.batchData != null;
     let editData = editMode ? JSON.parse(state.batchData) : undefined;
@@ -59,18 +67,32 @@ export default class addBatchController extends FwController {
     this.model.productDescription = "";
     this.model.editMode = editMode;
     this.model.serialNumbersLogs = [];
-    this.model.products = {
-      placeholder: "Select a product"
-    }
+
 
     this.model.serial_update_options = {
-      options: [{label: "Update Valid", value: "update-valid-serial"}, {
+      options: [{
+        label: "Update Valid",
+        value: "update-valid-serial",
+        selected: false
+      }, {
         label: "Update Recalled",
-        value: "update-recalled-serial"
-      }, {label: "Update decommissioned", value: "update-decommissioned-serial"}, {
-        label: "See update history",
-        value: "update-history"
-      }], placeholder: "Select an option"
+        value: "update-recalled-serial",
+        selected: false
+      }, {
+        label: "Update decommissioned",
+        value: "update-decommissioned-serial",
+        selected: false
+      },
+        {
+          label: "See update history",
+          value: "update-history",
+          selected: false
+        },
+        {
+          label: "Select an option",
+          value: "placeholder",
+          selected: true
+        }]
     }
 
     this.model.videoSourceUpdated = false;
@@ -109,6 +131,13 @@ export default class addBatchController extends FwController {
 
     this.getNumberLogs();
 
+    const productGtinContainer = this.element.querySelector(".product-gtin-container");
+    if (editMode) {
+      productGtinContainer.querySelector(".read-only-container").classList.remove("hidden");
+    } else {
+      productGtinContainer.querySelector(".read-write-container").classList.remove("hidden");
+    }
+
     this.storageService.filter(constants.PRODUCTS_TABLE, "__timestamp > 0", (err, products) => {
       if (err || !products || products.length === 0) {
         this.notificationHandler.reportDevRelevantInfo("Failed to retrieve products list!", err);
@@ -116,8 +145,9 @@ export default class addBatchController extends FwController {
       }
       const options = [];
       Object.values(products).forEach(prod => options.push({
-        label: prod.gtin + ' - ' + prod.name, value: prod.gtin
+        label: prod.gtin + ' - ' + prod.name, value: prod.gtin, selected: false
       }));
+      options[0].selected = true;
       this.model.products.options = options;
     });
 
@@ -516,7 +546,7 @@ export default class addBatchController extends FwController {
   showSerialHistoryModal() {
     this.showModalFromTemplate('serial-numbers-update-history', () => {
     }, () => {
-      this.model.serial_update_options.value = "Select an option";
+      this.model.serial_update_options.value = "placeholder";
     }, {model: this.model});
   }
 
@@ -530,9 +560,11 @@ export default class addBatchController extends FwController {
       resetAll: false,
       decommissionedType: false,
       reason: {
-        options: [{label: "Lost", value: "lost"}, {label: "Stolen", value: "stolen"}, {
-          label: "Damaged", value: "damaged"
-        }], placeholder: "Select a reason"
+        options: [
+          {label: "Lost", value: "lost", selected: false},
+          {label: "Stolen", value: "stolen", selected: false},
+          {label: "Damaged", value: "damaged", selected: false},
+          {label: "Select a reason", value: "placeholder", selected: true}]
       }
     }
     switch (type) {

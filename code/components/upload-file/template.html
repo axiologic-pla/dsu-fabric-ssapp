@@ -2,7 +2,7 @@
 
 <webc-container controller="components/UploadFileController" data-view-model="@">
     <div class="file-upload-container">
-        <button class="upload-files-btn" data-tag="upload-files">{{@label}}</button>
+        <button class="upload-files-btn default-button" data-tag="upload-files">{{@label}}</button>
         <input type="file" multiple class="hidden" directory mozdirectory webkitdirectory required/>
 
         <div data-if="@list-files">
