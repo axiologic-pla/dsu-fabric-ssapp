@@ -2,11 +2,15 @@
     <h5>Markets Management</h5>
 </div>
 <main>
-
-    <psk-select required value="@marketModel.countriesCodes.value" view-model="@marketModel.countriesCodes"></psk-select>
-    <psk-input  isValid="@marketModel.nationalCode.isValid" value="@marketModel.nationalCode.value" view-model="@marketModel.nationalCode"></psk-input>
-    <psk-input  isValid="@marketModel.mahName.isValid" value="@marketModel.mahName.value" view-model="@marketModel.mahName"></psk-input>
-    <psk-input  isValid="@marketModel.legalEntityName.isValid" value="@marketModel.legalEntityName.value" view-model="@marketModel.legalEntityName"></psk-input>
+    <df-select-dropdown data-view-model="@marketModel.countriesCodes" shadow></df-select-dropdown>
+<!--    <psk-select required value="@marketModel.countriesCodes.value"
+                view-model="@marketModel.countriesCodes"></psk-select>
+    --><psk-input isValid="@marketModel.nationalCode.isValid" value="@marketModel.nationalCode.value"
+               view-model="@marketModel.nationalCode"></psk-input>
+    <psk-input isValid="@marketModel.mahName.isValid" value="@marketModel.mahName.value"
+               view-model="@marketModel.mahName"></psk-input>
+    <psk-input isValid="@marketModel.legalEntityName.isValid" value="@marketModel.legalEntityName.value"
+               view-model="@marketModel.legalEntityName"></psk-input>
 
     <div data-if="@marketModel.validationFailed">
         <psk-highlight title="All fields are required" type-of-highlight="issue"></psk-highlight>
