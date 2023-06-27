@@ -2,16 +2,17 @@
     <h5>Markets Management</h5>
 </div>
 <main>
-    <df-select-dropdown data-view-model="@marketModel.countriesCodes" shadow></df-select-dropdown>
-<!--    <psk-select required value="@marketModel.countriesCodes.value"
-                view-model="@marketModel.countriesCodes"></psk-select>
-    --><psk-input isValid="@marketModel.nationalCode.isValid" value="@marketModel.nationalCode.value"
-               view-model="@marketModel.nationalCode"></psk-input>
-    <psk-input isValid="@marketModel.mahName.isValid" value="@marketModel.mahName.value"
-               view-model="@marketModel.mahName"></psk-input>
-    <psk-input isValid="@marketModel.legalEntityName.isValid" value="@marketModel.legalEntityName.value"
-               view-model="@marketModel.legalEntityName"></psk-input>
-
+    <div class="col-form-label">Select Country</div>
+    <df-select-dropdown data-view-model="@marketModel.countriesCodes"></df-select-dropdown>
+    <div class="col-form-label">National Code</div>
+    <input class="form-control" placeholder="Enter national code" type="text"
+           value="@marketModel.nationalCode.value"/>
+    <div class="col-form-label">MAH Name</div>
+    <input class="form-control" placeholder="Enter MAH name" type="text"
+           value="@marketModel.mahName.value"/>
+    <div class="col-form-label">Legal Entity Name</div>
+    <input class="form-control" placeholder="Enter legal entity name" type="text"
+           value="@marketModel.legalEntityName.value"/>
     <div data-if="@marketModel.validationFailed">
         <psk-highlight title="All fields are required" type-of-highlight="issue"></psk-highlight>
     </div>
@@ -21,9 +22,9 @@
     <button class="default-button" data-close>Close</button>
     <button class="default-button" data-tag="@actionModalModel.action">{{@actionModalModel.acceptButtonText}}</button>
 
-<!--    <psk-button class="marketplace-manager-button" data-close>Close</psk-button>-->
-<!--    <psk-button class="marketplace-manager-button" data-tag="@actionModalModel.action">
-        {{@actionModalModel.acceptButtonText}}
-    </psk-button>-->
+    <!--    <psk-button class="marketplace-manager-button" data-close>Close</psk-button>-->
+    <!--    <psk-button class="marketplace-manager-button" data-tag="@actionModalModel.action">
+            {{@actionModalModel.acceptButtonText}}
+        </psk-button>-->
 </footer>
 

@@ -466,28 +466,35 @@ export default class ManageProductController extends FwController {
     let existingCountryMarketIds = this.model.product.markets.map(market => market.marketId);
     let countriesList = event.marketId ? Countries.getList().map(country => {
       return {
-        label: country.name, value: country.code
+        label: country.name, value: country.code, selected: false
       }
     }) : Countries.getList().filter(country => !existingCountryMarketIds
       .includes(country.code)).map(country => {
       return {
-        label: country.name, value: country.code
+        label: country.name, value: country.code, selected: false
       }
     });
 
-    this.model.marketModel = {
-      validationFailed: false, countriesCodes: {
-        options: countriesList, value: event.marketId || countriesList[0].value, label: "Select Country"
-      }, nationalCode: {
-        value: event.nationalCode || "", placeholder: "Enter national code", label: "National Code",
+    if (!event.marketId) {
+      countriesList[0].selected = true;
+    } else {
+      let selectedCountry = countriesList.find(item => item.value === event.marketId)
+      selectedCountry.selected = true;
+    }
 
+    this.model.marketModel = {
+      validationFailed: false,
+      countriesCodes: {
+        options: countriesList,
+        value: event.marketId || countriesList[0].value
+      }, nationalCode: {
+        value: event.nationalCode || "",
         isValid: true
       }, mahName: {
-        value: event.mahName || "", placeholder: "Enter MAH name", label: "MAH Name",
-
+        value: event.mahName || "",
         isValid: true
       }, legalEntityName: {
-        value: event.legalEntityName || "", placeholder: "Enter legal entity name", label: "Legal Entity Name",
+        value: event.legalEntityName || "", placeholder: "Enter legal entity name", label: "",
 
         isValid: true
       }
