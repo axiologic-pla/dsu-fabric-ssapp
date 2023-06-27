@@ -13,10 +13,6 @@
     <div class="col-form-label">Legal Entity Name</div>
     <input class="form-control" placeholder="Enter legal entity name" type="text"
            value="@marketModel.legalEntityName.value"/>
-    <div data-if="@marketModel.validationFailed">
-        <psk-highlight title="All fields are required" type-of-highlight="issue"></psk-highlight>
-    </div>
-
 </main>
 <footer class="modal-action-menu" slot="footer">
     <button class="default-button" data-close>Close</button>

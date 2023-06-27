@@ -525,6 +525,7 @@ export default class ManageProductController extends FwController {
 
     if (validationFailed) {
       this.model.marketModel.validationFailed = true;
+      this.notificationHandler.reportUserRelevantWarning("All fields are required.");
     } else {
       this.model.marketModel.validationFailed = false;
       this.model.selectedMarket = market;
