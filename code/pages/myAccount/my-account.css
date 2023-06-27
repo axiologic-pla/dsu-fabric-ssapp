@@ -8,6 +8,12 @@
     filter: blur(5px);
 }
 
+.content-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+}
+
 .user-label {
     font-size: 22px;
 }

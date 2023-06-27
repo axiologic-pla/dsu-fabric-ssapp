@@ -5,18 +5,18 @@
             <div data-if="@logListLoaded">
                 <div slot="true">
                     <div data-if="@listHeader">
-                        <psk-layout slot="true" class="audit-header" template-columns="1.7fr 1fr 1fr 1fr 0.3fr">
+                        <div slot="true" class="audit-header" template-columns="1.7fr 1fr 1fr 1fr 0.3fr">
 
                             <psk-label label="Target"></psk-label>
                             <psk-label label="Action"></psk-label>
                             <psk-label label="User"></psk-label>
                             <psk-label label="Creation Time"></psk-label>
                             <psk-label label="Data"></psk-label>
-                        </psk-layout>
+                        </div>
                     </div>
                     <hr>
                     <div data-for="@logs">
-                        <psk-layout class="audit-line" template-columns="1.7fr 1fr 1fr 1fr 0.3fr">
+                        <div class="audit-line" template-columns="1.7fr 1fr 1fr 1fr 0.3fr">
                             <psk-label>{{@target}}</psk-label>
                             <psk-label>{{@action}}</psk-label>
                             <psk-label>{{@username}}</psk-label>
@@ -24,7 +24,7 @@
                             <button class="btn btn-link p-0 col align-self-center text-left" data-tag="show-audit-entry">
                                 View
                             </button>
-                        </psk-layout>
+                        </div>
                         <div slot="no-data">No logs available.</div>
                     </div>
                 </div>
