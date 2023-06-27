@@ -2,7 +2,13 @@
     <h5>{{@actionModalModel.title}}</h5>
 </div>
 <main>
+    <div class="checkbox-container">
+        <input type="checkbox" value="@actionModalModel.resetAll">
+        <span class="checkbox-label">{{@actionModalModel.resetButtonLabel}}</span>
+    </div>
+<!--
     <psk-checkbox  checkbox-label="@actionModalModel.resetButtonLabel" name="@actionModalModel.type" value="@actionModalModel.resetAll"></psk-checkbox>
+-->
     <textarea class="w-100" value="@actionModalModel.serialNumbers"></textarea>
     <div data-if="@actionModalModel.decommissionedType">
         <!--use of data-if can cause lost of eventListener -->

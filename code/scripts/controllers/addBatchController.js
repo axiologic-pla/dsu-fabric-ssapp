@@ -78,29 +78,29 @@ export default class addBatchController extends FwController {
         label: "Update Valid",
         value: "update-valid-serial",
         selected: false,
-        disabled: true
+        disabled: false
       }, {
         label: "Update Recalled",
         value: "update-recalled-serial",
         selected: false,
-        disabled: true
+        disabled: false
       }, {
         label: "Update decommissioned",
         value: "update-decommissioned-serial",
         selected: false,
-        disabled: true
+        disabled: false
       },
         {
           label: "See update history",
           value: "update-history",
           selected: false,
-          disabled: true
+          disabled: false
         },
         {
           label: "Select an option",
           value: "",
           selected: true,
-          disabled: true
+          disabled: false
         }]
     }
 
@@ -425,6 +425,11 @@ export default class addBatchController extends FwController {
     this.model.onChange('batch.videos.defaultSource', async (...props) => {
       this.model.videoSourceUpdated = this.videoInitialDefaultSource !== this.model.batch.videos.defaultSource;
     })
+
+/*    this.querySelector(".custom-select select").addEventListeners("change", async (event) => {
+      this.model.serial_update_options.value = event.target.value;
+    });
+    */
     this.model.onChange("serial_update_options.value", async (event) => {
       if (this.model.serial_update_options.value === "update-history") {
         this.showSerialHistoryModal()
