@@ -170,7 +170,10 @@
                         <div class="select-label d-flex flex-column justify-content-center">Manage serial numbers
                         </div>
                         <div class="custom-select d-flex flex-column justify-content-center">
-                            <df-select-dropdown data-view-model="@serial_update_options"></df-select-dropdown>
+                            <select class="df-select" data-for="@serial_update_options.options"
+                                    data-for-option="rerender" model-value="@value">
+                                <option disabled="@disabled" selected="@selected" value="@value">{{@label}}</option>
+                            </select>
                         </div>
                     </div>
                     <epi-card></epi-card>

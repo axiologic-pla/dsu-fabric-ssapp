@@ -291,11 +291,11 @@ function disableFeatures(thisObj) {
   thisObj.model.disabledFeatures.forEach(offFuncKey => {
     let htmlNodes = thisObj.querySelectorAll(`.featureCode-${offFuncKey}`);
     htmlNodes.forEach(item => {
-      item.disabled = true;
+      item.setAttribute("disabled", "");
       item.classList.add("disabled-container");
       let childNodes = item.getElementsByTagName('*');
       for (let node of childNodes) {
-        node.disabled = true;
+        node.setAttribute("disabled", "");
       }
     })
 

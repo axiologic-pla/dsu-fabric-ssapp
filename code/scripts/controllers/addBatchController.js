@@ -21,8 +21,12 @@ export default class addBatchController extends FwController {
       userrights: this.userRights,
       languageTypeCards: [],
       products: {
-        placeholder: "Select a product",
-        options: []
+        options: [{
+          label: "Select a product",
+          value: "",
+          selected: true,
+          disabled: false
+        }]
       }
     };
     let state = this.history.location.state;
@@ -73,25 +77,30 @@ export default class addBatchController extends FwController {
       options: [{
         label: "Update Valid",
         value: "update-valid-serial",
-        selected: false
+        selected: false,
+        disabled: true
       }, {
         label: "Update Recalled",
         value: "update-recalled-serial",
-        selected: false
+        selected: false,
+        disabled: true
       }, {
         label: "Update decommissioned",
         value: "update-decommissioned-serial",
-        selected: false
+        selected: false,
+        disabled: true
       },
         {
           label: "See update history",
           value: "update-history",
-          selected: false
+          selected: false,
+          disabled: true
         },
         {
           label: "Select an option",
-          value: "placeholder",
-          selected: true
+          value: "",
+          selected: true,
+          disabled: true
         }]
     }
 
@@ -143,19 +152,22 @@ export default class addBatchController extends FwController {
         this.notificationHandler.reportDevRelevantInfo("Failed to retrieve products list!", err);
         return this.showErrorModalAndRedirect("Failed to retrieve products list! Create a product first!", "Product not found", {tag: "manage-product"});
       }
-      const options = [];
-      Object.values(products).forEach(prod => options.push({
-        label: prod.gtin + ' - ' + prod.name, value: prod.gtin, selected: false
+
+      Object.values(products).forEach(prod => this.model.products.options.push({
+        label: prod.gtin + ' - ' + prod.name,
+        value: prod.gtin,
+        selected: false,
+        disabled: false
       }));
-      options[0].selected = true;
-      this.model.products.options = options;
+
+      this.addEventListeners();
+      utils.disableFeatures(this);
+      setTimeout(() => {
+        this.setUpCheckboxes();
+      }, 0)
     });
 
-    this.addEventListeners();
-    utils.disableFeatures(this);
-    setTimeout(() => {
-      this.setUpCheckboxes();
-    }, 0)
+
   }
 
   handlerUnknownError(state, batch) {
@@ -293,17 +305,23 @@ export default class addBatchController extends FwController {
       } catch (e) {
         //do nothing just check if batch with batchId exists
       }
-
     }
-    this.model.diffs = this.getDiffs();
 
-    this.showModalFromTemplate("view-edit-changes/template", () => {
-      this.confirmSave(batch);
-    }, () => {
-      return
-    }, {
-      disableClosing: true, model: this.model, controller: "modals/PreviewEditChangesController"
-    })
+    // show diffs just if edit batch on create skip this step
+    if (this.model.editMode) {
+      this.model.diffs = this.getDiffs();
+
+      this.showModalFromTemplate("view-edit-changes/template", async () => {
+        await this.confirmSave(batch);
+      }, () => {
+        return
+      }, {
+        disableClosing: true, model: this.model, controller: "modals/PreviewEditChangesController"
+      })
+    } else {
+      await this.confirmSave(batch);
+    }
+
 
   };
 
@@ -546,7 +564,7 @@ export default class addBatchController extends FwController {
   showSerialHistoryModal() {
     this.showModalFromTemplate('serial-numbers-update-history', () => {
     }, () => {
-      this.model.serial_update_options.value = "placeholder";
+      this.model.serial_update_options.value = "";
     }, {model: this.model});
   }
 
@@ -613,7 +631,7 @@ export default class addBatchController extends FwController {
           break;
       }
 
-      this.model.serial_update_options.value = "Select an option";
+      this.model.serial_update_options.value = "";
       try {
         await this.storageService.safeBeginBatchAsync();
       } catch (e) {
@@ -635,7 +653,7 @@ export default class addBatchController extends FwController {
       this.manageUpdateButtonState();
       return;
     }, () => {
-      this.model.serial_update_options.value = "Select an option";
+      this.model.serial_update_options.value = "";
       return;
     }, {model: this.model});
   }

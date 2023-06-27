@@ -2,6 +2,7 @@ const {FwController} = WebCardinal.controllers;
 export default class SelectController extends FwController {
   constructor(...props) {
     super(...props);
+    const selectElement = this.element.querySelector("select.df-select");
     this.model.options = this.model.options ? this.model.options : [];
     this.model.options.forEach(option => {
       if (typeof option.disabled === 'undefined') {
@@ -11,7 +12,8 @@ export default class SelectController extends FwController {
         this.model.value = option.value
       }
     })
-    this.element.querySelector("select.df-select").addEventListener("change", (event) => {
+
+    selectElement.addEventListener("change", (event) => {
       this.model.value = event.target.value;
     })
   }

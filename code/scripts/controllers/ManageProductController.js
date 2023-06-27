@@ -317,16 +317,22 @@ export default class ManageProductController extends FwController {
     if (!this.isValid(product)) {
       return;
     }
-    this.model.diffs = this.getDiffs();
-    this.showModalFromTemplate("view-edit-changes/template", () => {
-      this.confirmSave(product);
-    }, () => {
-      return
-    }, {
-      disableClosing: true,
-      model: this.model,
-      controller: "modals/PreviewEditChangesController"
-    })
+    // show diffs just if edit product on create skip this step
+    if (this.state) {
+      this.model.diffs = this.getDiffs();
+      this.showModalFromTemplate("view-edit-changes/template", async () => {
+        await this.confirmSave(product);
+      }, () => {
+        return
+      }, {
+        disableClosing: true,
+        model: this.model,
+        controller: "modals/PreviewEditChangesController"
+      })
+    } else {
+      await this.confirmSave(product);
+    }
+
   }
 
   async sendMessagesToProcess(messageArr) {

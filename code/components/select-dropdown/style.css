@@ -16,4 +16,8 @@
     margin: var(--select-margin);
 }
 
+select.df-select:focus,
+select.df-select:focus-visible {
+    outline: none;
+}
 
