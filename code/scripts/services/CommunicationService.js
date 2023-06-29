@@ -53,14 +53,9 @@ function CommunicationService(dsuStorage) {
         env[openDSU.constants.SHARED_ENCLAVE.KEY_SSI] =
           message.enclave.enclaveKeySSI;
         await $$.promisify(mainDSU.refresh)();
-        await $$.promisify(mainDSU.writeFile)(
-          "/environment.json",
-          JSON.stringify(env)
-        );
-        scAPI.refreshSecurityContext();
+        await $$.promisify(scAPI.configEnvironment)(env);
         callback(undefined);
       }
-
     });
   };
 }

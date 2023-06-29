@@ -197,7 +197,7 @@ function GenerateDIDController(...props) {
         }
 
         try {
-          await $$.promisify(self.mainDSU.writeFile)("/environment.json", JSON.stringify(env));
+          await $$.promisify(scAPI.configEnvironment)(env);
           await self.mainDSU.commitBatchAsync();
         } catch (e) {
           const writeFileError = createOpenDSUErrorWrapper(`Failed to write file`, e);
@@ -208,7 +208,6 @@ function GenerateDIDController(...props) {
           }
           throw writeFileError;
         }
-        scAPI.refreshSecurityContext();
     }
 
   return self;
