@@ -18,9 +18,17 @@ export default class batchesController extends FwController {
     lazyUtils.attachHandlers(this, "batchesDataSource");
     this.onTagClick("view-2DMatrix", (model, target, event) => {
       let eventData = JSON.parse(target.firstElementChild.innerText);
+      let batchData = {}
+      Object.keys(eventData).forEach(key=>{
+        batchData[key] = {};
+        batchData[key].barcodeData = eventData[key];
+        batchData[key].barcodeType = "gs1datamatrix";
+        batchData[key].barcodeSize = 16;
+        batchData[key].includeBarcodeText = false;
+      })
       this.model.actionModalModel = {
         title: "2DMatrix",
-        batchData: eventData,
+        batchData: batchData,
         acceptButtonText: "Close",
       };
 
@@ -42,7 +50,7 @@ export default class batchesController extends FwController {
 
     this.onTagClick("edit-batch", async (model, target, event) => {
         let eventData = JSON.parse(target.firstElementChild.innerText);
-        const batchData = this.model.batchesDataSource.dataSourceRezults.find((element) => element.batchNumber === eventData.batchNumber && element.gtin === eventData.gtin) ;
+        const batchData = this.model.batchesDataSource.dataSourceRezults.find((element) => element.batchNumber === eventData.batchNumber && element.gtin === eventData.gtin);
         this.navigateToPageTag("add-batch", {
           batchData: JSON.stringify(batchData)
         });

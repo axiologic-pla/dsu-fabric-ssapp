@@ -6,11 +6,11 @@
     <div class="matrix-layout">
         <div>
             <label>Valid</label>
-            <psk-barcode-generator  data="@actionModalModel.batchData.code" size="16" type="gs1datamatrix"></psk-barcode-generator>
+            <df-barcode-generator data-view-model="@actionModalModel.batchData.code"></df-barcode-generator>
         </div>
         <div>
             <label>Wrong</label>
-            <psk-barcode-generator  data="@actionModalModel.batchData.wrongCode" size="16" type="gs1datamatrix"></psk-barcode-generator>
+            <df-barcode-generator data-view-model="@actionModalModel.batchData.wrongCode"></df-barcode-generator>
         </div>
 
     </div>
@@ -18,11 +18,12 @@
     <div class="matrix-layout mt-5">
         <div>
             <label>Recalled</label>
-            <psk-barcode-generator  data="@actionModalModel.batchData.recalledCode" size="16" type="gs1datamatrix"></psk-barcode-generator>
+            <df-barcode-generator data-view-model="@actionModalModel.batchData.recalledCode"></df-barcode-generator>
         </div>
         <div>
             <label>Decommissioned</label>
-            <psk-barcode-generator  data="@actionModalModel.batchData.decommissionedCode" size="16" type="gs1datamatrix"></psk-barcode-generator>
+            <df-barcode-generator
+                    data-view-model="@actionModalModel.batchData.decommissionedCode"></df-barcode-generator>
         </div>
     </div>
 
@@ -31,10 +32,10 @@
     <button class="default-button" data-confirm>{{@actionModalModel.acceptButtonText}}</button>
 </footer>
 <style>
-.matrix-layout {
-    display: grid;
-    grid-template-columns: 2fr 2fr;
-    column-gap: 20px;
-    align-items: center;
-}
+    .matrix-layout {
+        display: grid;
+        grid-template-columns: 2fr 2fr;
+        column-gap: 20px;
+        align-items: center;
+    }
 </style>
