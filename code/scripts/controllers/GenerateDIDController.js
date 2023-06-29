@@ -190,23 +190,11 @@ function GenerateDIDController(...props) {
         env[openDSU.constants.SHARED_ENCLAVE.TYPE] = message.enclave.enclaveType;
         env[openDSU.constants.SHARED_ENCLAVE.DID] = message.enclave.enclaveDID;
         env[openDSU.constants.SHARED_ENCLAVE.KEY_SSI] = message.enclave.enclaveKeySSI;
-        try{
-          await self.mainDSU.safeBeginBatchAsync();
-        } catch (e) {
-            throw e;
-        }
 
         try {
           await $$.promisify(scAPI.configEnvironment)(env);
-          await self.mainDSU.commitBatchAsync();
         } catch (e) {
-          const writeFileError = createOpenDSUErrorWrapper(`Failed to write file`, e);
-          try {
-              await self.mainDSU.cancelBatchAsync();
-          } catch (error) {
-              throw createOpenDSUErrorWrapper(`Failed to cancel batch`, error, writeFileError);
-          }
-          throw writeFileError;
+          throw createOpenDSUErrorWrapper(`Failed to write file`, e);
         }
     }
 

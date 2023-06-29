@@ -50,8 +50,7 @@ function CommunicationService(dsuStorage) {
         env = JSON.parse(env.toString());
         env[openDSU.constants.SHARED_ENCLAVE.TYPE] = message.enclave.enclaveType;
         env[openDSU.constants.SHARED_ENCLAVE.DID] = message.enclave.enclaveDID;
-        env[openDSU.constants.SHARED_ENCLAVE.KEY_SSI] =
-          message.enclave.enclaveKeySSI;
+        env[openDSU.constants.SHARED_ENCLAVE.KEY_SSI] = message.enclave.enclaveKeySSI;
         await $$.promisify(mainDSU.refresh)();
         await $$.promisify(scAPI.configEnvironment)(env);
         callback(undefined);
