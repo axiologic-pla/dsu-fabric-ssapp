@@ -51,8 +51,17 @@
                             <div class="form-label">Product Photo</div>
                             <i class="fa fa-pencil-square-o editable-icon"></i>
                             <div class="d-flex justify-content-start mt-1">
-                                <psk-img-input class="product-image" event-name="product-photo-selected"
+                                <!--<psk-img-input class="product-image" event-name="product-photo-selected"
                                                src="@product.photo"></psk-img-input>
+
+-->
+                                <div class="outer-container product-image" data-tag="product-photo-selected">
+                                    <div class="display-img-container">
+                                        <img src="@product.photo">
+                                        <i class="fa fa-pencil-square-o"></i>
+                                    </div>
+                                    <input type="file" class="form-control-file form-control-sm product-photo-input" style="display: none;">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -183,7 +192,9 @@
                 <div class="col-5 align-self-start p-0">
                     <div class="d-flex flex-row product-form-buttons">
                         <button class="default-button" data-tag="cancel" id="cancel-product">Cancel</button>
-                        <button class="default-button" userrights="@userrights" data-tag="add-product" id="submit-product">{{@submitLabel}}</button>
+                        <button class="default-button" userrights="@userrights" data-tag="add-product"
+                                id="submit-product">{{@submitLabel}}
+                        </button>
                         <!--                        <psk-button data-tag="cancel" id="cancel-product">Cancel</psk-button>-->
                         <!--                        <psk-button userrights="@userrights" data-tag="add-product" id="submit-product">-->
                         <!--                            {{@submitLabel}}-->

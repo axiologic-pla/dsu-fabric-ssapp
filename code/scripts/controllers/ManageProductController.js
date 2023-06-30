@@ -219,9 +219,30 @@ export default class ManageProductController extends FwController {
       this.model.videoSourceUpdated = this.videoInitialDefaultSource !== this.model.product.videos.defaultSource;
     })
 
-    this.on("product-photo-selected", (event) => {
-      this.productPhoto = event.data;
-      this.model.product.photo = gtinResolverUtils.getImageAsBase64(event.data);
+    this.querySelector(".product-photo-input").addEventListener("change",(event)=>{
+      let filesArray = Array.from(event.target.files);
+
+      if(filesArray.length === 0){
+        return;
+      }
+      let reader = new FileReader();
+      reader.onload = (e) => {
+        let imageDataUrl = e.target.result;
+        fetch(imageDataUrl).then(res => res.arrayBuffer())
+          .then((imageContent) => {
+            this.productPhoto = imageContent;
+            this.model.product.photo = gtinResolverUtils.getImageAsBase64(imageContent);
+          });
+        this.src = imageDataUrl;
+      };
+      reader.readAsDataURL(filesArray[0]);
+    })
+
+    this.onTagClick("product-photo-selected", (model, target, event) => {
+      let fileChooser = target.querySelector("input");
+      fileChooser.dispatchEvent(new MouseEvent("click"));
+      event.stopImmediatePropagation();
+
     });
 
     this.on('openFeedback', (e) => {
