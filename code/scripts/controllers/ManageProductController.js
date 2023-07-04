@@ -245,9 +245,9 @@ export default class ManageProductController extends FwController {
 
     });
 
-    this.on('openFeedback', (e) => {
+/*    this.on('openFeedback', (e) => {
       this.feedbackEmitter = e.detail;
-    });
+    });*/
 
 
     this.onTagClick("add-product", async (model, target, event) => {

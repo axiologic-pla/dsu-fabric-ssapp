@@ -8,10 +8,6 @@
     grid-template-columns: repeat(6, 1fr) 40px;
 }
 
-.import-btn {
-    height: 36px;
-}
-
 .pagination-container {
     display: flex;
     justify-content: center;
@@ -53,7 +49,7 @@
     display: none;
 }
 
-webc-spinner>.circle-fade {
+webc-spinner > .circle-fade {
     left: 125px;
 }
 
@@ -78,6 +74,7 @@ webc-spinner>.circle-fade {
         flex-direction: column;
     }
 }
+
 @media screen and (max-width: 960px) {
     webc-spinner {
         left: 0px;

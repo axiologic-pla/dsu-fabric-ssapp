@@ -103,9 +103,9 @@ export default class ProductsController extends FwController {
             this.navigateToPageTag("drug-details");
         });
 
-        this.on("openFeedback", (e) => {
+/*        this.on("openFeedback", (e) => {
             this.feedbackEmitter = e.detail;
-        });
+        });*/
     }
 
     addProductToProductsList(product, callback) {

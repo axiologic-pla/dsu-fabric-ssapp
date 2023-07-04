@@ -19,10 +19,9 @@ export default class importController extends FwController {
       filesChooser: {
         label: "Select files",
         accept: ".json",
-        listFiles: false,
         filesAppend: true,
         "event-name": constants.HTML_EVENTS.UPLOADPRODUCTS,
-        "list-files": false
+        "list-files": true
       },
       importIsDisabled: true,
       retryBtnIsDisabled: true,
@@ -34,7 +33,7 @@ export default class importController extends FwController {
     };
 
     this.on(constants.HTML_EVENTS.UPLOADPRODUCTS, (event) => {
-      this.filesArray = event.data || [];
+      this.filesArray = event.detail || [];
       this.model.importIsDisabled = this.filesArray.length === 0;
       if (this.filesArray.length !== 0) {
         this.model.filesChooser.listFiles = true;
@@ -90,9 +89,9 @@ export default class importController extends FwController {
       let messages;
       try {
         messages = await this.getMessagesFromFiles(this.filesArray);
-
       } catch (err) {
         this.showErrorModal(`Unable to read selected files.`, "Error");
+        return;
       }
       let progressModalModel = {
         steps: messages.length, updateProgressInfo: function (currentStep, steps) {

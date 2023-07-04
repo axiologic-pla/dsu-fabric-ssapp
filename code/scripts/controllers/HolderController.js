@@ -81,9 +81,9 @@ export default class HolderController extends FwController {
       }
     });
 
-    this.on('openFeedback', (e) => {
+/*    this.on('openFeedback', (e) => {
       this.feedbackEmitter = e.detail;
-    });
+    });*/
 
     this.onTagClick("copy-text", (event) => {
       copyToClipboard(event.did);

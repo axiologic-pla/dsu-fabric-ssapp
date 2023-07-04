@@ -69,7 +69,10 @@ export default class EpiComponentController extends FwController {
         language: "en", type: "leaflet", videoSource: ""
       },
       fileChooser: {
-        accept: "directory", "event-name": "uploadLeaflet", label: "Upload files", "list-files": true
+        accept: "directory",
+        "event-name": "uploadLeaflet",
+        label: "Upload files",
+        "list-files": true
       },
       filesWereNotSelected: true,
     }

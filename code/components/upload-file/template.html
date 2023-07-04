@@ -3,7 +3,7 @@
 <webc-container controller="components/UploadFileController" data-view-model="@">
     <div class="file-upload-container">
         <button class="upload-files-btn default-button" data-tag="upload-files">{{@label}}</button>
-        <input type="file" multiple class="hidden" directory mozdirectory webkitdirectory required/>
+        <input type="file" multiple class="hidden" required/>
 
         <div data-if="@list-files">
             <div data-for="@uploadedFiles" class="files-list">
@@ -12,7 +12,7 @@
                 <!--                <p>cosentyx-16.jpg</p></div>-->
 
                 <div class="file-li-element">
-                    <button type="button" class="btn btn-secondary trashButton"><span>×</span></button>
+                    <button type="button" data-tag="remove-from-list" fileName="@name" class="btn delete-file-btn"><span>×</span></button>
                     <p>{{@name}}</p>
                 </div>
 

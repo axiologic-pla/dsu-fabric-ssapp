@@ -14,7 +14,7 @@
             <div class="changes-column middle-column" data-if="@oldValue.directDisplay">
                 <div slot="true">
                     <div data-if="@isPhoto">
-                        <img slot="true" class="product-image" src="@oldValue.value"/>
+                        <img slot="true" class="product-image" src="@oldValue.value" alt="Product photo old value"/>
                         <div slot="false" data-if="@oldValue.isDate">
                             <div slot="true" data-if="@oldValue.enableExpiryDay">
                                 <df-date-input slot=true type="date" readonly
@@ -42,7 +42,7 @@
             <div class="changes-column" data-if="@newValue.directDisplay">
                 <div slot="true">
                     <div data-if="@isPhoto">
-                        <img slot="true" class="product-image" src="@newValue.value"/>
+                        <img slot="true" class="product-image" src="@newValue.value" alt="Product photo new value"/>
                         <div slot="false" data-if="@newValue.isDate">
                             <div slot="true" data-if="@newValue.enableExpiryDay">
                                 <df-date-input slot=true type="date" readonly

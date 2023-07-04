@@ -1,39 +1,62 @@
-const { FwController } = WebCardinal.controllers;
+const {FwController} = WebCardinal.controllers;
 
 export default class UploadController extends FwController {
-    constructor(...args) {
-        super(...args);
+  constructor(...args) {
+    super(...args);
+    this.model.uploadedFiles = [];
+    this.inputElement = this.element.querySelector("input")
+    this.uploadEventListener();
 
-        this.uploadEventListener();
-        // this.element.getAttribute(buttonLabel);
+    this.onTagClick("remove-from-list", (model, target, event) => {
+      if (this.model.uploadedFiles) {
+        let fileName = target.getAttribute("fileName");
+        this.model.uploadedFiles = this.model.uploadedFiles.filter(file => file.name != fileName);
+        this.dispatchCustomEvent(this.model.uploadedFiles);
+      }
+    })
+  }
+
+  triggerFileSelect = (model, target, event) => {
+    event.stopImmediatePropagation();
+    let fileSelect = this.element.querySelector("input");
+    fileSelect.value = '';
+    fileSelect.click();
+  }
+
+  uploadFileHandler = (event) => {
+    let files = Array.from(event.target.files);
+
+    if (files.length === 0) {
+      return;
     }
 
-    triggerFileSelect = (model, target, event) => {
-        event.stopImmediatePropagation();
-        let fileSelect = this.element.querySelector("input");
-        fileSelect.value = '';
-        fileSelect.click();
+    if (this.model.filesAppend) {
+      files = [...this.model.uploadedFiles, ...files]
     }
 
-    uploadFileHandler = (event) => {
-        let files = Array.from(event.target.files);;
+    this.model.uploadedFiles = files;
+    this.dispatchCustomEvent(this.model.uploadedFiles)
+  }
 
-        if (files.length === 0) {
-            return;
-        }
-        this.element.dispatchEvent(new CustomEvent(this.model['event-name'], {
-            bubbles: true,
-            composed: true,
-            cancelable: true,
-            detail: files
-        }));
+  dispatchCustomEvent = (files) => {
+    this.element.dispatchEvent(new CustomEvent(this.model['event-name'], {
+      bubbles: true,
+      composed: true,
+      cancelable: true,
+      detail: files
+    }));
+  }
 
-        this.model.uploadedFiles = files;
+  uploadEventListener = () => {
+    if (this.model.accept && this.model.accept === "directory") {
+      this.inputElement.setAttribute("directory", "");
+      this.inputElement.setAttribute("mozdirectory", "");
+      this.inputElement.setAttribute("webkitdirectory", "");
+    } else {
+      this.inputElement.setAttribute("accept", this.model.accept);
     }
-
-    uploadEventListener = () => {
-        this.element.querySelector("input").addEventListener('change', this.uploadFileHandler);
-        this.onTagClick('upload-files', this.triggerFileSelect);
-    }
+    this.inputElement.addEventListener('change', this.uploadFileHandler);
+    this.onTagClick('upload-files', this.triggerFileSelect);
+  }
 
 }

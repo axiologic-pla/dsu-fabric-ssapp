@@ -5,24 +5,33 @@
         <div class="m-5 page-content">
             <p>Select your files</p>
 
-            <psk-files-chooser data-view-model="@filesChooser" id="import-files">
-            </psk-files-chooser>
-            <button data-tag="import" disabled="@importIsDisabled" class="btn btn-secondary import-btn" type="button">
-                <label>Import selected files</label>
-            </button>
+            <!--      <psk-files-chooser data-view-model="@filesChooser" id="import-files">
+                  </psk-files-chooser>
+      -->
+            <div class="files-upload-container">
+                <df-upload-file data-view-model="@filesChooser" id="import-files"></df-upload-file>
 
+                <button data-tag="import" disabled="@importIsDisabled" class="default-button"
+                        type="button">
+                    Import selected files
+                </button>
+            </div>
             <hr/>
 
             <!-- removed for MVP1
                 <psk-button data-tag="view-all" label="View responses"></psk-button>-->
 
-            <button class="default-button" data-tag="retry-failed" disabled="@retryBtnIsDisabled" style="float:right">Retry failed</button>
-            <button class="default-button" data-tag="force-retry-failed" disabled="@forceRetryBtnIsDisabled" style="float:right">Force recover</button>
+            <button class="default-button" data-tag="retry-failed" disabled="@retryBtnIsDisabled" style="float:right">
+                Retry failed
+            </button>
+            <button class="default-button" data-tag="force-retry-failed" disabled="@forceRetryBtnIsDisabled"
+                    style="float:right">Force recover
+            </button>
 
-<!--            <psk-button data-tag="retry-failed" disabled="@retryBtnIsDisabled" label="Retry failed"-->
-<!--                        style="float:right"></psk-button>-->
-<!--            <psk-button data-tag="force-retry-failed" disabled="@forceRetryBtnIsDisabled" label="Force recover"-->
-<!--                        style="float:right"></psk-button>-->
+            <!--            <psk-button data-tag="retry-failed" disabled="@retryBtnIsDisabled" label="Retry failed"-->
+            <!--                        style="float:right"></psk-button>-->
+            <!--            <psk-button data-tag="force-retry-failed" disabled="@forceRetryBtnIsDisabled" label="Force recover"-->
+            <!--                        style="float:right"></psk-button>-->
 
             <h3>Import Logs</h3>
             <div>

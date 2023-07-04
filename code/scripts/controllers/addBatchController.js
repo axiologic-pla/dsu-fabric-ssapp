@@ -455,9 +455,9 @@ export default class addBatchController extends FwController {
       });
     })
 
-    this.on('openFeedback', (e) => {
+/*    this.on('openFeedback', (e) => {
       this.feedbackEmitter = e.detail;
-    });
+    });*/
   }
 
   setUpCheckboxes() {

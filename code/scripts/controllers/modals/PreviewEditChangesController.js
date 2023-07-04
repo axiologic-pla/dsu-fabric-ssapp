@@ -11,9 +11,6 @@ export default class PreviewEpiController extends FwController {
         await this.previewEpi(model, target)
       }
       utils.hideLoader();
-      if (target.getAttribute("data-type") === "photo") {
-        this.previewPhoto(model.target)
-      }
     })
 
   }
@@ -41,7 +38,4 @@ export default class PreviewEpiController extends FwController {
     })
   };
 
-  previewPhoto(model, target) {
-
-  }
 }
