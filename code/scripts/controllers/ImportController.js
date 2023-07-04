@@ -113,7 +113,15 @@ export default class importController extends FwController {
           window.open(`${window.location.origin}/mappingEngine/${domain}/logs`, '_blank');
         })
     */
-
+    this.onTagClick('change-tab', async (model, target, event) => {
+      let tabName = target.getAttribute("tab-name");
+      if (tabName === "successful-actions") {
+        await this.model.successDataSource.forceUpdate(true);
+      }
+      if (tabName === "failed-actions") {
+        await this.model.failedDataSource.forceUpdate(true);
+      }
+    })
 
     this.onTagClick("prev-page", async (model, target, event) => {
       let dataSource;

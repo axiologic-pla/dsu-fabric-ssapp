@@ -8,6 +8,10 @@
     grid-template-columns: repeat(6, 1fr) 40px;
 }
 
+div[slot="content"] {
+    box-shadow: rgba(0, 0, 0, 0.25) 0px 0px 10px;
+}
+
 .pagination-container {
     display: flex;
     justify-content: center;
