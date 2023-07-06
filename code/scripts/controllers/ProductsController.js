@@ -125,7 +125,7 @@ export default class ProductsController extends FwController {
                     return callback(err);
                 }
                 product.transferred = false;
-                this.storageService.safeBeginBatch(async err => {
+                this.storageService.safeBeginBatch(true, async err => {
                     if (err) {
                         return callback(err);
                     }
