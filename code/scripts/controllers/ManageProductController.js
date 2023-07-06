@@ -126,10 +126,10 @@ export default class ManageProductController extends FwController {
               recoveryMessage.product.productCode = state.gtin;
             }
             if (!recoveryMessage.product.inventedName) {
-              recoveryMessage.product.inventedName = product ? product.description : "recovered data";
+              recoveryMessage.product.inventedName = product ? product.name : "recovered data";
             }
             if (!recoveryMessage.product.nameMedicinalProduct) {
-              recoveryMessage.product.nameMedicinalProduct = product ? product.name : "recovered data";
+              recoveryMessage.product.nameMedicinalProduct = product ? product.description : "recovered data";
             }
             recoveryMessage.force = true;
             //by setting this refreshState if all goes when we will return to edit the product
