@@ -12,6 +12,13 @@ export default class EpiComponentController extends FwController {
 
   constructor(...props) {
     super(...props);
+    this.model.filesChooser = {
+      accept: "directory",
+      uploadedFiles: [],
+      label: "Upload files",
+      "list-files": true
+    };
+
     this.onTagClick("add-language-leaflet", (event) => {
       this.addLanguageTypeFilesListener(event)
     });
@@ -25,7 +32,6 @@ export default class EpiComponentController extends FwController {
       }
       this.updateCardsForDisplay();
     });
-
 
     this.onTagClick("preview-epi", async (epiModel, target, event) => {
 
@@ -58,6 +64,7 @@ export default class EpiComponentController extends FwController {
     const types = {
       componentLabel: "Type", placeholder: "Select a type", options: UploadTypes.getListAsVM(disabledFeatures)
     };
+
     this.model.modalData = {
       title: "Choose language and type of upload",
       acceptButtonText: 'Accept',
@@ -68,23 +75,24 @@ export default class EpiComponentController extends FwController {
       product: {
         language: "en", type: "leaflet", videoSource: ""
       },
-      fileChooser: {
-        accept: "directory",
-        "event-name": "uploadLeaflet",
-        label: "Upload files",
-        "list-files": true
-      },
       filesWereNotSelected: true,
     }
 
-    this.on("uploadLeaflet", (event) => {
-      this.model.modalData.files = event.detail;
-      if (this.model.modalData.files.length > 0) {
-        this.model.modalData.filesWereNotSelected = false;
-      }
-    });
+    this.model.onChange("filesChooser.uploadedFiles", (event) => {
+      this.uploadedFiles = this.model.filesChooser.uploadedFiles || [];
+      this.model.modalData.filesWereNotSelected = this.uploadedFiles.length === 0;
+    })
+
+    /*    this.on("uploadLeaflet", (event) => {
+          this.model.modalData.files = event.detail;
+          if (this.model.modalData.files.length > 0) {
+            this.model.modalData.filesWereNotSelected = false;
+          }
+        });*/
+
 
     this.showModalFromTemplate('select-language-and-type-modal', () => {
+
       const select = document.getElementsByClassName('document-type-select')[0];
       let selectedType = this.model.modalData.types.value;
       let selectedLanguage = Languages.getListAsVM().find(lang => lang.value === this.model.modalData.languages.value);
@@ -103,8 +111,8 @@ export default class EpiComponentController extends FwController {
 
 
       let videoSource = btoa(this.model.modalData.product.videoSource);
-      let card = LeafletService.generateCard(leafletAction, selectedType, selectedLanguage.value, this.model.modalData.files, videoSource);
-
+      let card = LeafletService.generateCard(leafletAction, selectedType, selectedLanguage.value, this.uploadedFiles, videoSource);
+      this.model.filesChooser.uploadedFiles = [];
       this.model.languageTypeCards.push(card);
       if (videoSource) {
         this.model.videoSourceUpdated = true;

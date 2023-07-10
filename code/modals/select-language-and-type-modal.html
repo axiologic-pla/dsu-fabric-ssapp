@@ -7,11 +7,11 @@
 
     <div class="d-flex flex-column form-group">
         <span class="df-select-label"> {{@modalData.types.componentLabel}}</span>
-<!--        <select class="document-type-select dsu-select" data-for="@modalData.types.options"
-                data-for-option="rerender"
-                required>
-            <option disabled="@disabled" selected="@selected" value="@value">{{@label}}</option>
-        </select>-->
+        <!--        <select class="document-type-select dsu-select" data-for="@modalData.types.options"
+                        data-for-option="rerender"
+                        required>
+                    <option disabled="@disabled" selected="@selected" value="@value">{{@label}}</option>
+                </select>-->
         <df-select-dropdown data-view-model="@modalData.types" shadow></df-select-dropdown>
 
     </div>
@@ -37,8 +37,7 @@
     <!--    </webc-container>-->
 
     <div class="leaflet-files-container">
-        <df-upload-file eventName="upload-leaflet" buttonLabel="Upload files"
-                        data-view-model="@modalData.fileChooser"></df-upload-file>
+        <df-upload-file data-view-model="@filesChooser"></df-upload-file>
     </div>
 
     <!--    <psk-card class="language-leaflet-card">-->

@@ -3,7 +3,10 @@ const {FwController} = WebCardinal.controllers;
 export default class UploadController extends FwController {
   constructor(...args) {
     super(...args);
-    this.model.uploadedFiles = [];
+    if (!this.model.uploadedFiles) {
+      this.model.uploadedFiles = [];
+    }
+
     this.inputElement = this.element.querySelector("input")
     this.uploadEventListener();
 

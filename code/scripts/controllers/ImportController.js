@@ -6,7 +6,7 @@ import constants from "../constants.js";
 
 const {FwController} = WebCardinal.controllers;
 
-export default class importController extends FwController {
+export default class ImportController extends FwController {
 
   constructor(...props) {
 
@@ -20,8 +20,8 @@ export default class importController extends FwController {
         label: "Select files",
         accept: ".json",
         filesAppend: true,
-        "event-name": constants.HTML_EVENTS.UPLOADPRODUCTS,
-        "list-files": true
+        uploadedFiles: [],
+        "list-files": true,
       },
       importIsDisabled: true,
       retryBtnIsDisabled: true,
@@ -32,15 +32,15 @@ export default class importController extends FwController {
       failedDataSource: new FailedLogDataSource(this.storageService),
     };
 
-    this.on(constants.HTML_EVENTS.UPLOADPRODUCTS, (event) => {
-      this.filesArray = event.detail || [];
+    /*    this.on(constants.HTML_EVENTS.UPLOADPRODUCTS, (event) => {
+          this.filesArray = event.detail || [];
+          this.model.importIsDisabled = this.filesArray.length === 0;
+        });*/
+    this.model.onChange("filesChooser.uploadedFiles", () => {
+      this.filesArray = this.model.filesChooser.uploadedFiles || [];
       this.model.importIsDisabled = this.filesArray.length === 0;
-      if (this.filesArray.length !== 0) {
-        this.model.filesChooser.listFiles = true;
-        this.model.filesChooser["list-files"] = true;
-      }
-    });
 
+    })
     let self = this;
 
     async function digest(messages, progressModalModel = {}) {
@@ -77,8 +77,6 @@ export default class importController extends FwController {
 
       this.filesArray = [];
       this.model.importIsDisabled = this.filesArray.length === 0;
-      this.model.filesChooser.listFiles = false;
-      this.model.filesChooser["list-files"] = false;
     }
 
     this.onTagClick("import", async () => {
@@ -86,6 +84,7 @@ export default class importController extends FwController {
         return;
       }
       this.model.importIsDisabled = true;
+      this.model.filesChooser.uploadedFiles = [];
       let messages;
       try {
         messages = await this.getMessagesFromFiles(this.filesArray);
