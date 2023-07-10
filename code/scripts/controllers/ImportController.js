@@ -315,7 +315,7 @@ export default class ImportController extends FwController {
     let secret = await MessagesService.acquireLock(id, 60000, 100, 500);
     let pk = require("opendsu").loadApi("crypto").generateRandom(32);
     try {
-      await auditEnclave.safeBeginBatchAsync();
+      await auditEnclave.safeBeginBatchAsync(true);
     } catch (err) {
       throw err;
     }

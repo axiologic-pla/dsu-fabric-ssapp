@@ -638,7 +638,7 @@ export default class addBatchController extends FwController {
 
       this.model.serial_update_options.value = "";
       try {
-        await this.storageService.safeBeginBatchAsync();
+        await this.storageService.safeBeginBatchAsync(true);
       } catch (e) {
         this.manageUpdateButtonState();
         throw e;
