@@ -2,12 +2,13 @@
     display: none;
 }
 
-.products-container[userrights="readonly"] .view-edit-button{
+webc-datatable.products-table[userrights="readonly"] .view-edit-button {
     display: block;
     pointer-events: all;
     opacity: 1;
 }
-.products-container[userrights="readonly"] .view-edit-button span.edit-rights {
+
+webc-datatable.products-table[userrights="readonly"] .view-edit-button span.edit-rights {
     display: none;
 }
 
@@ -15,7 +16,7 @@
     display: none;
 }
 
-.products-container[userrights="readonly"] .view-edit-button span.readonly-rights {
+webc-datatable.products-table[userrights="readonly"] .view-edit-button span.readonly-rights {
     display: block;
 }
 

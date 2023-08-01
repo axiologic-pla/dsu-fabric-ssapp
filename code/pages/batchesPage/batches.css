@@ -2,14 +2,14 @@
     display: none;
 }
 
-.batches-container[userrights="readonly"] button {
+webc-datatable.batches-table[userrights="readonly"] button {
     display: block;
     pointer-events: all;
     opacity: 1;
     line-height: 0.6rem;
 }
 
-.batches-container[userrights="readonly"] span.edit-rights {
+webc-datatable.batches-table[userrights="readonly"] span.edit-rights {
     display: none;
 }
 
@@ -17,7 +17,7 @@
     display: none;
 }
 
-.batches-container[userrights="readonly"] span.readonly-rights {
+webc-datatable.batches-table[userrights="readonly"] span.readonly-rights {
     display: block;
 }
 
