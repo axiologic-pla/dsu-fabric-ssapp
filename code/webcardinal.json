@@ -47,6 +47,12 @@
       "path": "./audit"
     },
     {
+      "name": "Logout",
+      "tag": "logout",
+      "src": "./logoutPage/logout.html",
+      "path": "./logout"
+    },
+    {
       "name": "Add batch",
       "src": "./editBatch/add-batch.html",
       "tag": "add-batch",
