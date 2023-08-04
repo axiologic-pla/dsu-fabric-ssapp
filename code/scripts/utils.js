@@ -1,15 +1,26 @@
 import constants from "./constants.js";
 
 
-function convertDateToISO(dateString) {
-  const d = new Date(dateString);
-  let isoDateString = d.toISOString();
-  isoDateString = isoDateString.slice(0, 10);
-  return isoDateString;
+function getDateWithTimeZone(dateString) {
+  const timeZoneOffset = new Date(dateString).getTimezoneOffset() * 60 * 1000;
+  return new Date(dateString).getTime() + timeZoneOffset;
+}
+
+function convertDateToShortISO(dateString) {
+  let {y, m, d} = getYYYYMMdd(dateString);
+  return `${y}-${m}-${d}`
+}
+
+function getYYYYMMdd(dateString) {
+  let dt = new Date(getDateWithTimeZone(dateString));
+  const year = dt.getFullYear();
+  const month = ("0" + (dt.getMonth() + 1)).slice(-2);
+  const day = ("0" + dt.getDate()).slice(-2);
+  return {y: year, m: month, d: day}
 }
 
 function convertDateFromISOToGS1Format(isoDateString, separator) {
-  const date = new Date(isoDateString);
+  const date = new Date(getDateWithTimeZone(isoDateString));
   const ye = new Intl.DateTimeFormat('en', {year: '2-digit'}).format(date);
   const mo = new Intl.DateTimeFormat('en', {month: '2-digit'}).format(date);
   const da = new Intl.DateTimeFormat('en', {day: '2-digit'}).format(date);
@@ -20,7 +31,7 @@ function convertDateFromISOToGS1Format(isoDateString, separator) {
 }
 
 function convertDateToGS1Format(dateString, useDay) {
-  let gs1Date = convertDateFromISOToGS1Format(convertDateToISO(dateString));
+  let gs1Date = convertDateFromISOToGS1Format(convertDateToShortISO(dateString));
   if (!useDay) {
     gs1Date = gs1Date.slice(0, -2) + "00";
   }
@@ -28,10 +39,7 @@ function convertDateToGS1Format(dateString, useDay) {
 }
 
 function getIgnoreDayDate(dateString) {
-  let dt = new Date(dateString);
-  let y = dt.getFullYear();
-  let m = ("0" + (dt.getMonth() + 1)).slice(-2);
-  const d = ("0" + dt.getDate()).slice(-2);
+  let {y, m, d} = getYYYYMMdd(dateString);
   const lastMonthDay = new Date(y, m, 0).getDate();
   const gmtDate = new Date(y + '-' + m + '-' + lastMonthDay + 'T00:00:00Z');
   return gmtDate.getTime();
@@ -427,7 +435,7 @@ function getDateDiffViewObj(diff, property, enableDaySelection, modelLabelsMap) 
 
 export default {
   convertDateFromISOToGS1Format,
-  convertDateToISO,
+  convertDateToShortISO,
   convertDateToGS1Format,
   convertDateTOGMTFormat,
   getIgnoreDayDate,
