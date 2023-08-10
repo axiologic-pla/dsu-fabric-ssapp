@@ -198,6 +198,20 @@ export default class ImportController extends FwController {
       let auditDetails = await utils.getLogDetails(model.details);
       //keep compatibility with old log version
       auditDetails = auditDetails.logInfo || auditDetails;
+
+      // create a copy of the audit details for the 'view message' modal
+      let auditDetailsDeepCopy = JSON.parse(JSON.stringify(auditDetails));
+      if (auditDetailsDeepCopy.imageData) {
+        try {
+          let imageSize = this.getSizeFromBase64(auditDetailsDeepCopy.imageData);
+          auditDetailsDeepCopy.imageData = imageSize;
+        }
+        catch (err) {
+          auditDetailsDeepCopy.imageData = "There has been an error while calculating the size of the image.";
+        }
+      }
+      auditDetailsDeepCopy = JSON.stringify(auditDetailsDeepCopy, null, 4);
+
       if (auditDetails.invalidFields) {
         secondMessage = auditDetails.invalidFields;
         this.model.actionModalModel.secondMessageData = secondMessage;
@@ -207,7 +221,7 @@ export default class ImportController extends FwController {
 
       const formattedJSON = JSON.stringify(auditDetails, null, 4);
 
-      this.model.actionModalModel.messageData = formattedJSON;
+      this.model.actionModalModel.messageData = auditDetailsDeepCopy;
 
       this.showModalFromTemplate('view-message-modal',
         () => {
@@ -308,7 +322,27 @@ export default class ImportController extends FwController {
     }));
   }
 
-  async predigest(messages) {
+  formatBytes(bytes, decimals = 2) {
+    if (bytes === 0) return '0 Bytes';
+
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(decimals)) + ' ' + sizes[i];
+  }
+
+  getSizeFromBase64(base64Image) {
+    const byteCharacters = atob(base64Image);
+    // return byteCharacters.length;
+
+    const formattedSize = this.formatBytes(byteCharacters.length);
+    console.log(`Image Size: ${formattedSize}`);
+    return formattedSize;
+  }
+
+async predigest(messages) {
     let digestLog = await this.buildDigestLog(messages);
     let auditEnclave = await this.getEnclaveBypassingAnyCache();
     let id = await auditEnclave.getUniqueIdAsync();
