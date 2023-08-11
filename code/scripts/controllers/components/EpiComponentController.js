@@ -3,6 +3,7 @@ const LeafletService = gtinResolver.DSUFabricUtils;
 const Languages = gtinResolver.Languages
 const UploadTypes = gtinResolver.UploadTypes
 const {FwController} = WebCardinal.controllers;
+const XMLDisplayService = gtinResolver.XMLDisplayService;
 
 import epiUtils from "./epiUtils.js";
 import utils from "./../../utils.js"
@@ -22,6 +23,41 @@ export default class EpiComponentController extends FwController {
     this.onTagClick("add-language-leaflet", (event) => {
       this.addLanguageTypeFilesListener(event)
     });
+
+    this.model.onChange("filesChooser.uploadedFiles", async (event) => {
+      this.uploadedFiles = this.model.filesChooser.uploadedFiles || [];
+      if (this.uploadedFiles.length > 0) {
+        let selectedEpi = epiUtils.getSelectedEpiCard(this.model.languageTypeCards, this.model.modalData.languages.value, this.model.modalData.types.value);
+        if (selectedEpi && selectedEpi.action !== LeafletService.LEAFLET_CARD_STATUS.DELETE) {
+          this.notificationHandler.reportUserRelevantWarning(`You are about to update an existing leaflet`)
+        }
+        let xmlContent;
+        for (let file of this.uploadedFiles) {
+          if (!file.name) {
+            continue;
+          }
+          if (file.name.endsWith('.xml')) {
+            xmlContent = await LeafletService.getFileContent(file);
+            break;
+          }
+        }
+
+        let xmlService = new XMLDisplayService(this.element);
+        let htmlXMLContent = xmlService.getHTMLFromXML("", xmlContent);
+        let leafletHtmlContent = xmlService.buildLeafletHTMLSections(htmlXMLContent);
+        if (!leafletHtmlContent) {
+          await this.showErrorModal("Unsupported format for uploaded XML file", "Error parsing XML file", () => {
+            return
+          }, () => {
+            return
+          }, {disableExpanding: true, disableFooter: true, disableClosing: false})
+        } else {
+          this.model.modalData.filesWereNotSelected = this.uploadedFiles.length === 0;
+        }
+      }
+
+
+    })
 
     this.onTagClick("delete-language-leaflet", (model, target, event) => {
       let eventData = target.firstElementChild.innerText.split('/');
@@ -64,7 +100,7 @@ export default class EpiComponentController extends FwController {
     const types = {
       componentLabel: "Type", placeholder: "Select a type", options: UploadTypes.getListAsVM(disabledFeatures)
     };
-
+    this.model.filesChooser.uploadedFiles = [];
     this.model.modalData = {
       title: "Choose language and type of upload",
       acceptButtonText: 'Accept',
@@ -78,10 +114,6 @@ export default class EpiComponentController extends FwController {
       filesWereNotSelected: true,
     }
 
-    this.model.onChange("filesChooser.uploadedFiles", (event) => {
-      this.uploadedFiles = this.model.filesChooser.uploadedFiles || [];
-      this.model.modalData.filesWereNotSelected = this.uploadedFiles.length === 0;
-    })
 
     /*    this.on("uploadLeaflet", (event) => {
           this.model.modalData.files = event.detail;
@@ -119,6 +151,7 @@ export default class EpiComponentController extends FwController {
       }
       this.updateCardsForDisplay();
     }, () => {
+      this.model.filesChooser.uploadedFiles = [];
       return
     }, {model: this.model});
   }
