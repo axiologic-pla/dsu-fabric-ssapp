@@ -57,8 +57,15 @@ function getSelectedEpiCard(languageTypeCards, language, type) {
   })
 }
 
+function getSelectedEpiCardIndex(languageTypeCards, language, type) {
+  return languageTypeCards.findIndex(epiCard => {
+    return epiCard.type.value === type && epiCard.language.value === language
+  })
+}
+
 export default {
   getPreviewModel,
   getEpiContent,
-  getSelectedEpiCard
+  getSelectedEpiCard,
+  getSelectedEpiCardIndex
 }

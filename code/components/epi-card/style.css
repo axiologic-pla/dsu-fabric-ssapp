@@ -46,3 +46,9 @@
     color: #328569;
     box-shadow: 0 0 8px #328569;
 }
+
+.toast-content {
+    display: flex;
+    flex-direction: column;
+    padding-top: 15px;
+}

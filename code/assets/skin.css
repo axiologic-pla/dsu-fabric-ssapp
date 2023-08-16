@@ -18,7 +18,7 @@ webc-app-container {
 }
 
 webc-app-error-toast {
-    z-index: 100;
+    z-index: 1000;
 }
 
 webc-app-menu[mode=vertical] {
@@ -215,6 +215,7 @@ button.btn.btn-primary:disabled {
     padding: 10px;
     background: none;
     pointer-events: none;
+    z-index: 1000;
 }
 
 .toast-text {
@@ -251,9 +252,9 @@ button.btn.btn-primary:disabled {
     cursor: pointer;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    padding-right: 1.25rem;
+    justify-content: flex-start;
     pointer-events: all;
+    padding: 10px;
 }
 
 .nav-tab-title {
