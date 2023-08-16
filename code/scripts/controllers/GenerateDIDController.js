@@ -1,6 +1,7 @@
 import {copyToClipboard} from "../helpers/document-utils.js";
 import utils from "../utils.js";
 import constants from "../constants.js";
+import {getPermissionsWatcher} from "../services/PermissionsWatcher.js";
 
 const {FwController} = WebCardinal.controllers;
 
@@ -16,8 +17,6 @@ function GenerateDIDController(...props) {
   const openDSU = require("opendsu");
   const w3cDID = openDSU.loadAPI("w3cdid");
   const scAPI = openDSU.loadAPI("sc");
-  const typicalBusinessLogicHub = w3cDID.getTypicalBusinessLogicHub();
-  const sc = scAPI.getSecurityContext();
 
   scAPI.getMainEnclave(async (err, mainEnclave) => {
     if (err) {
@@ -53,14 +52,8 @@ function GenerateDIDController(...props) {
       did = await self.createDID();
     }
 
-    await $$.promisify(typicalBusinessLogicHub.setMainDID)(did);
-    const accessWasGranted = await self.accessWasGranted();
-    if (accessWasGranted) {
-      return self.authorizationIsDone();
-    }
-
+    this.permissionsWatcher = getPermissionsWatcher(did, self.authorizationIsDone);
     self.denyAccess();
-    typicalBusinessLogicHub.subscribe(constants.MESSAGE_TYPES.ADD_MEMBER_TO_GROUP, self.onMessageReceived);
     self.model.identity = did;
     try{
       await self.mainEnclave.safeBeginBatchAsync();
@@ -84,61 +77,6 @@ function GenerateDIDController(...props) {
   self.onTagClick("copy-text", (event) => {
     copyToClipboard(event.identity);
   })
-
-  // self.on("copy-text", (event) => {
-  //   copyToClipboard(event.data);
-  // });
-
-  self.accessWasGranted = async () => {
-    let sharedEnclave;
-    try {
-      sharedEnclave = await $$.promisify(scAPI.getSharedEnclave)();
-    } catch (err) {
-      // TODO check error type to differentiate between business and technical error
-      self.notificationHandler.reportDevRelevantInfo("User is waiting for access to be granted")
-    }
-
-    if (sharedEnclave) {
-      let userRights;
-      try{
-        userRights = await utils.getUserRights();
-      }catch(err){
-        if(err.rootCause === "security"){
-          return false;
-        }
-        return $$.forceTabRefresh();
-      }
-      return true;
-    }
-
-    return false;
-  }
-
-  self.onMessageReceived = async (message) => {
-    const saveCredential = async (message) => {
-      try {
-        self.mainEnclave.beginBatch();
-        await $$.promisify(self.mainEnclave.writeKey)(constants.CREDENTIAL_KEY, message.credential);
-        await $$.promisify(self.mainEnclave.commitBatch)();
-      } catch (e) {
-        self.notificationHandler.reportUserRelevantError("Failed to save wallet credentials. Retrying ... ");
-        return await saveCredential(message);
-      }
-    }
-    const setSharedEnclave = async (message) => {
-      try {
-        await self.setSharedEnclaveFromMessage(message);
-        self.authorizationIsDone();
-      } catch (e) {
-        self.notificationHandler.reportUserRelevantError("Failed to finish authorisation process. Retrying ... ");
-        return await setSharedEnclave(message)
-      }
-    }
-
-    await saveCredential(message);
-    await setSharedEnclave(message)
-
-  }
 
   self.createDID = async () => {
     const userDetails = await getUserDetails();
@@ -184,19 +122,7 @@ function GenerateDIDController(...props) {
     self.hideSpinner();
   }
 
-    self.setSharedEnclaveFromMessage = async (message) => {
-        let env = await $$.promisify(self.mainDSU.readFile)("/environment.json");
-        env = JSON.parse(env.toString());
-        env[openDSU.constants.SHARED_ENCLAVE.TYPE] = message.enclave.enclaveType;
-        env[openDSU.constants.SHARED_ENCLAVE.DID] = message.enclave.enclaveDID;
-        env[openDSU.constants.SHARED_ENCLAVE.KEY_SSI] = message.enclave.enclaveKeySSI;
 
-        try {
-          await $$.promisify(scAPI.configEnvironment)(env);
-        } catch (e) {
-          throw createOpenDSUErrorWrapper(`Failed to write file`, e);
-        }
-    }
 
   return self;
 }
