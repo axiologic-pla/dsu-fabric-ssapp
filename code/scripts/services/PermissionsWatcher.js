@@ -84,7 +84,6 @@ class PermissionsWatcher {
     const openDSU = require("opendsu");
     let resolveDID = $$.promisify(openDSU.loadApi("w3cdid").resolveDID);
     let groupDIDDocument = await resolveDID(groupDID);
-    debugger;
     await $$.promisify(groupDIDDocument.dsu.refresh)();
     let groupMembers = await $$.promisify(groupDIDDocument.listMembersByIdentity, groupDIDDocument)();
 
@@ -156,6 +155,12 @@ class PermissionsWatcher {
 
       await saveCredential(message.credential);
       await setSharedEnclave(message);
+      let userRights = await this.getUserRights();
+      if(window.lastUserRights && window.lastUserRights !== userRights){
+        console.log("User rights changed...");
+        return $$.forceTabRefresh();
+      }
+      window.lastUserRights = userRights;
       this.isAuthorizedHandler();
     });
   }
