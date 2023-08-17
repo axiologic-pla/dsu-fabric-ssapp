@@ -8,7 +8,8 @@ const {FwController} = WebCardinal.controllers;
 const getUserDetails = utils.getUserDetails;
 
 function GenerateDIDController(...props) {
-  let self = new FwController(...props)
+  let self = new FwController(...props);
+  self.initPermissionsWatcher = ()=>{ };
   if (!$$.history) {
     $$.history = props[1];
   }

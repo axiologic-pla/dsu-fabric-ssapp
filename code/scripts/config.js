@@ -105,37 +105,6 @@ function finishInit() {
 
     // load fabric base Controller
     addControllers({FwController});
-
-    const openDSU = require("opendsu");
-    const didAPI = openDSU.loadAPI("w3cdid");
-    const scAPI = openDSU.loadAPI("sc");
-    const typicalBusinessLogicHub = didAPI.getTypicalBusinessLogicHub();
-    const onUserRemovedMessage = (message) => {
-      $$.disableAlerts();
-      typicalBusinessLogicHub.stop();
-      scAPI.getMainEnclave(async (err, mainEnclave) => {
-        if (err) {
-          console.log(err);
-        }
-
-        try {
-          await $$.promisify(mainEnclave.writeKey)(constants.CREDENTIAL_KEY, constants.CREDENTIAL_DELETED);
-          await $$.promisify(scAPI.deleteSharedEnclave)();
-          //scAPI.refreshSecurityContext();
-        } catch (err) {
-          try {
-            scAPI.refreshSecurityContext();
-            await $$.promisify(scAPI.deleteSharedEnclave)();
-            await $$.promisify(mainEnclave.writeKey)(constants.CREDENTIAL_KEY, constants.CREDENTIAL_DELETED);
-          } catch (e) {
-            console.log(e);
-          }
-        }
-        return $$.forceTabRefresh();
-      });
-    }
-
-    typicalBusinessLogicHub.strongSubscribe(constants.MESSAGE_TYPES.USER_REMOVED, onUserRemovedMessage);
     await setupGlobalErrorHandlers();
   })
 
@@ -200,7 +169,7 @@ function finishInit() {
       }
 
     } catch (e) {
-      console.log("Could not initialise properly FwController", e);
+      console.log("Could not initialise properly", e);
       $$.showErrorAlert("Could not initialise the app properly. It is a good idea to close all browser windows and try again!");
     }
 

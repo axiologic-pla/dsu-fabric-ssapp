@@ -1,6 +1,7 @@
 import MessagesService from "../services/MessagesService.js";
 
 const {WebcController} = WebCardinal.controllers;
+import {getPermissionsWatcher} from "./../services/PermissionsWatcher.js";
 
 class FwController extends WebcController {
   constructor(...props) {
@@ -13,6 +14,13 @@ class FwController extends WebcController {
 
     const openDSU = require("opendsu");
     this.notificationHandler = openDSU.loadAPI("error");
+    setTimeout(()=>{
+        this.initPermissionsWatcher();
+    }, 0);
+  }
+
+  initPermissionsWatcher(){
+    getPermissionsWatcher();
   }
 
   getHandlerForMessageDigestingProcess(messages, prepareModalInformation) {

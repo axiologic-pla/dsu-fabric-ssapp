@@ -4,14 +4,32 @@ import utils from "./../utils.js";
 const openDSU = require("opendsu");
 const w3cDID = openDSU.loadAPI("w3cdid");
 const scAPI = openDSU.loadAPI("sc");
+const defaultHandler = function(){console.log("User is authorized")};
 
 class PermissionsWatcher {
   constructor(did, isAuthorizedHandler) {
-    this.typicalBusinessLogicHub = w3cDID.getTypicalBusinessLogicHub();
     this.notificationHandler = openDSU.loadAPI("error");
-    this.isAuthorizedHandler = isAuthorizedHandler;
+    this.isAuthorizedHandler = isAuthorizedHandler || defaultHandler;
     if (did) {
       this.checkAccess();
+      this.setup(did);
+    } else {
+      console.log("Trying retrieve DID info...");
+      scAPI.getMainEnclave(async (err, mainEnclave) => {
+        if (err) {
+          console.log(err);
+          return;
+        }
+        did = await $$.promisify(mainEnclave.readKey)(constants.IDENTITY_KEY);
+        this.setup(did);
+      });
+    }
+  }
+
+  setup(did){
+    if(!window.commHub){
+      this.typicalBusinessLogicHub = w3cDID.getTypicalBusinessLogicHub();
+      window.commHub = this.typicalBusinessLogicHub;
       $$.promisify(this.typicalBusinessLogicHub.setMainDID)(did).then(() => {
         this.typicalBusinessLogicHub.subscribe(constants.MESSAGE_TYPES.ADD_MEMBER_TO_GROUP, (...args)=>{
           this.onUserAdded(...args);
@@ -22,8 +40,6 @@ class PermissionsWatcher {
       }).catch(err => {
         console.log("Failed to setup typical business logic hub", err);
       });
-    } else {
-      throw Error("PermissionsWatcher was initialized without a DID");
     }
   }
 
@@ -104,7 +120,6 @@ class PermissionsWatcher {
       const setSharedEnclave = async (message) => {
         try {
           await this.setSharedEnclaveFromMessage(message.enclave);
-          this.isAuthorizedHandler();
         } catch (e) {
           this.notificationHandler.reportUserRelevantError("Failed to finish authorisation process. Retrying ... ");
           return await setSharedEnclave(message);
@@ -113,6 +128,7 @@ class PermissionsWatcher {
 
       await saveCredential(message.credential);
       await setSharedEnclave(message);
+      this.isAuthorizedHandler();
     });
   }
 
