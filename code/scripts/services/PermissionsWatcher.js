@@ -1,5 +1,4 @@
 import constants from "./../constants.js";
-import utils from "./../utils.js";
 
 const openDSU = require("opendsu");
 const w3cDID = openDSU.loadAPI("w3cdid");
@@ -43,7 +42,20 @@ class PermissionsWatcher {
     }
   }
 
-  onUserRemoved(message) {
+  async onUserRemoved(message) {
+    let hasRights;
+    try{
+      hasRights = await this.getUserRights();
+    }catch(err){
+      //not relevant for now...
+      // console.log(err);
+    }
+
+    if(hasRights){
+      console.log("Because user is still present in a group, intermediary message will be skipped.");
+      return;
+    }
+
     $$.disableAlerts();
     this.typicalBusinessLogicHub.stop();
     scAPI.getMainEnclave(async (err, mainEnclave) => {
@@ -68,6 +80,22 @@ class PermissionsWatcher {
     });
   }
 
+  async isInGroup(groupDID, did) {
+    const openDSU = require("opendsu");
+    let resolveDID = $$.promisify(openDSU.loadApi("w3cdid").resolveDID);
+    let groupDIDDocument = await resolveDID(groupDID);
+    debugger;
+    await $$.promisify(groupDIDDocument.dsu.refresh)();
+    let groupMembers = await $$.promisify(groupDIDDocument.listMembersByIdentity, groupDIDDocument)();
+
+    for (let member of groupMembers) {
+      if (member === did) {
+        return true;
+      }
+    }
+    return false
+  }
+
   async getUserRights() {
     let userRights;
     const openDSU = require("opendsu");
@@ -78,7 +106,7 @@ class PermissionsWatcher {
     if (credential.allPossibleGroups) {
       const did = await $$.promisify(mainEnclave.readKey)(constants.IDENTITY_KEY);
       for (let group of credential.allPossibleGroups) {
-        if (await isInGroup(group.did, did)) {
+        if (await this.isInGroup(group.did, did)) {
           switch (group.accessMode) {
             case "read":
               userRights = constants.USER_RIGHTS.READ;
@@ -159,7 +187,7 @@ class PermissionsWatcher {
     if (sharedEnclave) {
       let userRights;
       try {
-        userRights = await utils.getUserRights();
+        userRights = await this.getUserRights();
       } catch (err) {
         if (err.rootCause === "security") {
           return false;
