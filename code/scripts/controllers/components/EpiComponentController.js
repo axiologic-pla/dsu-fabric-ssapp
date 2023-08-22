@@ -132,23 +132,18 @@ export default class EpiComponentController extends FwController {
   }
 
   async validateLeafletFiles() {
-    let {selectedType, selectedLanguage} = this.getEpiTypeLang();
-    let selectedEpi = {language: selectedLanguage, type: selectedType, files: this.uploadedFiles};
-    let {xmlContent, leafletImages} = await epiUtils.getEpiContent(this.model, selectedEpi);
+    try {
+      let {selectedType, selectedLanguage} = this.getEpiTypeLang();
+      let selectedEpi = {language: selectedLanguage, type: selectedType, files: this.uploadedFiles};
+      let {xmlContent, leafletImages} = await epiUtils.getEpiContent(this.model, selectedEpi);
 
-    let xmlService = new XMLDisplayService(this.element);
-    let htmlXMLContent = xmlService.getHTMLFromXML("", xmlContent);
-    let leafletHtmlContent = xmlService.buildLeafletHTMLSections(htmlXMLContent);
-    if (!leafletHtmlContent) {
-      /* await this.showErrorModal("Unsupported format for uploaded XML file", "Error parsing XML file", () => {
-         return
-       }, () => {
-         return
-       }, {disableExpanding: true, disableFooter: true, disableClosing: false})*/
-      this.notificationHandler.reportUserRelevantError("Attention: The XML format you have uploaded is not supported. To proceed successfully verify that your XML file adheres to the prescribed format and structure. To obtain the correct XML specifications we recommend consulting our documentation. Thank you! ");
-      this.model.modalData.filesWereNotSelected = true;
-      return;
-    } else {
+      let xmlService = new XMLDisplayService(this.element);
+      let htmlXMLContent = xmlService.getHTMLFromXML("", xmlContent);
+      let leafletHtmlContent = xmlService.buildLeafletHTMLSections(htmlXMLContent);
+      if (!leafletHtmlContent) {
+        throw new Error("Couldn't build HTML from provided files")
+      }
+
       let leafletHtmlImages = htmlXMLContent.querySelectorAll("img");
       let htmlImageNames = Array.from(leafletHtmlImages).map(img => img.getAttribute("src"));
       let uploadedImageNames = Object.keys(leafletImages);
@@ -175,7 +170,13 @@ export default class EpiComponentController extends FwController {
       }
 
       this.model.modalData.filesWereNotSelected = this.uploadedFiles.length === 0;
+
+    } catch (e) {
+      console.log("EPI files validation fails: ", e);
+      this.notificationHandler.reportUserRelevantError("Attention: uploaded files format is not supported. To proceed successfully verify that you have an XML file and your XML file adheres to the prescribed format and structure. To obtain the correct XML specifications we recommend consulting our documentation. Thank you! ");
+      this.model.modalData.filesWereNotSelected = true;
     }
+
   }
 
   generateMissingToastList(missingImgFiles) {
