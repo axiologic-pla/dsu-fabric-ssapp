@@ -44,6 +44,17 @@ class PermissionsWatcher {
     this.typicalBusinessLogicHub.strongSubscribe(constants.MESSAGE_TYPES.USER_REMOVED, (...args)=>{
       this.onUserRemoved(...args);
     });
+
+    this.typicalBusinessLogicHub.registerErrorHandler((issue)=>{
+      let {err, message} = issue;
+      if(typeof message === "undefined" && err){
+        this.notificationHandler.reportUserRelevantError("Communication error: ", err);
+        this.notificationHandler.reportUserRelevantInfo("Application will refresh to establish the communication");
+        setTimeout($$.forceTabRefresh, 2000);
+        return;
+      }
+      this.notificationHandler.reportUserRelevantError("Unknown error: ", err);
+    });
   }
 
   async onUserRemoved(message) {
