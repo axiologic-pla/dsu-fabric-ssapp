@@ -30,16 +30,20 @@ class PermissionsWatcher {
       this.typicalBusinessLogicHub = w3cDID.getTypicalBusinessLogicHub();
       window.commHub = this.typicalBusinessLogicHub;
       $$.promisify(this.typicalBusinessLogicHub.setMainDID)(did).then(() => {
-        this.typicalBusinessLogicHub.subscribe(constants.MESSAGE_TYPES.ADD_MEMBER_TO_GROUP, (...args)=>{
-          this.onUserAdded(...args);
-        });
-        this.typicalBusinessLogicHub.strongSubscribe(constants.MESSAGE_TYPES.USER_REMOVED, (...args)=>{
-          this.onUserRemoved(...args);
-        });
+        this.setupListeners();
       }).catch(err => {
         console.log("Failed to setup typical business logic hub", err);
       });
     }
+  }
+
+  setupListeners(){
+    this.typicalBusinessLogicHub.subscribe(constants.MESSAGE_TYPES.ADD_MEMBER_TO_GROUP, (...args)=>{
+      this.onUserAdded(...args);
+    });
+    this.typicalBusinessLogicHub.strongSubscribe(constants.MESSAGE_TYPES.USER_REMOVED, (...args)=>{
+      this.onUserRemoved(...args);
+    });
   }
 
   async onUserRemoved(message) {
@@ -52,32 +56,40 @@ class PermissionsWatcher {
     }
 
     if(hasRights){
-      console.log("Because user is still present in a group, intermediary message will be skipped.");
+      console.log("Because user is still present in a group, intermediary delete message is skipped.");
       return;
     }
 
     $$.disableAlerts();
-    this.typicalBusinessLogicHub.stop();
-    scAPI.getMainEnclave(async (err, mainEnclave) => {
-      if (err) {
-        console.log(err);
-      }
-
+    let caughtErrors = false;
+    if(window.lastUserRights) {
+      //we had credentials, and now we lost them...
+      this.typicalBusinessLogicHub.stop();
+    }
+    try{
+      await this.resettingCredentials();
+    }catch(err){
+      caughtErrors = true;
       try {
-        await $$.promisify(mainEnclave.writeKey)(constants.CREDENTIAL_KEY, constants.CREDENTIAL_DELETED);
-        await $$.promisify(scAPI.deleteSharedEnclave)();
-        //scAPI.refreshSecurityContext();
-      } catch (err) {
-        try {
-          scAPI.refreshSecurityContext();
-          await $$.promisify(scAPI.deleteSharedEnclave)();
-          await $$.promisify(mainEnclave.writeKey)(constants.CREDENTIAL_KEY, constants.CREDENTIAL_DELETED);
-        } catch (e) {
-          console.log(e);
-        }
+        console.log("Refreshing the security context because of errors during credential resetting process.", err);
+        scAPI.refreshSecurityContext();
+        console.log("Retrying to reset credentials");
+        await this.resettingCredentials();
+        caughtErrors = false;
+      } catch (e) {
+        console.log("Caught error during reset credential fallback", e);
+        this.notificationHandler.reportUserRelevantError("Your credentials were revoked and the process has partially executed", e);
       }
-      return $$.forceTabRefresh();
-    });
+    }
+    if(window.lastUserRights){
+      //we had credentials, and now we lost them...
+      if(!caughtErrors){
+        console.log("User credentials reset process finished with success.");
+        this.notificationHandler.reportUserRelevantInfo("Your credentials were revoked.");
+      }
+      this.notificationHandler.reportUserRelevantInfo("The application will refresh soon...");
+      setTimeout($$.forceTabRefresh, 2000);
+    }
   }
 
   async isInGroup(groupDID, did) {
@@ -128,6 +140,7 @@ class PermissionsWatcher {
   }
 
   async onUserAdded(message) {
+    let shouldRefresh = false;
     scAPI.getMainEnclave(async (err, mainEnclave) => {
       if (err) {
         this.notificationHandler.reportUserRelevantError("Failed to initialize wallet", err);
@@ -153,8 +166,21 @@ class PermissionsWatcher {
         }
       }
 
-      await saveCredential(message.credential);
-      await setSharedEnclave(message);
+      let existingCredential;
+      try{
+        existingCredential = await $$.promisify(mainEnclave.readKey)(constants.CREDENTIAL_KEY);
+      }catch(err){
+        //ignorable for the moment...
+      }
+
+      if(existingCredential !== message.credential){
+        await saveCredential(message.credential);
+        await setSharedEnclave(message);
+      }else{
+        console.log("There are no changes regarding user credentials");
+        return;
+      }
+
       let userRights = await this.getUserRights();
       if(window.lastUserRights && window.lastUserRights !== userRights){
         console.log("User rights changed...");
@@ -178,6 +204,16 @@ class PermissionsWatcher {
     } catch (e) {
       this.notificationHandler.reportUserRelevantError(`Failed to save info about the shared enclave`, e);
     }
+  }
+
+  async resettingCredentials() {
+    scAPI.getMainEnclave(async (err, mainEnclave) => {
+      if (err) {
+        console.log(err);
+      }
+      await $$.promisify(mainEnclave.writeKey)(constants.CREDENTIAL_KEY, constants.CREDENTIAL_DELETED);
+      await $$.promisify(scAPI.deleteSharedEnclave)();
+    });
   }
 
   async checkAccess() {
