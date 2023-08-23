@@ -181,13 +181,23 @@ class PermissionsWatcher {
         return;
       }
 
-      let userRights = await this.getUserRights();
+      let userRights;
+      try{
+        userRights = await this.getUserRights();
+      }catch(err){
+        //not relevant for now...
+        // console.log(err);
+      }
       if(window.lastUserRights && window.lastUserRights !== userRights){
         console.log("User rights changed...");
         return $$.forceTabRefresh();
       }
+      if(!userRights){
+        return;
+      }
       window.lastUserRights = userRights;
       this.isAuthorizedHandler();
+
     });
   }
 
