@@ -44,6 +44,36 @@ class PermissionsWatcher {
         console.log("Failed to setup typical business logic hub", err);
       });
     }
+
+    if(!window.credentialsCheckInterval){
+      const interval = 30*1000;
+      window.credentialsCheckInterval = setInterval(async()=>{
+        console.debug("Permissions check ...");
+        let userRights;
+        try{
+          userRights = await this.getUserRights();
+        }catch (err){
+          //if we have errors user doesn't have any rights
+          if(window.lastUserRights){
+            //User had rights and lost them...
+            if (err.rootCause === "security") {
+              this.notificationHandler.reportUserRelevantError("Security error: ", err);
+              this.notificationHandler.reportUserRelevantInfo("The application will refresh soon...");
+              $$.forceTabRefresh();
+              console.debug("Permissions check -");
+            }
+          }
+          //there is no else that we need to take care of it...
+        }
+        //if no error user has rights, and we need just to check that nothing changed since last check
+        if(userRights && userRights !== window.lastUserRights){
+          //this case is possible if the Admin fails to send the message with the credential due to network issue or something and this is why we should ask for a review of the authorization process.
+          this.notificationHandler.reportUserRelevantInfo("User credential updates where detected. When possible, try to refresh the application and if you see this message again report the incident to an Admin user.");
+          console.debug("Permissions check *");
+        }
+      }, interval);
+      console.log(`Permissions will be checked once every ${interval}ms`);
+    }
   }
 
   setupListeners() {
