@@ -42,7 +42,8 @@ export default {
   HOOKS: {
     BEFORE_PAGE_LOADS: "beforePageLoads",
     WHEN_PAGE_CLOSE: "whenPageClose",
-    BEFORE_APP_LOADS: "beforeAppLoads"
+    BEFORE_APP_LOADS: "beforeAppLoads",
+    AFTER_APP_LOADS: "afterAppLoads"
   },
   HTML_EVENTS: {
     CLOSED: "closed",

@@ -6,13 +6,14 @@
     "email": "MyOrganisation@example.com"
   },
   "logLevel": "none",
-  "pagesFallback": {
-    "name": "404",
-    "src": "./404.html"
-  },
   "pages": [
     {
       "path": "/",
+      "name": "Landing page",
+      "tag": "landing-page",
+      "indexed": false
+    },
+    {
       "name": "Generate DID",
       "tag": "generate-did",
       "indexed": false

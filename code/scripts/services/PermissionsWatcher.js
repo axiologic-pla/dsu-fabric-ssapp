@@ -3,15 +3,24 @@ import constants from "./../constants.js";
 const openDSU = require("opendsu");
 const w3cDID = openDSU.loadAPI("w3cdid");
 const scAPI = openDSU.loadAPI("sc");
-const defaultHandler = function(){console.log("User is authorized")};
+const defaultHandler = function () {
+  console.log("User is authorized")
+};
+const {navigateToPageTag} = WebCardinal.preload;
 
 class PermissionsWatcher {
   constructor(did, isAuthorizedHandler) {
     this.notificationHandler = openDSU.loadAPI("error");
     this.isAuthorizedHandler = isAuthorizedHandler || defaultHandler;
     if (did) {
-      this.checkAccess();
-      this.setup(did);
+      this.checkAccess().then(result => {
+        this.setup(did);
+        if (typeof result === "function") {
+          result();
+        } else {
+          navigateToPageTag("generate-did", did);
+        }
+      }).catch($$.forceTabRefresh)
     } else {
       console.log("Trying retrieve DID info...");
       scAPI.getMainEnclave(async (err, mainEnclave) => {
@@ -25,8 +34,8 @@ class PermissionsWatcher {
     }
   }
 
-  setup(did){
-    if(!window.commHub){
+  setup(did) {
+    if (!window.commHub) {
       this.typicalBusinessLogicHub = w3cDID.getTypicalBusinessLogicHub();
       window.commHub = this.typicalBusinessLogicHub;
       $$.promisify(this.typicalBusinessLogicHub.setMainDID)(did).then(() => {
@@ -37,17 +46,17 @@ class PermissionsWatcher {
     }
   }
 
-  setupListeners(){
-    this.typicalBusinessLogicHub.subscribe(constants.MESSAGE_TYPES.ADD_MEMBER_TO_GROUP, (...args)=>{
+  setupListeners() {
+    this.typicalBusinessLogicHub.subscribe(constants.MESSAGE_TYPES.ADD_MEMBER_TO_GROUP, (...args) => {
       this.onUserAdded(...args);
     });
-    this.typicalBusinessLogicHub.strongSubscribe(constants.MESSAGE_TYPES.USER_REMOVED, (...args)=>{
+    this.typicalBusinessLogicHub.strongSubscribe(constants.MESSAGE_TYPES.USER_REMOVED, (...args) => {
       this.onUserRemoved(...args);
     });
 
-    this.typicalBusinessLogicHub.registerErrorHandler((issue)=>{
+    this.typicalBusinessLogicHub.registerErrorHandler((issue) => {
       let {err, message} = issue;
-      if(typeof message === "undefined" && err){
+      if (typeof message === "undefined" && err) {
         this.notificationHandler.reportUserRelevantError("Communication error: ", err);
         this.notificationHandler.reportUserRelevantInfo("Application will refresh to establish the communication");
         setTimeout($$.forceTabRefresh, 2000);
@@ -59,27 +68,27 @@ class PermissionsWatcher {
 
   async onUserRemoved(message) {
     let hasRights;
-    try{
+    try {
       hasRights = await this.getUserRights();
-    }catch(err){
+    } catch (err) {
       //not relevant for now...
       // console.log(err);
     }
 
-    if(hasRights){
+    if (hasRights) {
       console.log("Because user is still present in a group, intermediary delete message is skipped.");
       return;
     }
 
     $$.disableAlerts();
     let caughtErrors = false;
-    if(window.lastUserRights) {
+    if (window.lastUserRights) {
       //we had credentials, and now we lost them...
       this.typicalBusinessLogicHub.stop();
     }
-    try{
+    try {
       await this.resettingCredentials();
-    }catch(err){
+    } catch (err) {
       caughtErrors = true;
       try {
         console.log("Refreshing the security context because of errors during credential resetting process.", err);
@@ -92,9 +101,9 @@ class PermissionsWatcher {
         this.notificationHandler.reportUserRelevantError("Your credentials were revoked and the process has partially executed", e);
       }
     }
-    if(window.lastUserRights){
+    if (window.lastUserRights) {
       //we had credentials, and now we lost them...
-      if(!caughtErrors){
+      if (!caughtErrors) {
         console.log("User credentials reset process finished with success.");
         this.notificationHandler.reportUserRelevantInfo("Your credentials were revoked.");
       }
@@ -178,32 +187,32 @@ class PermissionsWatcher {
       }
 
       let existingCredential;
-      try{
+      try {
         existingCredential = await $$.promisify(mainEnclave.readKey)(constants.CREDENTIAL_KEY);
-      }catch(err){
+      } catch (err) {
         //ignorable for the moment...
       }
 
-      if(existingCredential !== message.credential){
+      if (existingCredential !== message.credential) {
         await saveCredential(message.credential);
         await setSharedEnclave(message);
-      }else{
+      } else {
         console.log("There are no changes regarding user credentials");
         return;
       }
 
       let userRights;
-      try{
+      try {
         userRights = await this.getUserRights();
-      }catch(err){
+      } catch (err) {
         //not relevant for now...
         // console.log(err);
       }
-      if(window.lastUserRights && window.lastUserRights !== userRights){
+      if (window.lastUserRights && window.lastUserRights !== userRights) {
         console.log("User rights changed...");
         return $$.forceTabRefresh();
       }
-      if(!userRights){
+      if (!userRights) {
         return;
       }
       window.lastUserRights = userRights;
@@ -244,6 +253,7 @@ class PermissionsWatcher {
     } catch (err) {
       // TODO check error type to differentiate between business and technical error
       this.notificationHandler.reportDevRelevantInfo("User is waiting for access to be granted")
+      return false;
     }
 
     if (sharedEnclave) {
@@ -254,9 +264,9 @@ class PermissionsWatcher {
         if (err.rootCause === "security") {
           return false;
         }
-        return $$.forceTabRefresh();
+        return $$.forceTabRefresh;
       }
-      return this.isAuthorizedHandler();
+      return this.isAuthorizedHandler;
     }
     return false;
   }

@@ -9,7 +9,7 @@ import WebcDateInput from "../components/web-components/date-input/webc-date-inp
 
 const openDSU = require("opendsu");
 const {define} = WebCardinal.components;
-const {setConfig, getConfig, addHook, addControllers} = WebCardinal.preload;
+const {setConfig, getConfig, addHook, addControllers, navigateToPageTag} = WebCardinal.preload;
 const {FwController} = await import("./controllers/FwController.js");
 
 async function watchAndHandleExecution(fnc) {
@@ -17,7 +17,7 @@ async function watchAndHandleExecution(fnc) {
     await fnc();
   } catch (err) {
     if (err.rootCause === "security") {
-      return $$.navigateToPage("generate-did");
+      return navigateToPageTag("landing-page");
     }
     if (window.confirm("Looks that your application is not properly initialized or in an invalid state. Would you like to reset it?")) {
       try {
@@ -101,6 +101,11 @@ function finishInit() {
     WebCardinal.root.disableHeader = false;
   });
 
+  addHook(constants.HOOKS.BEFORE_PAGE_LOADS, 'landing-page', () => {
+    WebCardinal.root.disableHeader = true;
+  });
+
+
   addHook(constants.HOOKS.BEFORE_APP_LOADS, async () => {
 
     // load fabric base Controller
@@ -109,6 +114,7 @@ function finishInit() {
   })
 
   addHook(constants.HOOKS.BEFORE_PAGE_LOADS, "home", async () => {
+    WebCardinal.root.disableHeader = false;
     const gtinResolver = require("gtin-resolver");
     const openDSU = require("opendsu");
     const scAPI = openDSU.loadAPI("sc");
