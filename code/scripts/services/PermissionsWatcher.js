@@ -34,10 +34,48 @@ class PermissionsWatcher {
     }
   }
 
+  enableHttpInterceptor(){
+    let http = require("opendsu").loadApi("http");
+    let self = this;
+    http.registerInterceptor((target, callback)=>{
+      if( (self.delayMQ || $$.refreshInProgress ) && target.url.indexOf("/mq/") !== -1){
+        //we delay all mq requests because we wait for the refresh to happen or message digestion...
+        self.registerMQRequest({target, callback});
+        return;
+      }
+      callback(undefined, target);
+    });
+  }
+
+  registerMQRequest(target){
+    if(!this.delayed){
+      this.delayed = [];
+    }
+    console.debug("Delaying", JSON.stringify(target));
+    this.delayed.push(target);
+  }
+
+  delayMQRequests(){
+    this.delayMQ = true;
+  }
+
+  resumeMQRequests(){
+    this.delayMQ = false;
+    if(this.delayed && this.delayed.length){
+      while(this.delayed.length){
+        let delayed = this.delayed.shift();
+        delayed.callback(undefined, delayed.target);
+      }
+    }
+  }
+
   setup(did) {
     if (!window.commHub) {
       this.typicalBusinessLogicHub = w3cDID.getTypicalBusinessLogicHub();
       window.commHub = this.typicalBusinessLogicHub;
+
+      this.enableHttpInterceptor();
+
       $$.promisify(this.typicalBusinessLogicHub.setMainDID)(did).then(() => {
         this.setupListeners();
       }).catch(err => {
@@ -53,8 +91,9 @@ class PermissionsWatcher {
         try{
           userRights = await this.getUserRights();
         }catch (err){
+          let unAuthorizedPages = ["generate-did", "landing-page"];
           //if we have errors user doesn't have any rights
-          if(window.lastUserRights){
+          if(window.lastUserRights || unAuthorizedPages.indexOf(WebCardinal.state.page.tag)===1){
             //User had rights and lost them...
             if (err.rootCause === "security") {
               this.notificationHandler.reportUserRelevantError("Security error: ", err);
@@ -63,6 +102,7 @@ class PermissionsWatcher {
               console.debug("Permissions check -");
             }
           }
+
           //there is no else that we need to take care of it...
         }
         //if no error user has rights, and we need just to check that nothing changed since last check
@@ -77,11 +117,16 @@ class PermissionsWatcher {
   }
 
   setupListeners() {
-    this.typicalBusinessLogicHub.subscribe(constants.MESSAGE_TYPES.ADD_MEMBER_TO_GROUP, (...args) => {
-      this.onUserAdded(...args);
+    this.typicalBusinessLogicHub.subscribe(constants.MESSAGE_TYPES.ADD_MEMBER_TO_GROUP, async (...args) => {
+      this.delayMQRequests();
+      await this.onUserAdded(...args);
+      this.resumeMQRequests();
     });
-    this.typicalBusinessLogicHub.strongSubscribe(constants.MESSAGE_TYPES.USER_REMOVED, (...args) => {
-      this.onUserRemoved(...args);
+
+    this.typicalBusinessLogicHub.strongSubscribe(constants.MESSAGE_TYPES.USER_REMOVED, async (...args) => {
+      this.delayMQRequests();
+      await this.onUserRemoved(...args);
+      this.resumeMQRequests();
     });
 
     this.typicalBusinessLogicHub.registerErrorHandler((issue) => {
@@ -190,65 +235,64 @@ class PermissionsWatcher {
   }
 
   async onUserAdded(message) {
-    let shouldRefresh = false;
-    scAPI.getMainEnclave(async (err, mainEnclave) => {
-      if (err) {
-        this.notificationHandler.reportUserRelevantError("Failed to initialize wallet", err);
-        return;
-      }
+    let mainEnclave;
+    try{
+      mainEnclave = await $$.promisify(scAPI.getMainEnclave)();
+    }catch(err){
+      this.notificationHandler.reportUserRelevantError("Failed to initialize wallet", err);
+      return;
+    }
 
-      const saveCredential = async (credential) => {
-        try {
-          mainEnclave.beginBatch();
-          await $$.promisify(mainEnclave.writeKey)(constants.CREDENTIAL_KEY, credential);
-          await $$.promisify(mainEnclave.commitBatch)();
-        } catch (e) {
-          this.notificationHandler.reportUserRelevantError("Failed to save wallet credentials. Retrying ... ");
-          return await saveCredential(message);
-        }
-      }
-      const setSharedEnclave = async (message) => {
-        try {
-          await this.setSharedEnclaveFromMessage(message.enclave);
-        } catch (e) {
-          this.notificationHandler.reportUserRelevantError("Failed to finish authorisation process. Retrying ... ");
-          return await setSharedEnclave(message);
-        }
-      }
-
-      let existingCredential;
+    const saveCredential = async (credential) => {
       try {
-        existingCredential = await $$.promisify(mainEnclave.readKey)(constants.CREDENTIAL_KEY);
-      } catch (err) {
-        //ignorable for the moment...
+        mainEnclave.beginBatch();
+        await $$.promisify(mainEnclave.writeKey)(constants.CREDENTIAL_KEY, credential);
+        await $$.promisify(mainEnclave.commitBatch)();
+      } catch (e) {
+        this.notificationHandler.reportUserRelevantError("Failed to save wallet credentials. Retrying ... ");
+        return await saveCredential(message);
       }
-
-      if (existingCredential !== message.credential) {
-        await saveCredential(message.credential);
-        await setSharedEnclave(message);
-      } else {
-        console.log("There are no changes regarding user credentials");
-        return;
-      }
-
-      let userRights;
+    }
+    const setSharedEnclave = async (message) => {
       try {
-        userRights = await this.getUserRights();
-      } catch (err) {
-        //not relevant for now...
-        // console.log(err);
+        await this.setSharedEnclaveFromMessage(message.enclave);
+      } catch (e) {
+        this.notificationHandler.reportUserRelevantError("Failed to finish authorisation process. Retrying ... ");
+        return await setSharedEnclave(message);
       }
-      if (window.lastUserRights && window.lastUserRights !== userRights) {
-        console.log("User rights changed...");
-        return $$.forceTabRefresh();
-      }
-      if (!userRights) {
-        return;
-      }
-      window.lastUserRights = userRights;
-      this.isAuthorizedHandler();
+    }
 
-    });
+    let existingCredential;
+    try {
+      existingCredential = await $$.promisify(mainEnclave.readKey)(constants.CREDENTIAL_KEY);
+    } catch (err) {
+      //ignorable for the moment...
+    }
+
+    if (existingCredential !== message.credential) {
+      await saveCredential(message.credential);
+      await setSharedEnclave(message);
+    } else {
+      console.log("There are no changes regarding user credentials");
+      return;
+    }
+
+    let userRights;
+    try {
+      userRights = await this.getUserRights();
+    } catch (err) {
+      //not relevant for now...
+      // console.log(err);
+    }
+    if (window.lastUserRights && window.lastUserRights !== userRights) {
+      console.log("User rights changed...");
+      return $$.forceTabRefresh();
+    }
+    if (!userRights) {
+      return;
+    }
+    window.lastUserRights = userRights;
+    this.isAuthorizedHandler();
   }
 
   async setSharedEnclaveFromMessage(enclave) {
