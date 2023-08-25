@@ -51,7 +51,7 @@ class PermissionsWatcher {
     if(!this.delayed){
       this.delayed = [];
     }
-    console.debug("Delaying", JSON.stringify(target));
+    console.debug("Delaying a mq request.");
     this.delayed.push(target);
   }
 
@@ -64,6 +64,7 @@ class PermissionsWatcher {
     if(this.delayed && this.delayed.length){
       while(this.delayed.length){
         let delayed = this.delayed.shift();
+        console.debug("Resuming mq request.");
         delayed.callback(undefined, delayed.target);
       }
     }
