@@ -4,7 +4,7 @@ const openDSU = require("opendsu");
 const w3cDID = openDSU.loadAPI("w3cdid");
 const scAPI = openDSU.loadAPI("sc");
 const defaultHandler = function () {
-  console.log("User is authorized")
+  console.log("User is authorized");
 };
 const {navigateToPageTag} = WebCardinal.preload;
 
@@ -88,10 +88,10 @@ class PermissionsWatcher {
       window.credentialsCheckInterval = setInterval(async()=>{
         console.debug("Permissions check ...");
         let userRights;
+        let unAuthorizedPages = ["generate-did", "landing-page"];
         try{
           userRights = await this.getUserRights();
         }catch (err){
-          let unAuthorizedPages = ["generate-did", "landing-page"];
           //if we have errors user doesn't have any rights
           if(window.lastUserRights || unAuthorizedPages.indexOf(WebCardinal.state.page.tag)===1){
             //User had rights and lost them...
@@ -106,11 +106,23 @@ class PermissionsWatcher {
           //there is no else that we need to take care of it...
         }
         //if no error user has rights, and we need just to check that nothing changed since last check
-        if(userRights && userRights !== window.lastUserRights){
+        if(userRights && window.lastUserRights && userRights !== window.lastUserRights){
           //this case is possible if the Admin fails to send the message with the credential due to network issue or something and this is why we should ask for a review of the authorization process.
-          this.notificationHandler.reportUserRelevantInfo("User credential updates where detected. When possible, try to refresh the application and if you see this message again report the incident to an Admin user.");
           console.debug("Permissions check *");
+          this.notificationHandler.reportUserRelevantInfo("Your credentials have changed. The application will refresh soon...");
+          $$.forceTabRefresh();
+          return;
         }
+
+        //if user has rights but is on a page that doesn't need authorization
+        // we could believe that app state didn't change properly by various causes...
+        // let's try to refresh...
+        if(userRights && unAuthorizedPages.indexOf(WebCardinal.state.page.tag) === 1){
+          this.notificationHandler.reportUserRelevantInfo("A possible wrong app state was detected based on current state and credentials. The application will refresh soon...");
+          $$.forceTabRefresh();
+          return;
+        }
+
       }, interval);
       console.log(`Permissions will be checked once every ${interval}ms`);
     }
@@ -285,7 +297,7 @@ class PermissionsWatcher {
       // console.log(err);
     }
     if (window.lastUserRights && window.lastUserRights !== userRights) {
-      console.log("User rights changed...");
+      console.log("Your credentials have changed. The application will refresh soon...");
       return $$.forceTabRefresh();
     }
     if (!userRights) {
