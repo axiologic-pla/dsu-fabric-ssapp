@@ -3,9 +3,11 @@ import constants from "./../constants.js";
 const openDSU = require("opendsu");
 const w3cDID = openDSU.loadAPI("w3cdid");
 const scAPI = openDSU.loadAPI("sc");
+
 const defaultHandler = function () {
-  console.log("User is authorized");
+  console.log("Default authorization handler was called. User is authorized");
 };
+
 const {navigateToPageTag} = WebCardinal.preload;
 
 class PermissionsWatcher {
@@ -262,8 +264,10 @@ class PermissionsWatcher {
         await $$.promisify(mainEnclave.writeKey)(constants.CREDENTIAL_KEY, credential);
         await $$.promisify(mainEnclave.commitBatch)();
       } catch (e) {
-        this.notificationHandler.reportUserRelevantError("Failed to save wallet credentials. Retrying ... ");
-        return await saveCredential(message);
+        this.notificationHandler.reportUserRelevantError("Failed to save wallet credentials.");
+        this.notificationHandler.reportUserRelevantError("Request reauthorization!");
+        this.notificationHandler.reportUserRelevantInfo("Application will refresh soon...");
+        return $$.forceTabRefresh();
       }
     }
     const setSharedEnclave = async (message) => {
@@ -320,6 +324,9 @@ class PermissionsWatcher {
       await $$.promisify(scAPI.configEnvironment)(env);
     } catch (e) {
       this.notificationHandler.reportUserRelevantError(`Failed to save info about the shared enclave`, e);
+      this.notificationHandler.reportUserRelevantError("Request reauthorization!");
+      this.notificationHandler.reportUserRelevantInfo("Application will refresh soon...");
+      return $$.forceTabRefresh();
     }
   }
 
