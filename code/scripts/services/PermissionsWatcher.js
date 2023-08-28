@@ -27,8 +27,10 @@ class PermissionsWatcher {
       console.log("Trying retrieve DID info...");
       scAPI.getMainEnclave(async (err, mainEnclave) => {
         if (err) {
-          console.log(err);
-          return;
+          this.notificationHandler.reportUserRelevantError(`Failed to load the wallet`, e);
+          this.notificationHandler.reportUserRelevantInfo(
+            "Application will refresh soon to ensure proper state. If you see this message again, check network connectivity and if necessary get in contact with Admin.");
+          return $$.forceTabRefresh();
         }
         did = await $$.promisify(mainEnclave.readKey)(constants.IDENTITY_KEY);
         this.setup(did);
@@ -255,7 +257,9 @@ class PermissionsWatcher {
       mainEnclave = await $$.promisify(scAPI.getMainEnclave)();
     }catch(err){
       this.notificationHandler.reportUserRelevantError("Failed to initialize wallet", err);
-      return;
+      this.notificationHandler.reportUserRelevantInfo(
+        "Application will refresh to ensure proper state. If you see this message again check network connection and if necessary contact Admin.");
+      return $$.forceTabRefresh();
     }
 
     const saveCredential = async (credential) => {
@@ -302,7 +306,7 @@ class PermissionsWatcher {
       // console.log(err);
     }
     if (window.lastUserRights && window.lastUserRights !== userRights) {
-      console.log("Your credentials have changed. The application will refresh soon...");
+      this.notificationHandler.reportUserRelevantInfo("Your credentials have changed. The application will refresh soon...");
       return $$.forceTabRefresh();
     }
     if (!userRights) {
@@ -333,7 +337,10 @@ class PermissionsWatcher {
   async resettingCredentials() {
     scAPI.getMainEnclave(async (err, mainEnclave) => {
       if (err) {
-        console.log(err);
+        this.notificationHandler.reportUserRelevantError(`Failed to load the wallet`, e);
+        this.notificationHandler.reportUserRelevantInfo(
+          "Application will refresh soon to ensure proper state. If you see this message again, check network connectivity and if necessary get in contact with Admin.");
+        return $$.forceTabRefresh();
       }
       await $$.promisify(mainEnclave.writeKey)(constants.CREDENTIAL_KEY, constants.CREDENTIAL_DELETED);
       await $$.promisify(scAPI.deleteSharedEnclave)();
