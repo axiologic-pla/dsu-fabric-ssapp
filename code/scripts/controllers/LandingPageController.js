@@ -57,6 +57,17 @@ export default class LandingPageController extends FwController {
         });
       }
 
+      let identity;
+      try {
+        identity = await this.mainEnclave.readKeyAsync(constants.IDENTITY);
+      }catch (e) {
+        identity = undefined;
+      }
+
+        if(identity && identity.did === did){
+            return;
+        }
+
       try {
         await this.mainEnclave.safeBeginBatchAsync();
       } catch (e) {
