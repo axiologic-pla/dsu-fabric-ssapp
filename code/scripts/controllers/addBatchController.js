@@ -123,6 +123,13 @@ export default class addBatchController extends FwController {
         this.initialCards = JSON.parse(JSON.stringify(this.model.languageTypeCards));
         this.initialModel = JSON.parse(JSON.stringify(this.model));
         this.model.onChange("batch", (...props) => {
+          if (props[0] && props[0].targetChain && props[0].targetChain === "batch.enableExpiryDay") {
+            // manage ignore date if day is not used we save it as last day of the month
+            if (!batch.enableExpiryDay) {
+              batch.expiryForDisplay = utils.getIgnoreDayDate(batch.expiryForDisplay)
+            }
+            batch.expiry = utils.convertDateToGS1Format(batch.expiryForDisplay, batch.enableExpiryDay);
+          }
           this.manageUpdateButtonState();
         })
         this.model.onChange("languageTypeCards", (...props) => {
@@ -426,10 +433,10 @@ export default class addBatchController extends FwController {
       this.model.videoSourceUpdated = this.videoInitialDefaultSource !== this.model.batch.videos.defaultSource;
     })
 
-/*    this.querySelector(".custom-select select").addEventListeners("change", async (event) => {
-      this.model.serial_update_options.value = event.target.value;
-    });
-    */
+    /*    this.querySelector(".custom-select select").addEventListeners("change", async (event) => {
+          this.model.serial_update_options.value = event.target.value;
+        });
+        */
     this.model.onChange("serial_update_options.value", async (event) => {
       if (this.model.serial_update_options.value === "update-history") {
         this.showSerialHistoryModal()
@@ -455,9 +462,9 @@ export default class addBatchController extends FwController {
       });
     })
 
-/*    this.on('openFeedback', (e) => {
-      this.feedbackEmitter = e.detail;
-    });*/
+    /*    this.on('openFeedback', (e) => {
+          this.feedbackEmitter = e.detail;
+        });*/
   }
 
   setUpCheckboxes() {
