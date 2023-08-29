@@ -110,7 +110,9 @@ function getStorageService(dsuStorage) {
         }
 
         if(failedMessages.length){
-            await $$.promisify(dsuStorage.cancelBatch)();
+            if (dsuStorage.batchInProgress()) {
+                await $$.promisify(dsuStorage.cancelBatch)();
+            }
 
             try{
                 await $$.promisify(_logFailedMessages)(failedMessages, dsuStorage);
