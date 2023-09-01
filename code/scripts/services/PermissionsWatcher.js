@@ -91,6 +91,13 @@ class PermissionsWatcher {
     if(!window.credentialsCheckInterval){
       const interval = 30*1000;
       window.credentialsCheckInterval = setInterval(async()=>{
+        if(this.watchedDSUs && this.watchedDSUs.length){
+          let dsu = await this.getDSUThatChanged();
+          if (typeof dsu === "undefined") {
+            return;
+          }
+          await $$.promisify(dsu.refresh)();
+        }
         console.debug("Permissions check ...");
         let userRights;
         let unAuthorizedPages = ["generate-did", "landing-page"];
@@ -131,6 +138,16 @@ class PermissionsWatcher {
       }, interval);
       console.log(`Permissions will be checked once every ${interval}ms`);
     }
+  }
+
+  async getDSUThatChanged(){
+    for (let dsu of this.watchedDSUs) {
+      if (await $$.promisify(dsu.hasNewVersion, dsu)()) {
+        return dsu;
+      }
+    }
+
+    return undefined;
   }
 
   setupListeners() {
@@ -208,7 +225,10 @@ class PermissionsWatcher {
     const openDSU = require("opendsu");
     let resolveDID = $$.promisify(openDSU.loadApi("w3cdid").resolveDID);
     let groupDIDDocument = await resolveDID(groupDID);
-    await $$.promisify(groupDIDDocument.dsu.refresh)();
+    if(!this.wathcedDSUs){
+      this.wathcedDSUs = [];
+    }
+    this.wathcedDSUs.push(groupDIDDocument.dsu);
     let groupMembers = await $$.promisify(groupDIDDocument.listMembersByIdentity, groupDIDDocument)();
 
     for (let member of groupMembers) {
