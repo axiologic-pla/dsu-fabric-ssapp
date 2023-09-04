@@ -285,6 +285,7 @@ export default class ImportController extends FwController {
             window.WebCardinal.loader.hidden = true;
             await this.manageProcessedMessages(undigestedMessages);
             await this.logUndigestedMessages(undigestedMessages);
+            this.progressModal.hide();
           });
 
           this.model.retryAll = false;
