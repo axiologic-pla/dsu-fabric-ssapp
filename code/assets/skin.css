@@ -34,6 +34,14 @@ webc-app-menu[mode=mobile] {
     --background: #328569;
 }
 
+webc-spinner.text-below .circle-fade:after {
+    content: "Checking for permissions...";
+    position: absolute;
+    display: block;
+    top: 50px;
+    left: -78px;
+    width: 300px;
+}
 
 webc-modal {
     --header-button-background: none !important;
@@ -67,7 +75,6 @@ webc-modal::part(main) {
 .webc-modal-content::part(header) {
     --header-color: #565656;
 }
-
 
 psk-page::part(page-main) {
     height: 100%;

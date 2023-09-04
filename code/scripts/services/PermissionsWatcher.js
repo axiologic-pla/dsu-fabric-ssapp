@@ -1,4 +1,5 @@
 import constants from "./../constants.js";
+import utils from "../utils.js";
 
 const openDSU = require("opendsu");
 const w3cDID = openDSU.loadAPI("w3cdid");
@@ -15,8 +16,10 @@ class PermissionsWatcher {
     this.notificationHandler = openDSU.loadAPI("error");
     this.isAuthorizedHandler = isAuthorizedHandler || defaultHandler;
     if (did) {
+      utils.showLoaderWhenRedirect();
       this.checkAccess().then(result => {
         this.setup(did);
+        window.WebCardinal.loader.classList.remove("text-below");
         if (typeof result === "function") {
           result();
         } else {
@@ -38,11 +41,11 @@ class PermissionsWatcher {
     }
   }
 
-  enableHttpInterceptor(){
+  enableHttpInterceptor() {
     let http = require("opendsu").loadApi("http");
     let self = this;
-    http.registerInterceptor((target, callback)=>{
-      if( (self.delayMQ || $$.refreshInProgress ) && target.url.indexOf("/mq/") !== -1){
+    http.registerInterceptor((target, callback) => {
+      if ((self.delayMQ || $$.refreshInProgress) && target.url.indexOf("/mq/") !== -1) {
         //we delay all mq requests because we wait for the refresh to happen or message digestion...
         self.registerMQRequest({target, callback});
         return;
@@ -51,22 +54,22 @@ class PermissionsWatcher {
     });
   }
 
-  registerMQRequest(target){
-    if(!this.delayed){
+  registerMQRequest(target) {
+    if (!this.delayed) {
       this.delayed = [];
     }
     console.debug("Delaying a mq request.");
     this.delayed.push(target);
   }
 
-  delayMQRequests(){
+  delayMQRequests() {
     this.delayMQ = true;
   }
 
-  resumeMQRequests(){
+  resumeMQRequests() {
     this.delayMQ = false;
-    if(this.delayed && this.delayed.length){
-      while(this.delayed.length){
+    if (this.delayed && this.delayed.length) {
+      while (this.delayed.length) {
         let delayed = this.delayed.shift();
         console.debug("Resuming mq request.");
         delayed.callback(undefined, delayed.target);
@@ -88,10 +91,10 @@ class PermissionsWatcher {
       });
     }
 
-    if(!window.credentialsCheckInterval){
-      const interval = 30*1000;
-      window.credentialsCheckInterval = setInterval(async()=>{
-        if(this.watchedDSUs && this.watchedDSUs.length){
+    if (!window.credentialsCheckInterval) {
+      const interval = 30 * 1000;
+      window.credentialsCheckInterval = setInterval(async () => {
+        if (this.watchedDSUs && this.watchedDSUs.length) {
           let dsu = await this.getDSUThatChanged();
           if (typeof dsu === "undefined") {
             return;
@@ -101,11 +104,11 @@ class PermissionsWatcher {
         console.debug("Permissions check ...");
         let userRights;
         let unAuthorizedPages = ["generate-did", "landing-page"];
-        try{
+        try {
           userRights = await this.getUserRights();
-        }catch (err){
+        } catch (err) {
           //if we have errors user doesn't have any rights
-          if(window.lastUserRights || unAuthorizedPages.indexOf(WebCardinal.state.page.tag)===1){
+          if (window.lastUserRights || unAuthorizedPages.indexOf(WebCardinal.state.page.tag) === 1) {
             //User had rights and lost them...
             if (err.rootCause === "security") {
               this.notificationHandler.reportUserRelevantError("Security error: ", err);
@@ -118,7 +121,7 @@ class PermissionsWatcher {
           //there is no else that we need to take care of it...
         }
         //if no error user has rights, and we need just to check that nothing changed since last check
-        if(userRights && window.lastUserRights && userRights !== window.lastUserRights){
+        if (userRights && window.lastUserRights && userRights !== window.lastUserRights) {
           //this case is possible if the Admin fails to send the message with the credential due to network issue or something and this is why we should ask for a review of the authorization process.
           console.debug("Permissions check *");
           this.notificationHandler.reportUserRelevantInfo("Your credentials have changed. The application will refresh soon...");
@@ -129,7 +132,7 @@ class PermissionsWatcher {
         //if user has rights but is on a page that doesn't need authorization
         // we could believe that app state didn't change properly by various causes...
         // let's try to refresh...
-        if(userRights && unAuthorizedPages.indexOf(WebCardinal.state.page.tag) === 1){
+        if (userRights && unAuthorizedPages.indexOf(WebCardinal.state.page.tag) === 1) {
           this.notificationHandler.reportUserRelevantInfo("A possible wrong app state was detected based on current state and credentials. The application will refresh soon...");
           $$.forceTabRefresh();
           return;
@@ -140,7 +143,7 @@ class PermissionsWatcher {
     }
   }
 
-  async getDSUThatChanged(){
+  async getDSUThatChanged() {
     for (let dsu of this.watchedDSUs) {
       if (await $$.promisify(dsu.hasNewVersion, dsu)()) {
         return dsu;
@@ -176,6 +179,7 @@ class PermissionsWatcher {
   }
 
   async onUserRemoved(message) {
+    utils.showLoaderWhenRedirect();
     let hasRights;
     try {
       hasRights = await this.getUserRights();
@@ -225,7 +229,7 @@ class PermissionsWatcher {
     const openDSU = require("opendsu");
     let resolveDID = $$.promisify(openDSU.loadApi("w3cdid").resolveDID);
     let groupDIDDocument = await resolveDID(groupDID);
-    if(!this.wathcedDSUs){
+    if (!this.wathcedDSUs) {
       this.wathcedDSUs = [];
     }
     this.wathcedDSUs.push(groupDIDDocument.dsu);
@@ -272,10 +276,11 @@ class PermissionsWatcher {
   }
 
   async onUserAdded(message) {
+    utils.showLoaderWhenRedirect();
     let mainEnclave;
-    try{
+    try {
       mainEnclave = await $$.promisify(scAPI.getMainEnclave)();
-    }catch(err){
+    } catch (err) {
       this.notificationHandler.reportUserRelevantError("Failed to initialize wallet", err);
       this.notificationHandler.reportUserRelevantInfo(
         "Application will refresh to ensure proper state. If you see this message again check network connection and if necessary contact Admin.");
@@ -333,6 +338,7 @@ class PermissionsWatcher {
       return;
     }
     window.lastUserRights = userRights;
+    window.WebCardinal.loader.classList.remove("text-below");
     this.isAuthorizedHandler();
   }
 

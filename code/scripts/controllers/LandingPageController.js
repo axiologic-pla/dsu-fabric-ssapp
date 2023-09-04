@@ -12,7 +12,6 @@ export default class LandingPageController extends FwController {
     super(...props);
     this.initPermissionsWatcher = () => {
     };
-
     const openDSU = require("opendsu");
     const w3cDID = openDSU.loadAPI("w3cdid");
     const scAPI = openDSU.loadAPI("sc");
@@ -49,24 +48,24 @@ export default class LandingPageController extends FwController {
 
       if (!did) {
         did = await this.createDID();
-        this.navigateToPageTag("generate-did", did);
-      } else {
-        getPermissionsWatcher(did, () => {
-          const {navigateToPageTag} = WebCardinal.preload;
-          navigateToPageTag("home");
-        });
       }
+
+      getPermissionsWatcher(did, () => {
+        const {navigateToPageTag} = WebCardinal.preload;
+        navigateToPageTag("home");
+      });
+
 
       let identity;
       try {
         identity = await this.mainEnclave.readKeyAsync(constants.IDENTITY);
-      }catch (e) {
+      } catch (e) {
         identity = undefined;
       }
 
-        if(identity && identity.did === did){
-            return;
-        }
+      if (identity && identity.did === did) {
+        return;
+      }
 
       try {
         await this.mainEnclave.safeBeginBatchAsync();

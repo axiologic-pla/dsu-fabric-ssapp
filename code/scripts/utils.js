@@ -433,6 +433,14 @@ function getDateDiffViewObj(diff, property, enableDaySelection, modelLabelsMap) 
   }
 }
 
+function showLoaderWhenRedirect() {
+  if (document.querySelector("stencil-route:not([style='display: none;'])")) {
+    document.querySelector("stencil-route:not([style='display: none;'])").style.display = "none"
+  }
+  window.WebCardinal.loader.hidden = false;
+  window.WebCardinal.loader.classList.add("text-below");
+}
+
 export default {
   convertDateFromISOToGS1Format,
   convertDateToShortISO,
@@ -459,5 +467,6 @@ export default {
   getPropertyDiffViewObj,
   getEpiDiffViewObj,
   getPhotoDiffViewObj,
-  getDateDiffViewObj
+  getDateDiffViewObj,
+  showLoaderWhenRedirect
 }

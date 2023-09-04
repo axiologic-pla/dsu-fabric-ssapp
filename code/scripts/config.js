@@ -114,7 +114,6 @@ function finishInit() {
   })
 
   addHook(constants.HOOKS.BEFORE_PAGE_LOADS, "home", async () => {
-    WebCardinal.root.disableHeader = false;
     const gtinResolver = require("gtin-resolver");
     const openDSU = require("opendsu");
     const scAPI = openDSU.loadAPI("sc");
@@ -186,7 +185,7 @@ function finishInit() {
       console.log("Could not initialise properly FwController", e);
       $$.showErrorAlert("Could not initialise the app properly. It is a good idea to close all browser windows and try again!");
     }
-
+    WebCardinal.root.disableHeader = false;
 
   });
 
