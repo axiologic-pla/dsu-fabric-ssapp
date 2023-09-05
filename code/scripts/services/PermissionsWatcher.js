@@ -18,16 +18,19 @@ class PermissionsWatcher {
 
     //wrapper to ensure that we remove the class when need it
     this.isAuthorizedHandler = function(){
-      utils.hideTextLoader();
+      //utils.hideTextLoader();
       _isAuthorizedHandler();
     }
 
     if (did) {
       utils.showTextLoader();
       this.checkAccess().then(result => {
-        this.setup(did);
+        if(!result){
+          return navigateToPageTag("generate-did", did);
+        }
+        this.isAuthorizedHandler();
       }).catch($$.forceTabRefresh);
-      navigateToPageTag("generate-did", did);
+      this.setup(did);
     } else {
       console.log("Trying retrieve DID info...");
       scAPI.getMainEnclave(async (err, mainEnclave) => {
@@ -250,11 +253,14 @@ class PermissionsWatcher {
     const openDSU = require("opendsu");
     const scAPI = openDSU.loadAPI("sc");
     const mainEnclave = await $$.promisify(scAPI.getMainEnclave)();
-    let credential = await $$.promisify(mainEnclave.readKey)(constants.CREDENTIAL_KEY);
 
-    if (credential.allPossibleGroups) {
+    let domain = await $$.promisify(scAPI.getVaultDomain)();
+    let allPossibleGroups = [{did:`did:ssi:group:${domain}:ePI_Write_Group`, accessMode: "write"},
+      {did:`did:ssi:group:${domain}:ePI_Read_Group`, accessMode:"read"}];
+
+    if (allPossibleGroups) {
       const did = await $$.promisify(mainEnclave.readKey)(constants.IDENTITY_KEY);
-      for (let group of credential.allPossibleGroups) {
+      for (let group of allPossibleGroups) {
         if (await this.isInGroup(group.did, did)) {
           switch (group.accessMode) {
             case "read":
@@ -390,18 +396,13 @@ class PermissionsWatcher {
       try {
         userRights = await this.getUserRights();
         if(userRights){
-          //the if isn't necessary... but better safe then sorry..
+          //the if isn't necessary... but better safe then sorry...
           window.lastUserRights = userRights;
+          return true;
         }
       } catch (err) {
-        if (err.rootCause === "security") {
-          return false;
-        }
-        $$.forceTabRefresh();
-        return;
+        return false;
       }
-      this.isAuthorizedHandler();
-      return;
     }
     return false;
   }
