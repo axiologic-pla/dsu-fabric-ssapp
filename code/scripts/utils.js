@@ -442,6 +442,7 @@ function showTextLoader() {
 }
 
 function hideTextLoader(){
+  window.WebCardinal.loader.hidden = true;
   window.WebCardinal.loader.classList.remove("text-below");
 }
 
