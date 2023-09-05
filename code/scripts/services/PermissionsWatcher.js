@@ -14,18 +14,20 @@ const {navigateToPageTag} = WebCardinal.preload;
 class PermissionsWatcher {
   constructor(did, isAuthorizedHandler) {
     this.notificationHandler = openDSU.loadAPI("error");
-    this.isAuthorizedHandler = isAuthorizedHandler || defaultHandler;
+    let _isAuthorizedHandler = isAuthorizedHandler || defaultHandler;
+
+    //wrapper to ensure that we remove the class when need it
+    this.isAuthorizedHandler = function(){
+      utils.hideTextLoader();
+      _isAuthorizedHandler();
+    }
+
     if (did) {
-      utils.showLoaderWhenRedirect();
+      utils.showTextLoader();
       this.checkAccess().then(result => {
         this.setup(did);
-        window.WebCardinal.loader.classList.remove("text-below");
-        if (typeof result === "function") {
-          result();
-        } else {
-          navigateToPageTag("generate-did", did);
-        }
-      }).catch($$.forceTabRefresh)
+      }).catch($$.forceTabRefresh);
+      navigateToPageTag("generate-did", did);
     } else {
       console.log("Trying retrieve DID info...");
       scAPI.getMainEnclave(async (err, mainEnclave) => {
@@ -179,7 +181,7 @@ class PermissionsWatcher {
   }
 
   async onUserRemoved(message) {
-    utils.showLoaderWhenRedirect();
+    utils.showTextLoader();
     let hasRights;
     try {
       hasRights = await this.getUserRights();
@@ -276,7 +278,7 @@ class PermissionsWatcher {
   }
 
   async onUserAdded(message) {
-    utils.showLoaderWhenRedirect();
+    utils.showTextLoader();
     let mainEnclave;
     try {
       mainEnclave = await $$.promisify(scAPI.getMainEnclave)();
@@ -338,7 +340,7 @@ class PermissionsWatcher {
       return;
     }
     window.lastUserRights = userRights;
-    window.WebCardinal.loader.classList.remove("text-below");
+    utils.hideTextLoader();
     this.isAuthorizedHandler();
   }
 
@@ -387,13 +389,19 @@ class PermissionsWatcher {
       let userRights;
       try {
         userRights = await this.getUserRights();
+        if(userRights){
+          //the if isn't necessary... but better safe then sorry..
+          window.lastUserRights = userRights;
+        }
       } catch (err) {
         if (err.rootCause === "security") {
           return false;
         }
-        return $$.forceTabRefresh;
+        $$.forceTabRefresh();
+        return;
       }
-      return this.isAuthorizedHandler;
+      this.isAuthorizedHandler();
+      return;
     }
     return false;
   }

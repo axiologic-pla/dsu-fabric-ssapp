@@ -20,7 +20,7 @@ export default class GenerateDIDController extends FwController {
     this.initPermissionsWatcher = () => {
      /* getPermissionsWatcher(this.model.identity, () => {
         history.replaceState({isBack: true}, "");
-        utils.showLoaderWhenRedirect();
+        utils.showTextLoader();
         this.navigateToPageTag("home");
       });*/
     };

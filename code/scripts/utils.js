@@ -433,12 +433,16 @@ function getDateDiffViewObj(diff, property, enableDaySelection, modelLabelsMap) 
   }
 }
 
-function showLoaderWhenRedirect() {
+function showTextLoader() {
   if (document.querySelector("stencil-route:not([style='display: none;'])")) {
     document.querySelector("stencil-route:not([style='display: none;'])").style.display = "none"
   }
   window.WebCardinal.loader.hidden = false;
   window.WebCardinal.loader.classList.add("text-below");
+}
+
+function hideTextLoader(){
+  window.WebCardinal.loader.classList.remove("text-below");
 }
 
 export default {
@@ -468,5 +472,6 @@ export default {
   getEpiDiffViewObj,
   getPhotoDiffViewObj,
   getDateDiffViewObj,
-  showLoaderWhenRedirect
+  showTextLoader,
+  hideTextLoader
 }
