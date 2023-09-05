@@ -81,9 +81,9 @@ export default class HolderController extends FwController {
       }
     });
 
-/*    this.on('openFeedback', (e) => {
-      this.feedbackEmitter = e.detail;
-    });*/
+    /*    this.on('openFeedback', (e) => {
+          this.feedbackEmitter = e.detail;
+        });*/
 
     this.onTagClick("copy-text", (event) => {
       copyToClipboard(event.did);
@@ -141,7 +141,13 @@ export default class HolderController extends FwController {
     //hide keySSI properties from display in ui
     delete envFile["enclaveKeySSI"];
     delete envFile["sharedEnclaveKeySSI"];
-
+    //---------- get app version from server env file
+    delete envFile["appBuildVersion"];
+    const environmentJsPath = new URL("environment.js", window.top.location);
+    const response = await fetch(environmentJsPath);
+    const appEnvContent = await response.text();
+    this.model.appVersion = this.getAppBuildVersion(appEnvContent)
+    //-----------------------
     this.model.editableFeatures = !(!!envFile.lockFeatures);
     this.model.envData = envFile;
     const environmentContainer = this.element.querySelector('#environmentContainer');
@@ -154,5 +160,12 @@ export default class HolderController extends FwController {
     environmentDataElement.language = "json";
     environmentDataElement.innerHTML = `<pre><code>${JSON.stringify(envFile, null, 4)}</code></pre>`;
     environmentContainer.appendChild(environmentDataElement);
+  }
+
+  getAppBuildVersion(envTextFile) {
+
+    let appBuildVersionText = envTextFile.split(",").find(item => item.includes("appBuildVersion"));
+    let version = appBuildVersionText.split(":")[1];
+    return version.trim();
   }
 }

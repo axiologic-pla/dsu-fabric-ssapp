@@ -81,6 +81,7 @@ a:hover {
 
 .menu webc-link span img {
     height: 41px;
+    max-height: 41px;
 }
 
 .menu webc-link span p {
