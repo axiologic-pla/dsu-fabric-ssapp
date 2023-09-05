@@ -229,10 +229,10 @@ class PermissionsWatcher {
     const openDSU = require("opendsu");
     let resolveDID = $$.promisify(openDSU.loadApi("w3cdid").resolveDID);
     let groupDIDDocument = await resolveDID(groupDID);
-    if (!this.wathcedDSUs) {
-      this.wathcedDSUs = [];
+    if (!this.watchedDSUs) {
+      this.watchedDSUs = [];
     }
-    this.wathcedDSUs.push(groupDIDDocument.dsu);
+    this.watchedDSUs.push(groupDIDDocument.dsu);
     let groupMembers = await $$.promisify(groupDIDDocument.listMembersByIdentity, groupDIDDocument)();
 
     for (let member of groupMembers) {
