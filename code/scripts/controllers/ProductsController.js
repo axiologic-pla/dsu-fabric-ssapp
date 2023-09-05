@@ -65,6 +65,7 @@ export default class ProductsController extends FwController {
             );
         });
 
+        /* not for MVP1...
         this.onTagClick("get-transferred-product", (event) => {
             this.model.actionModalModel = {
                 title: "Add transferred product",
@@ -87,7 +88,7 @@ export default class ProductsController extends FwController {
                 },
                 {model: this.model}
             );
-        });
+        });*/
 
         this.onTagClick("edit-product", async (model, target, event) => {
                 const gtin = event.target.getAttribute("gtin");
@@ -108,6 +109,7 @@ export default class ProductsController extends FwController {
         });*/
     }
 
+    /*not for MVP1
     addProductToProductsList(product, callback) {
         this.storageService.getRecord(constants.PRODUCTS_TABLE, product.gtin, (err, prod) => {
             if (prod) {
@@ -145,5 +147,5 @@ export default class ProductsController extends FwController {
                 });
             });
         });
-    }
+    }*/
 }

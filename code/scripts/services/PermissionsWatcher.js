@@ -291,9 +291,9 @@ class PermissionsWatcher {
 
     const saveCredential = async (credential) => {
       try {
-        mainEnclave.beginBatch();
+        let batchId = await mainEnclave.startOrAttachBatchAsync();
         await $$.promisify(mainEnclave.writeKey)(constants.CREDENTIAL_KEY, credential);
-        await $$.promisify(mainEnclave.commitBatch)();
+        await $$.promisify(mainEnclave.commitBatch)(batchId);
       } catch (e) {
         this.notificationHandler.reportUserRelevantError("Failed to save wallet credentials.");
         this.notificationHandler.reportUserRelevantError("Request reauthorization!");

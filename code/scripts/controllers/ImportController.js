@@ -349,8 +349,9 @@ async predigest(messages) {
     let id = await auditEnclave.getUniqueIdAsync();
     let secret = await MessagesService.acquireLock(id, 60000, 100, 500);
     let pk = require("opendsu").loadApi("crypto").generateRandom(32);
+    let batchId;
     try {
-      await auditEnclave.safeBeginBatchAsync(true);
+      batchId = await auditEnclave.startOrAttachBatchAsync();
     } catch (err) {
       throw err;
     }
@@ -358,11 +359,11 @@ async predigest(messages) {
     try {
       await $$.promisify(auditEnclave.insertRecord)(undefined, "logs", pk, digestLog)
       await MessagesService.releaseLock(id, secret)
-      await auditEnclave.commitBatchAsync();
+      await auditEnclave.commitBatchAsync(batchId);
     } catch (err) {
       const insertError = createOpenDSUErrorWrapper(`Failed to insert record in enclave`, err);
       try {
-        await auditEnclave.cancelBatchAsync();
+        await auditEnclave.cancelBatchAsync(batchId);
       } catch (e) {
         console.log(createOpenDSUErrorWrapper(`Failed to cancel batch`, e, insertError));
       }

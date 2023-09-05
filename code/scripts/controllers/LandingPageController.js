@@ -66,19 +66,15 @@ export default class LandingPageController extends FwController {
       if (identity && identity.did === did) {
         return;
       }
-
+      let batchId;
       try {
-        await this.mainEnclave.safeBeginBatchAsync();
-      } catch (e) {
-        throw e;
-      }
-      try {
+        batchId = await this.mainEnclave.startOrAttachBatchAsync();
         await $$.promisify(this.mainEnclave.writeKey)(constants.IDENTITY_KEY, did);
-        await this.mainEnclave.commitBatchAsync();
+        await this.mainEnclave.commitBatchAsync(batchId);
       } catch (e) {
         const writeKeyError = createOpenDSUErrorWrapper(`Failed to write key`, e);
         try {
-          await this.mainEnclave.cancelBatchAsync();
+          await this.mainEnclave.cancelBatchAsync(batchId);
         } catch (error) {
           throw createOpenDSUErrorWrapper(`Failed to cancel batch`, error, writeKeyError);
         }
