@@ -32,7 +32,6 @@ class PermissionsWatcher {
       }).catch($$.forceTabRefresh);
       this.setup(did);
     } else {
-      console.log("Trying retrieve DID info...");
       scAPI.getMainEnclave(async (err, mainEnclave) => {
         if (err) {
           this.notificationHandler.reportUserRelevantError(`Failed to load the wallet`, e);
