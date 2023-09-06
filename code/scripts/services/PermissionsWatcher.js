@@ -181,6 +181,7 @@ class PermissionsWatcher {
   }
 
   async onUserRemoved(message) {
+    utils.showTextLoader();
     let hasRights;
     try {
       hasRights = await this.getUserRights();
@@ -252,10 +253,8 @@ class PermissionsWatcher {
     const mainEnclave = await $$.promisify(scAPI.getMainEnclave)();
 
     let domain = await $$.promisify(scAPI.getVaultDomain)();
-    let allPossibleGroups = [{
-      did: `did:ssi:group:${domain}:ePI_Write_Group`,
-      accessMode: "write"
-    }, {did: `did:ssi:group:${domain}:ePI_Read_Group`, accessMode: "read"}];
+    let allPossibleGroups = [{did:`did:ssi:group:${domain}:ePI_Write_Group`, accessMode: "write", name:"ePI_Write_Group"},
+      {did:`did:ssi:group:${domain}:ePI_Read_Group`, accessMode:"read", name:"ePI_Read_Group"}];
 
     if (allPossibleGroups) {
       const did = await $$.promisify(mainEnclave.readKey)(constants.IDENTITY_KEY);
@@ -264,16 +263,20 @@ class PermissionsWatcher {
           switch (group.accessMode) {
             case "read":
               userRights = constants.USER_RIGHTS.READ;
+              window.currentGroup = group.name;
               break;
             case "write":
               userRights = constants.USER_RIGHTS.WRITE;
+              window.currentGroup = group.name;
               break;
           }
           break;
         }
       }
     }
+
     if (!userRights) {
+      window.currentGroup = undefined;
       //todo: add new constant in opendsu.containts for root-cause security
       throw createOpenDSUErrorWrapper("Unable to get user rights!", new Error("User is not present in any group."), "security");
     }
@@ -282,12 +285,14 @@ class PermissionsWatcher {
   }
 
   async onUserAdded(message) {
+    utils.showTextLoader();
     let mainEnclave;
     try {
       mainEnclave = await $$.promisify(scAPI.getMainEnclave)();
     } catch (err) {
       this.notificationHandler.reportUserRelevantError("Failed to initialize wallet", err);
-      this.notificationHandler.reportUserRelevantInfo("Application will refresh to ensure proper state. If you see this message again check network connection and if necessary contact Admin.");
+      this.notificationHandler.reportUserRelevantInfo(
+        "Application will refresh to ensure proper state. If you see this message again check network connection and if necessary contact Admin.");
       return $$.forceTabRefresh();
     }
 
@@ -367,7 +372,8 @@ class PermissionsWatcher {
     scAPI.getMainEnclave(async (err, mainEnclave) => {
       if (err) {
         this.notificationHandler.reportUserRelevantError(`Failed to load the wallet`, e);
-        this.notificationHandler.reportUserRelevantInfo("Application will refresh soon to ensure proper state. If you see this message again, check network connectivity and if necessary get in contact with Admin.");
+        this.notificationHandler.reportUserRelevantInfo(
+          "Application will refresh soon to ensure proper state. If you see this message again, check network connectivity and if necessary get in contact with Admin.");
         return $$.forceTabRefresh();
       }
       await $$.promisify(mainEnclave.writeKey)(constants.CREDENTIAL_KEY, constants.CREDENTIAL_DELETED);

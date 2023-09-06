@@ -135,14 +135,13 @@ function finishInit() {
       FwController.prototype.storageService = storageService;
 
       const mainEnclave = await $$.promisify(scAPI.getMainEnclave)();
-      let credential = await $$.promisify(mainEnclave.readKey)(constants.CREDENTIAL_KEY);
       let did = await $$.promisify(mainEnclave.readKey)(constants.IDENTITY_KEY);
-      userGroupName = constants.DID_GROUP_MAP[credential.groupDID.slice(credential.groupDID.lastIndexOf(":") + 1)];
+
       let loginData = {
         userId: config.identity.name,
         action: "Access wallet",
         userDID: did,
-        userGroup: userGroupName
+        userGroup: window.currentGroup
       }
 
       let logService = new LogService(constants.LOGIN_LOGS_TABLE);
@@ -152,27 +151,27 @@ function finishInit() {
             console.log("Failed to audit wallet access:", err);
           }
         });
+
+        const didDomain = await $$.promisify(scAPI.getDIDDomain)();
+        const groupDIDDocument = await $$.promisify(w3cdid.resolveDID)(`did:ssi:group:${didDomain}:ePI_Administration_Group`);
+        let adminUserList;
+
+        try {
+          adminUserList = await $$.promisify(groupDIDDocument.listMembersByIdentity)();
+          const memberDID_Document = await $$.promisify(w3cdid.resolveDID)(did);
+          loginData.messageType = constants.MESSAGE_TYPES.USER_LOGIN;
+          const crypto = require("opendsu").loadAPI("crypto");
+          loginData.messageId = crypto.encodeBase58(crypto.generateRandom(32));
+          for (let i = 0; i < adminUserList.length; i++) {
+            let adminDID_Document = await $$.promisify(w3cdid.resolveDID)(adminUserList[i]);
+            await $$.promisify(memberDID_Document.sendMessage)(JSON.stringify(loginData), adminDID_Document);
+          }
+        } catch (e) {
+          console.log("Error sending login message to admins: ", e);
+        }
+
         window.loggedIn = true;
       }
-
-      const didDomain = await $$.promisify(scAPI.getDIDDomain)();
-      const groupDIDDocument = await $$.promisify(w3cdid.resolveDID)(`did:ssi:group:${didDomain}:ePI_Administration_Group`);
-      let adminUserList;
-
-      try {
-        adminUserList = await $$.promisify(groupDIDDocument.listMembersByIdentity)();
-        const memberDID_Document = await $$.promisify(w3cdid.resolveDID)(did);
-        loginData.messageType = constants.MESSAGE_TYPES.USER_LOGIN;
-        const crypto = require("opendsu").loadAPI("crypto");
-        loginData.messageId = crypto.encodeBase58(crypto.generateRandom(32));
-        for (let i = 0; i < adminUserList.length; i++) {
-          let adminDID_Document = await $$.promisify(w3cdid.resolveDID)(adminUserList[i]);
-          await $$.promisify(memberDID_Document.sendMessage)(JSON.stringify(loginData), adminDID_Document);
-        }
-      } catch (e) {
-        console.log("Error sending login message to admins: ", e);
-      }
-
     } catch (e) {
       console.log("Could not initialise properly", e);
       $$.showErrorAlert("Could not initialise the app properly. It is a good idea to close all browser windows and try again!");
