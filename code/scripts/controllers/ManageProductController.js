@@ -16,7 +16,12 @@ const gtinResolver = require("gtin-resolver");
 export default class ManageProductController extends FwController {
   constructor(...props) {
     super(...props);
-    this.model = {disabledFeatures: this.disabledFeatures, userrights: this.userRights, languageTypeCards: []};
+    this.model = {
+      disabledFeatures: this.disabledFeatures,
+      userrights: this.userRights,
+      languageTypeCards: [],
+      pageIsLoading: true
+    };
     let state = this.history.location.state;
     this.state = state;
 
@@ -95,9 +100,11 @@ export default class ManageProductController extends FwController {
   saveInitialState() {
     this.initialCards = JSON.parse(JSON.stringify(this.model.languageTypeCards));
     this.initialModel = JSON.parse(JSON.stringify(this.model));
+    this.model.pageIsLoading = false;
   }
 
   handlerUnknownError(state, product) {
+    this.model.pageIsLoading = false;
     if (!this.canWrite()) {
       this.showErrorModalAndRedirect("Failed to retrieve information about the selected product", "Error", {tag: "products"});
       return;
@@ -219,10 +226,10 @@ export default class ManageProductController extends FwController {
       this.model.videoSourceUpdated = this.videoInitialDefaultSource !== this.model.product.videos.defaultSource;
     })
 
-    this.querySelector(".product-photo-input").addEventListener("change",(event)=>{
+    this.querySelector(".product-photo-input").addEventListener("change", (event) => {
       let filesArray = Array.from(event.target.files);
 
-      if(filesArray.length === 0){
+      if (filesArray.length === 0) {
         return;
       }
       let reader = new FileReader();
@@ -245,9 +252,9 @@ export default class ManageProductController extends FwController {
 
     });
 
-/*    this.on('openFeedback', (e) => {
-      this.feedbackEmitter = e.detail;
-    });*/
+    /*    this.on('openFeedback', (e) => {
+          this.feedbackEmitter = e.detail;
+        });*/
 
 
     this.onTagClick("add-product", async (model, target, event) => {

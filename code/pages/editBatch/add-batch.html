@@ -5,6 +5,9 @@
     <span slot="page-title">Edit Batch</span>
     <div slot="page-content">
         <webc-container controller="addBatchController">
+            <section data-if="@pageIsLoading">
+                <webc-spinner></webc-spinner>
+            </section>
 
             <div class="form-label batch-version"> version: {{@batch.version}}</div>
 

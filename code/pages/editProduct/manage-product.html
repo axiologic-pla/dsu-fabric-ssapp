@@ -5,6 +5,10 @@
     <span slot="page-title">Manage Product</span>
     <div slot="page-content">
         <webc-container controller="ManageProductController">
+            <section data-if="@pageIsLoading">
+                <webc-spinner></webc-spinner>
+            </section>
+
             <div class="form-label product-version"> version: {{@product.version}}</div>
 
             <div class="d-flex flex-row justify-content-around mt-5 manage-product-container"

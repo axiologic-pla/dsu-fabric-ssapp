@@ -16,7 +16,10 @@ const gtinResolver = require("gtin-resolver");
 export default class addBatchController extends FwController {
   constructor(...props) {
     super(...props);
+
+
     this.model = {
+      pageIsLoading: true,
       disabledFeatures: this.disabledFeatures,
       userrights: this.userRights,
       languageTypeCards: [],
@@ -34,6 +37,7 @@ export default class addBatchController extends FwController {
     let editData = editMode ? JSON.parse(state.batchData) : undefined;
 
     if (editMode) {
+      this.tasksToWait = 2; //products and leaflets to load from dsu
       let pk = gtinResolverUtils.getBatchMetadataPK(editData.gtin, editData.batchNumber);
       gtinResolver.DSUFabricUtils.getBatchMetadata(editData.batchNumber, editData.gtin, (err, batchMetadata) => {
         if (err) {
@@ -54,6 +58,7 @@ export default class addBatchController extends FwController {
         this.initialize(editMode, editData);
       });
     } else {
+      this.tasksToWait = 1; //products and leaflets to load from dsu
       this.initialize(editMode, editData);
     }
   }
@@ -135,6 +140,7 @@ export default class addBatchController extends FwController {
         this.model.onChange("languageTypeCards", (...props) => {
           this.manageUpdateButtonState();
         })
+        this.updateLoadigState();
       });
 
 
@@ -169,15 +175,23 @@ export default class addBatchController extends FwController {
 
       this.addEventListeners();
       utils.disableFeatures(this);
+
       setTimeout(() => {
         this.setUpCheckboxes();
+        this.updateLoadigState();
       }, 0)
     });
+  }
 
-
+  updateLoadigState() {
+    this.tasksToWait--;
+    if (this.tasksToWait === 0) {
+      this.model.pageIsLoading = false;
+    }
   }
 
   handlerUnknownError(state, batch) {
+    this.model.pageIsLoading = false;
     if (!this.canWrite()) {
       this.showErrorModalAndRedirect("Failed to retrieve information about the selected batch", "Error", {tag: "batches"});
       return;
