@@ -186,7 +186,6 @@ function finishInit() {
       $$.showErrorAlert("Could not initialise the app properly. It is a good idea to close all browser windows and try again!");
     }
     WebCardinal.root.disableHeader = false;
-    utils.hideTextLoader();
   });
 
   define('epi-card', 'epi-card/template');

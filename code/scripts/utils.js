@@ -435,15 +435,16 @@ function getDateDiffViewObj(diff, property, enableDaySelection, modelLabelsMap) 
 
 function showTextLoader() {
   if (document.querySelector("stencil-route:not([style='display: none;'])")) {
-    document.querySelector("stencil-route:not([style='display: none;'])").style.display = "none"
+    document.querySelector("stencil-route:not([style='display: none;'])").classList.add("hidden");
   }
   window.WebCardinal.loader.hidden = false;
   window.WebCardinal.loader.classList.add("text-below");
 }
 
-function hideTextLoader(){
+function hideTextLoader() {
   window.WebCardinal.loader.hidden = true;
   window.WebCardinal.loader.classList.remove("text-below");
+  document.querySelector("stencil-route:not([style='display: none;'])").classList.remove("hidden");
 }
 
 export default {

@@ -17,15 +17,14 @@ class PermissionsWatcher {
     let _isAuthorizedHandler = isAuthorizedHandler || defaultHandler;
 
     //wrapper to ensure that we remove the class when need it
-    this.isAuthorizedHandler = function(){
-      //utils.hideTextLoader();
+    this.isAuthorizedHandler = function () {
       _isAuthorizedHandler();
     }
 
     if (did) {
       utils.showTextLoader();
       this.checkAccess().then(result => {
-        if(!result){
+        if (!result) {
           return navigateToPageTag("generate-did", did);
         }
         this.isAuthorizedHandler();
@@ -35,8 +34,7 @@ class PermissionsWatcher {
       scAPI.getMainEnclave(async (err, mainEnclave) => {
         if (err) {
           this.notificationHandler.reportUserRelevantError(`Failed to load the wallet`, e);
-          this.notificationHandler.reportUserRelevantInfo(
-            "Application will refresh soon to ensure proper state. If you see this message again, check network connectivity and if necessary get in contact with Admin.");
+          this.notificationHandler.reportUserRelevantInfo("Application will refresh soon to ensure proper state. If you see this message again, check network connectivity and if necessary get in contact with Admin.");
           return $$.forceTabRefresh();
         }
         did = await $$.promisify(mainEnclave.readKey)(constants.IDENTITY_KEY);
@@ -112,7 +110,7 @@ class PermissionsWatcher {
           userRights = await this.getUserRights();
         } catch (err) {
           //if we have errors user doesn't have any rights
-          if (window.lastUserRights || unAuthorizedPages.indexOf(WebCardinal.state.page.tag) === 1) {
+          if (window.lastUserRights || unAuthorizedPages.indexOf(WebCardinal.state.page.tag) === -1) {
             //User had rights and lost them...
             if (err.rootCause === "security") {
               this.notificationHandler.reportUserRelevantError("Security error: ", err);
@@ -183,7 +181,6 @@ class PermissionsWatcher {
   }
 
   async onUserRemoved(message) {
-    utils.showTextLoader();
     let hasRights;
     try {
       hasRights = await this.getUserRights();
@@ -196,7 +193,7 @@ class PermissionsWatcher {
       console.log("Because user is still present in a group, intermediary delete message is skipped.");
       return;
     }
-
+    utils.showTextLoader();
     $$.disableAlerts();
     let caughtErrors = false;
     if (window.lastUserRights) {
@@ -227,6 +224,7 @@ class PermissionsWatcher {
       this.notificationHandler.reportUserRelevantInfo("The application will refresh soon...");
       setTimeout($$.forceTabRefresh, 2000);
     }
+    utils.hideTextLoader();
   }
 
   async isInGroup(groupDID, did) {
@@ -254,8 +252,10 @@ class PermissionsWatcher {
     const mainEnclave = await $$.promisify(scAPI.getMainEnclave)();
 
     let domain = await $$.promisify(scAPI.getVaultDomain)();
-    let allPossibleGroups = [{did:`did:ssi:group:${domain}:ePI_Write_Group`, accessMode: "write"},
-      {did:`did:ssi:group:${domain}:ePI_Read_Group`, accessMode:"read"}];
+    let allPossibleGroups = [{
+      did: `did:ssi:group:${domain}:ePI_Write_Group`,
+      accessMode: "write"
+    }, {did: `did:ssi:group:${domain}:ePI_Read_Group`, accessMode: "read"}];
 
     if (allPossibleGroups) {
       const did = await $$.promisify(mainEnclave.readKey)(constants.IDENTITY_KEY);
@@ -273,7 +273,6 @@ class PermissionsWatcher {
         }
       }
     }
-
     if (!userRights) {
       //todo: add new constant in opendsu.containts for root-cause security
       throw createOpenDSUErrorWrapper("Unable to get user rights!", new Error("User is not present in any group."), "security");
@@ -283,14 +282,12 @@ class PermissionsWatcher {
   }
 
   async onUserAdded(message) {
-    utils.showTextLoader();
     let mainEnclave;
     try {
       mainEnclave = await $$.promisify(scAPI.getMainEnclave)();
     } catch (err) {
       this.notificationHandler.reportUserRelevantError("Failed to initialize wallet", err);
-      this.notificationHandler.reportUserRelevantInfo(
-        "Application will refresh to ensure proper state. If you see this message again check network connection and if necessary contact Admin.");
+      this.notificationHandler.reportUserRelevantInfo("Application will refresh to ensure proper state. If you see this message again check network connection and if necessary contact Admin.");
       return $$.forceTabRefresh();
     }
 
@@ -345,7 +342,6 @@ class PermissionsWatcher {
       return;
     }
     window.lastUserRights = userRights;
-    utils.hideTextLoader();
     this.isAuthorizedHandler();
   }
 
@@ -371,8 +367,7 @@ class PermissionsWatcher {
     scAPI.getMainEnclave(async (err, mainEnclave) => {
       if (err) {
         this.notificationHandler.reportUserRelevantError(`Failed to load the wallet`, e);
-        this.notificationHandler.reportUserRelevantInfo(
-          "Application will refresh soon to ensure proper state. If you see this message again, check network connectivity and if necessary get in contact with Admin.");
+        this.notificationHandler.reportUserRelevantInfo("Application will refresh soon to ensure proper state. If you see this message again, check network connectivity and if necessary get in contact with Admin.");
         return $$.forceTabRefresh();
       }
       await $$.promisify(mainEnclave.writeKey)(constants.CREDENTIAL_KEY, constants.CREDENTIAL_DELETED);
@@ -394,7 +389,7 @@ class PermissionsWatcher {
       let userRights;
       try {
         userRights = await this.getUserRights();
-        if(userRights){
+        if (userRights) {
           //the if isn't necessary... but better safe then sorry...
           window.lastUserRights = userRights;
           return true;

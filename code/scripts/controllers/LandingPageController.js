@@ -52,7 +52,10 @@ export default class LandingPageController extends FwController {
 
       getPermissionsWatcher(did, () => {
         const {navigateToPageTag} = WebCardinal.preload;
-        navigateToPageTag("home");
+        let skipPages = ["generate-did", "landing-page"];
+        if (skipPages.indexOf(WebCardinal.state.page.tag) >= 0) {
+          navigateToPageTag("home");
+        }
       });
 
 
