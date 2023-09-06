@@ -64,7 +64,7 @@ async function _acquireLock(identifier, period, attempts, timeout){
             break;
         }
         if(noAttempts === 0){
-            if (window.confirm("Other user is editing right now. Do you want to wait for him to finish?")) {
+            if (window.confirm("Other user is working on a shared resource. Do you want to wait for him to finish?")) {
                 noAttempts = attempts;
             }
         }

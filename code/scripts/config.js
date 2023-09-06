@@ -1,6 +1,7 @@
 import utils from "./utils.js";
 import constants from "./constants.js";
 import getSharedStorage from "./services/SharedDBStorageService.js";
+import MessagesService from "./services/MessagesService.js";
 
 import WebcAccordion from "../components/web-components/accordion/webc-accordion.js";
 import WebcAccordionItem from "../components/web-components/accordion/webc-accordion-item.js";
@@ -146,11 +147,17 @@ function finishInit() {
 
       let logService = new LogService(constants.LOGIN_LOGS_TABLE);
       if (!window.loggedIn) {
-        logService.loginLog(loginData, (err, result) => {
-          if (err) {
-            console.log("Failed to audit wallet access:", err);
-          }
-        });
+
+        setTimeout(async ()=>{
+          let ID = await storageService.getUniqueIdAsync();
+          let lock = await MessagesService.acquireLock(ID, 60000, 100, 500);
+          logService.loginLog(loginData, async (err, result) => {
+            if (err) {
+              console.log("Failed to audit wallet access:", err);
+            }
+            await MessagesService.releaseLock(ID, lock);
+          });
+        }, 0);
 
         const didDomain = await $$.promisify(scAPI.getDIDDomain)();
         const groupDIDDocument = await $$.promisify(w3cdid.resolveDID)(`did:ssi:group:${didDomain}:ePI_Administration_Group`);
