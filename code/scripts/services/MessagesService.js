@@ -102,18 +102,8 @@ function getStorageService(dsuStorage) {
     }
 
     dsuStorage.failureAwareCommit = async function(failedMessages, callback){
-        let lock;
         let error;
-        lock = await acquireLock(60000, 100, 500);
-        if(!lock){
-            callback(new Error("Not able to acquire lock to save the undigested messages."));
-        }
-
         if(failedMessages.length){
-            if (dsuStorage.batchInProgress()) {
-                await $$.promisify(dsuStorage.cancelBatch)();
-            }
-
             try{
                 await $$.promisify(_logFailedMessages)(failedMessages, dsuStorage);
             }catch(err){
@@ -121,8 +111,6 @@ function getStorageService(dsuStorage) {
                 error = err;
             }
         }
-
-        await releaseLock(lock);
         callback(error, undefined);
     }
 
