@@ -433,6 +433,8 @@ export default class ManageProductController extends FwController {
 
   showMessageError(undigestedMessages) {
     let errors = [];
+    const errorMessage = "There was an error during saving process.";
+    const shownErrors = [{message: errorMessage}]
     if (undigestedMessages.length > 0) {
       undigestedMessages.forEach(msg => {
         if (errors.findIndex((elem) => elem.message === msg.reason.originalMessage || elem.message === msg.reason.debug_message || elem.message === msg.reason) < 0) {
@@ -442,16 +444,17 @@ export default class ManageProductController extends FwController {
           } else {
             obj = msg.error || {originalMessage: msg.reason};
           }
-          errors.push({message: obj.originalMessage || obj.debug_message || obj.message});
+          const error = new Error(obj.originalMessage || obj.debug_message || obj.message);
+          errors.push(error);
         }
       })
 
+      console.log(errors);
       this.showModalFromTemplate("digest-messages-error-modal", () => {
 
         this.navigateToPageTag("products");
       }, () => {
-
-      }, {model: {errors: errors}});
+      }, {model: {errors: shownErrors}});
     } else {
       if (this.refreshState) {
         //this.refreshState is controlled above in unknownHandler before force recovery
