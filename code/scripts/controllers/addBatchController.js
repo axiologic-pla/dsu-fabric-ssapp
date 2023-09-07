@@ -662,20 +662,21 @@ export default class addBatchController extends FwController {
       }
 
       this.model.serial_update_options.value = "";
+      let batchId;
       try {
-        await this.storageService.safeBeginBatchAsync(true);
+        batchId = await this.storageService.startOrAttachBatchAsync();
       } catch (e) {
         this.manageUpdateButtonState();
         throw e;
       }
       try {
         await $$.promisify(this.storageService.insertRecord.bind(this.storageService))(this.model.batch.batchNumber, serialNumbersLog.creationTime, serialNumbersLog);
-        await this.storageService.commitBatchAsync();
+        await this.storageService.commitBatchAsync(batchId);
       } catch (e) {
         this.manageUpdateButtonState();
         const insertError = createOpenDSUErrorWrapper(`Failed to insert serial numbers log for batch ${this.model.batch.batchNumber}`, e);
         try {
-          await this.storageService.cancelBatchAsync();
+          await this.storageService.cancelBatchAsync(batchId);
         } catch (error) {
           throw createOpenDSUErrorWrapper(`Failed to cancel batch for batch ${this.model.batch.batchNumber}`, error, insertError);
         }
