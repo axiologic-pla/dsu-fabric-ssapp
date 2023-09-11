@@ -15,7 +15,7 @@ export default class ImportController extends FwController {
     const dbAPI = require("opendsu").loadAPI("db");
 
     this.model = {
-      selectedTab: 0,
+      selectedTabIndex: 0,
       filesChooser: {
         label: "Select files",
         accept: ".json",
@@ -172,9 +172,9 @@ export default class ImportController extends FwController {
             this.model.successDataSource.filterResult = results.filter(item => item.status === "success");
             this.model.failedDataSource.filterResult = results.filter(item => item.status !== "success");
             if (results[0].status === "success") {
-              this.model.selectedTab = 0;
+              this.model.selectedTabIndex = 0;
             } else {
-              this.model.selectedTab = 1;
+              this.model.selectedTabIndex = 1;
             }
           } else {
             notFoundIcon.style.display = "inline";
@@ -205,8 +205,7 @@ export default class ImportController extends FwController {
         try {
           let imageSize = this.getSizeFromBase64(auditDetailsDeepCopy.imageData);
           auditDetailsDeepCopy.imageData = imageSize;
-        }
-        catch (err) {
+        } catch (err) {
           auditDetailsDeepCopy.imageData = "There has been an error while calculating the size of the image.";
         }
       }
@@ -277,7 +276,7 @@ export default class ImportController extends FwController {
       return async (model, target, event) => {
         let messages = await getSelectedFailed.call(this, prepareFnc);
         if (messages.length > 0) {
-          this.model.selectedTab = 1;
+          this.model.selectedTabIndex = 1;
 
           window.WebCardinal.loader.hidden = false;
           this.progressModal = this.showProgressModal();
@@ -300,7 +299,7 @@ export default class ImportController extends FwController {
     this.onTagClick("retry-failed", async (model, target, event) => {
       let messages = await getSelectedFailed.call(this);
       if (messages.length > 0) {
-        this.model.selectedTab = 1;
+        this.model.selectedTabIndex = 1;
         let progressModalModel = {
           steps: messages.length, updateProgressInfo: function (currentStep, steps) {
             return `Processing message ${currentStep} of ${steps}`
@@ -343,7 +342,7 @@ export default class ImportController extends FwController {
     return formattedSize;
   }
 
-async predigest(messages) {
+  async predigest(messages) {
     let digestLog = await this.buildDigestLog(messages);
     let auditEnclave = await this.getEnclaveBypassingAnyCache();
     let id = await auditEnclave.getUniqueIdAsync();
@@ -487,18 +486,22 @@ async predigest(messages) {
   async manageProcessedMessages(undigestedMessages) {
     this.querySelector(".prev-page-btn[msgType='success']").disabled = true;
     this.querySelector(".next-page-btn[msgType='success']").disabled = false;
-    this.model.successDataSource.importLogs = [];
-    await this.model.successDataSource.goToPageByIndex(0);
+
+
     this.querySelector(".prev-page-btn[msgType='failed']").disabled = true;
     this.querySelector(".next-page-btn[msgType='failed']").disabled = false;
-    this.model.failedDataSource.importLogs = [];
-    await this.model.failedDataSource.goToPageByIndex(0);
+
 
     if (undigestedMessages.length === 0) {
-      this.model.selectedTab = 0;
+      document.querySelector("df-tab-panel").setAttribute("selectedTabIndex", 0);
+      await this.model.successDataSource.forceUpdate(true);
+      await this.model.successDataSource.goToPageByIndex(0);
     } else {
-      this.model.selectedTab = 1;
+      document.querySelector("df-tab-panel").setAttribute("selectedTabIndex", 1);
+      await this.model.failedDataSource.forceUpdate(true);
+      await this.model.failedDataSource.goToPageByIndex(0);
     }
+
   }
 
 }
