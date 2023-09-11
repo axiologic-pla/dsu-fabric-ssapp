@@ -12,9 +12,21 @@ export default class FailedLogDataSource extends DataSource {
     this.importLogs = [];
     this.hasMoreLogs = false;
     this.filterResult = [];
-    this.enclaveDB.onCommitBatch(() => {
-      this.goToPageByIndex(this.getCurrentPageIndex());
-    })
+    let self = this;
+
+    function refresh(noUiUpdate) {
+      if (!noUiUpdate) {
+        setTimeout(async () => {
+          await self.forceUpdate(true);
+        }, 0)
+
+      }
+      setTimeout(() => {
+        self.enclaveDB.onCommitBatch(refresh);
+      })
+    }
+
+    refresh(true);
   }
 
   getMappedResult(data) {
