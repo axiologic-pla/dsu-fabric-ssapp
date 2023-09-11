@@ -40,7 +40,7 @@ export default class LandingPageController extends FwController {
       this.mainEnclave = mainEnclave;
       let did;
       try {
-        did = await $$.promisify(mainEnclave.readKey)(constants.IDENTITY_KEY);
+        did = await scAPI.getMainDIDAsync();
       } catch (e) {
         // TODO check error type to differentiate between business and technical error
         // this.notificationHandler.reportDevRelevantInfo("DID not yet created", e);
@@ -72,7 +72,7 @@ export default class LandingPageController extends FwController {
       let batchId;
       try {
         batchId = await this.mainEnclave.startOrAttachBatchAsync();
-        await $$.promisify(this.mainEnclave.writeKey)(constants.IDENTITY_KEY, did);
+        await scAPI.setMainDIDAsync(did);
         await this.mainEnclave.commitBatchAsync(batchId);
       } catch (e) {
         const writeKeyError = createOpenDSUErrorWrapper(`Failed to write key`, e);

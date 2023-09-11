@@ -69,7 +69,7 @@ export default class HolderController extends FwController {
         // return console.log(err);
       }
       try {
-        let did = await $$.promisify(mainEnclave.readKey)(constants.IDENTITY_KEY);
+        let did = await scAPI.getMainDIDAsync();
         this.model.did = did;
         let credential = await $$.promisify(mainEnclave.readKey)(constants.CREDENTIAL_KEY);
         this.model.displayCredentialArea = !!credential;

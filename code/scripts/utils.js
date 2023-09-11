@@ -229,7 +229,7 @@ async function getUserRights() {
   let credential = await $$.promisify(mainEnclave.readKey)(constants.CREDENTIAL_KEY);
 
   if (credential.allPossibleGroups) {
-    const did = await $$.promisify(mainEnclave.readKey)(constants.IDENTITY_KEY);
+    const did = await scAPI.getMainDIDAsync();
     for (let group of credential.allPossibleGroups) {
       if (await isInGroup(group.did, did)) {
         switch (group.accessMode) {
