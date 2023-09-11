@@ -136,7 +136,7 @@ function finishInit() {
       FwController.prototype.storageService = storageService;
 
       const mainEnclave = await $$.promisify(scAPI.getMainEnclave)();
-      let did = await $$.promisify(mainEnclave.readKey)(constants.IDENTITY_KEY);
+      let did = await scAPI.getMainDIDAsync();
 
       let loginData = {
         userId: config.identity.name,

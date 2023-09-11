@@ -46,8 +46,10 @@ export default class LandingPageController extends FwController {
         // this.notificationHandler.reportDevRelevantInfo("DID not yet created", e);
       }
 
+      let shouldPersist = false;
       if (!did) {
         did = await this.createDID();
+        shouldPersist = true;
       }
 
       getPermissionsWatcher(did, () => {
@@ -59,16 +61,10 @@ export default class LandingPageController extends FwController {
       });
 
 
-      let identity;
-      try {
-        identity = await this.mainEnclave.readKeyAsync(constants.IDENTITY);
-      } catch (e) {
-        identity = undefined;
-      }
-
-      if (identity && identity.did === did) {
+      if(!shouldPersist){
         return;
       }
+
       let batchId;
       try {
         batchId = await this.mainEnclave.startOrAttachBatchAsync();
