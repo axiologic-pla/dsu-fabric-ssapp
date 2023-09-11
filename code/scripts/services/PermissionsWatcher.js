@@ -52,7 +52,7 @@ class PermissionsWatcher {
         //we try to reset no matter if we had or no any credentials...
         await this.resettingCredentials();
 
-        this.notificationHandler.reportUserRelevantInfo("Your credentials was removed.");
+        this.notificationHandler.reportUserRelevantInfo("Your credentials were removed.");
         this.notificationHandler.reportUserRelevantInfo("Application will refresh soon...");
         $$.forceTabRefresh();
         return;
@@ -123,6 +123,14 @@ class PermissionsWatcher {
       let creds = await this.handler.checkIfUserIsAuthorized(this.did);
       if(creds){
         await this.saveCredentials(creds);
+        if(!window.lastGroupDID){
+          window.lastGroupDID = creds ? creds.groupCredential.groupDID : undefined;
+        }
+        if(window.lastGroupDID !== creds.groupCredential.groupDID){
+          this.notificationHandler.reportUserRelevantInfo("Your credentials have changed!");
+          this.notificationHandler.reportUserRelevantInfo("Application will refresh soon...");
+          return $$.forceTabRefresh();
+        }
         return true;
       }
     }catch(err){
