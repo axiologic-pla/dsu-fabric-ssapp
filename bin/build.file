@@ -1,5 +1,5 @@
 delete /
 addfolder code
-addfile ../opendsu-sdk/psknode/bundles/iframeBoot.js scripts/bundles/iframeBoot.js
+addfile ../opendsu-sdk/builds/output/iframeBoot.js scripts/bundles/iframeBoot.js
 addfile ../gtin-resolver/build/bundles/gtinResolver.js scripts/bundles/gtinResolver.js
 mount ../webcardinal/seed /webcardinal
