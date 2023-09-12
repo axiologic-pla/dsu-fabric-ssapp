@@ -162,10 +162,37 @@ export default class HolderController extends FwController {
     environmentContainer.appendChild(environmentDataElement);
   }
 
-  getAppBuildVersion(envTextFile) {
+  getAppBuildVersion(str) {
+    //the purpose of regex is to extract the json part from
+    const regex = /{[\s\S]*}/gm;
 
-    let appBuildVersionText = envTextFile.split(",").find(item => item.includes("appBuildVersion"));
+    let matches;
+    while ((matches = regex.exec(str)) !== null) {
+      // This is necessary to avoid infinite loops with zero-width matches
+      if (matches.index === regex.lastIndex) {
+        regex.lastIndex++;
+      }
+
+      if(matches.length){
+        //found it...
+        let envJSON = matches[0];
+        try{
+          envJSON = JSON.parse(envJSON);
+        }catch (err){
+          console.log("Failed to properly parse environment file for app version extraction. Switching to fallback method");
+          continue;
+        }
+        return envJSON["appBuildVersion"];
+      }
+    }
+
+    //this code should not be reached... but I'll let it here for fallback for the moment.
+    let appBuildVersionText = str.split(",").find(item => item.includes("appBuildVersion"));
     let version = appBuildVersionText.split(":")[1];
-    return version.trim();
+    version = version.trim();
+    if(version.indexOf("}")!==-1){
+      version = version.replaceAll("}", "");
+    }
+    return version;
   }
 }
