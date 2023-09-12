@@ -134,7 +134,7 @@ class PermissionsWatcher {
         return true;
       }
     }catch(err){
-      let knownStatusCodes = [404, 500];
+      let knownStatusCodes = [404];
       if(knownStatusCodes.indexOf(err.code) === -1){
         throw err;
       }
