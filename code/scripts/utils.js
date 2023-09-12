@@ -442,9 +442,13 @@ function showTextLoader() {
 }
 
 function hideTextLoader() {
-  window.WebCardinal.loader.hidden = true;
-  window.WebCardinal.loader.classList.remove("text-below");
-  document.querySelector("stencil-route:not([style='display: none;'])").classList.remove("hidden");
+  setTimeout(() => {
+    window.WebCardinal.loader.hidden = true;
+    window.WebCardinal.loader.classList.remove("text-below");
+    if (document.querySelector("stencil-route.hidden")) {
+      document.querySelector("stencil-route.hidden").classList.remove("hidden");
+    }
+  })
 }
 
 export default {

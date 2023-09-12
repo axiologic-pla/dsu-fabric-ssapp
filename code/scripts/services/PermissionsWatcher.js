@@ -3,7 +3,9 @@ import utils from "../utils.js";
 
 const openDSU = require("opendsu");
 const scAPI = openDSU.loadAPI("sc");
-const defaultHandler = function(){console.log("User is authorized")};
+const defaultHandler = function () {
+  console.log("User is authorized")
+};
 
 const {navigateToPageTag} = WebCardinal.preload;
 
@@ -13,36 +15,38 @@ class PermissionsWatcher {
     this.notificationHandler = openDSU.loadAPI("error");
     this.isAuthorizedHandler = isAuthorizedHandler || defaultHandler;
 
-    this.checkAccessAndAct().catch(err=>{
+    this.checkAccessAndAct().catch(err => {
       console.debug('Caught an error during booting of the PermissionsWatcher...', err);
     });
 
     this.setupIntervalCheck();
   }
 
-  setupIntervalCheck(){
+  setupIntervalCheck() {
     //setup of credential check interval to prevent edge cases
-    if(!window.credentialsCheckInterval){
+    if (!window.credentialsCheckInterval) {
       const interval = 10*1000;
-      window.credentialsCheckInterval = setInterval(async()=>{
-        await this.checkAccessAndAct();
+      window.credentialsCheckInterval = setInterval(async () => {
+        this.checkAccessAndAct().catch(err => {
+          console.debug("Just logging some errors for debugging if needed", err);
+        });
       }, interval);
       console.log(`Permissions will be checked once every ${interval}ms`);
     }
   }
 
-  async checkAccessAndAct(){
-    this.checkAccess().then( async (hasAccess)=>{
+  async checkAccessAndAct() {
+    this.checkAccess().then(async (hasAccess) => {
       utils.hideTextLoader();
       let unAuthorizedPages = ["generate-did", "landing-page"];
-      if(hasAccess){
-        if(unAuthorizedPages.indexOf(WebCardinal.state.page.tag) !== -1) {
+      if (hasAccess) {
+        if (unAuthorizedPages.indexOf(WebCardinal.state.page.tag) !== -1) {
           //if we are on a booting page then we need to redirect...
 
           return this.isAuthorizedHandler();
         }
-      }else{
-        if(unAuthorizedPages.indexOf(WebCardinal.state.page.tag) !== -1) {
+      } else {
+        if (unAuthorizedPages.indexOf(WebCardinal.state.page.tag) !== -1) {
           //if we are on a booting page, and we are not authorized ...
           let did = await scAPI.getMainDIDAsync();
           navigateToPageTag("generate-did", did);
@@ -57,16 +61,16 @@ class PermissionsWatcher {
         $$.forceTabRefresh();
         return;
       }
-    }).catch(async err=>{
+    }).catch(async err => {
       //at this point this check if fails may not be that important....
     });
   }
 
   async saveCredentials(credentials) {
     let enclave = credentials.enclave;
-    if(window.lastCredentials && enclave.enclaveKeySSI === window.lastCredentials.enclaveKeySSI){
+    if (window.lastCredentials && enclave.enclaveKeySSI === window.lastCredentials.enclaveKeySSI) {
       // there is no need to trigger the credentials save...
-      return ;
+      return;
     }
     window.lastCredentials = enclave;
     try {
@@ -96,10 +100,10 @@ class PermissionsWatcher {
   }
 
   async checkAccess() {
-    if(!this.did){
-      try{
+    if (!this.did) {
+      try {
         this.did = await scAPI.getMainDIDAsync();
-      }catch(err){
+      } catch (err) {
         this.notificationHandler.reportUserRelevantError(`Failed to load the wallet`, err);
         this.notificationHandler.reportUserRelevantInfo(
           "Application will refresh soon to ensure proper state. If you see this message again, check network connectivity and if necessary get in contact with Admin.");
@@ -107,11 +111,11 @@ class PermissionsWatcher {
       }
     }
 
-    if(!this.handler){
-      try{
+    if (!this.handler) {
+      try {
         let SecretsHandler = require("opendsu").loadApi("w3cdid").SecretsHandler;
         this.handler = await SecretsHandler.getInstance(this.did);
-      }catch(err){
+      } catch (err) {
         this.notificationHandler.reportUserRelevantError(`Failed to load the wallet`, err);
         this.notificationHandler.reportUserRelevantInfo(
           "Application will refresh soon to ensure proper state. If you see this message again, check network connectivity and if necessary get in contact with Admin.");
@@ -119,23 +123,23 @@ class PermissionsWatcher {
       }
     }
 
-    try{
+    try {
       let creds = await this.handler.checkIfUserIsAuthorized(this.did);
-      if(creds){
+      if (creds) {
         await this.saveCredentials(creds);
-        if(!window.lastGroupDID){
+        if (!window.lastGroupDID) {
           window.lastGroupDID = creds ? creds.groupCredential.groupDID : undefined;
         }
-        if(window.lastGroupDID !== creds.groupCredential.groupDID){
+        if (window.lastGroupDID !== creds.groupCredential.groupDID) {
           this.notificationHandler.reportUserRelevantInfo("Your credentials have changed!");
           this.notificationHandler.reportUserRelevantInfo("Application will refresh soon...");
           return $$.forceTabRefresh();
         }
         return true;
       }
-    }catch(err){
+    } catch (err) {
       let knownStatusCodes = [404, 500];
-      if(knownStatusCodes.indexOf(err.code) === -1){
+      if (knownStatusCodes.indexOf(err.code) === -1) {
         throw err;
       }
       console.debug("Caught an error during checking access", err);
