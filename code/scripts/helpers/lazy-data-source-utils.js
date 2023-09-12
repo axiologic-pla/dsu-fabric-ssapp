@@ -1,3 +1,5 @@
+import constants from "../constants.js";
+
 function attachHandlers(controller, datasource, searchInputSelector = "#code-search", prevPageTag = "prev-page", nextPageTag = "next-page") {
   let searchInput = controller.querySelector(searchInputSelector || "#code-search");
   let foundIcon = searchInput.parentElement.querySelector(".fa-check");
@@ -5,8 +7,10 @@ function attachHandlers(controller, datasource, searchInputSelector = "#code-sea
   if (searchInput) {
     /*clean all listeners and attach new listener */
     let new_element = searchInput.cloneNode(true);
-    new_element.addEventListener("search", async (event) => {
-      await controller.model[datasource].searchHandler(event.target.value, foundIcon, notFoundIcon)
+    new_element.addEventListener(constants.HTML_EVENTS.SEARCH, async (event) => {
+      window.WebCardinal.loader.hidden = false;
+      await controller.model[datasource].searchHandler(event.target.value, foundIcon, notFoundIcon);
+      window.WebCardinal.loader.hidden = true;
     })
     searchInput.parentNode.replaceChild(new_element, searchInput);
   }

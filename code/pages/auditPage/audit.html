@@ -7,8 +7,10 @@
     <div class="test" slot="page-content">
         <webc-container controller="AuditController">
             <div class="audit-logs-container">
-                <dsu-tab-panel data-view-model="@" shadow>
-                    <div slot="tab" data-tag="change-tab" tab-name="actions">Action logs</div>
+                <df-tab-panel data-view-model="@" shadow>
+                    <div slot="tab" data-tag="change-tab" tab-name="actions">
+                        <div class="nav-tab-title">Action logs</div>
+                    </div>
                     <div slot="content" class="edit-actions-tab">
 
                         <div class="search-container audit-search-container">
@@ -20,7 +22,8 @@
                                     <i class="fa fa-check"></i>
                                 </span>
                             </div>
-                            <psk-button data-tag="audit-export" label="Export as CSV"></psk-button>
+                            <button class="default-button" data-tag="audit-export">Export as CSV</button>
+<!--                            <psk-button data-tag="audit-export" label="Export as CSV"></psk-button>-->
                         </div>
 
 
@@ -57,7 +60,9 @@
                         </webc-datatable>
 
                     </div>
-                    <div slot="tab" data-tag="change-tab" tab-name="logins">Access logs</div>
+                    <div slot="tab" data-tag="change-tab" tab-name="logins">
+                        <div class="nav-tab-title">Access logs</div>
+                    </div>
                     <div slot="content" class="login-actions-tab">
 
                         <div class="search-container login-search-container">
@@ -69,7 +74,8 @@
                                     <i class="fa fa-check"></i>
                                 </span>
                             </div>
-                            <psk-button data-tag="login-export" label="Export as CSV"></psk-button>
+                            <button class="default-button" data-tag="login-export">Export as CSV</button>
+<!--                            <psk-button data-tag="login-export" label="Export as CSV"></psk-button>-->
                         </div>
 
                         <webc-datatable datasource="@auditLoginDataSource" hide-pagination>
@@ -100,7 +106,7 @@
                         </webc-datatable>
 
                     </div>
-                </dsu-tab-panel>
+                </df-tab-panel>
 
             </div>
 

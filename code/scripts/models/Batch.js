@@ -1,4 +1,4 @@
-import Utils from "./Utils.js";
+import constants from "../constants.js";
 
 export default class Batch {
   batchNumber = "";
@@ -65,15 +65,15 @@ export default class Batch {
   addSerialNumbers(arr, bloomFilterType) {
     let bf;
     switch (bloomFilterType) {
-      case "validSerialNumbers":
+      case constants.BLOOMFILTER_SERIAL_TYPES.VALID:
         bf = this.getBloomFilterSerialisation(arr);
         this.bloomFilterSerialisations.push(bf.bloomFilterSerialisation());
         break
-      case "recalledSerialNumbers":
+      case constants.BLOOMFILTER_SERIAL_TYPES.RECALLED:
         bf = this.getBloomFilterSerialisation(arr)
         this.bloomFilterRecalledSerialisations.push(bf.bloomFilterSerialisation());
         break
-      case "decommissionedSerialNumbers":
+      case constants.BLOOMFILTER_SERIAL_TYPES.DECOMMISSIONED:
         bf = this.getBloomFilterSerialisation(arr);
         this.bloomFilterDecommissionedSerialisations.push(bf.bloomFilterSerialisation());
         break

@@ -1,17 +1,24 @@
 import utils from "./utils.js";
 import constants from "./constants.js";
 import getSharedStorage from "./services/SharedDBStorageService.js";
+import MessagesService from "./services/MessagesService.js";
 
+import WebcAccordion from "../components/web-components/accordion/webc-accordion.js";
+import WebcAccordionItem from "../components/web-components/accordion/webc-accordion-item.js";
+import WebcTabNavigator from "../components/web-components/tab-navigator/webc-tab-panel.js";
+import WebcDateInput from "../components/web-components/date-input/webc-date-input.js";
+
+const openDSU = require("opendsu");
 const {define} = WebCardinal.components;
-const {setConfig, getConfig, addHook, addControllers} = WebCardinal.preload;
+const {setConfig, getConfig, addHook, addControllers, navigateToPageTag} = WebCardinal.preload;
 const {FwController} = await import("./controllers/FwController.js");
 
-async function watchAndHandleExecution(fnc){
-  try{
+async function watchAndHandleExecution(fnc) {
+  try {
     await fnc();
-  }catch(err) {
-    if(err.rootCause === "security"){
-      return $$.navigateToPage("generate-did");
+  } catch (err) {
+    if (err.rootCause === "security") {
+      return navigateToPageTag("landing-page");
     }
     if (window.confirm("Looks that your application is not properly initialized or in an invalid state. Would you like to reset it?")) {
       try {
@@ -44,7 +51,7 @@ async function initializeWebCardinalConfig() {
   const config = getConfig();
   let userDetails;
 
-  await watchAndHandleExecution(async ()=>{
+  await watchAndHandleExecution(async () => {
     userDetails = await utils.getUserDetails();
   });
 
@@ -52,7 +59,7 @@ async function initializeWebCardinalConfig() {
     avatar: "assets/images/user.png"
   }
 
-  if(userDetails){
+  if (userDetails) {
     config.identity.name = userDetails.username;
     config.identity.email = userDetails.company;
   }
@@ -62,66 +69,62 @@ async function initializeWebCardinalConfig() {
 
 let config = await initializeWebCardinalConfig();
 
-function finishInit(){
+async function setupGlobalErrorHandlers() {
+  let errHandler = openDSU.loadAPI("error");
+
+  errHandler.observeUserRelevantMessages(constants.NOTIFICATION_TYPES.WARN, (notification) => {
+    utils.renderToast(notification.message, constants.NOTIFICATION_TYPES.WARN)
+  });
+
+  errHandler.observeUserRelevantMessages(constants.NOTIFICATION_TYPES.INFO, (notification) => {
+    utils.renderToast(notification.message, constants.NOTIFICATION_TYPES.INFO)
+  });
+
+  errHandler.observeUserRelevantMessages(constants.NOTIFICATION_TYPES.ERROR, (notification) => {
+    let errMsg = "";
+    if (notification.err && notification.err.message) {
+      errMsg = notification.err.message;
+    }
+    let toastMsg = `${notification.message} ${errMsg}`
+    utils.renderToast(toastMsg, constants.NOTIFICATION_TYPES.ERROR)
+
+  });
+}
+
+function finishInit() {
   setConfig(config);
 
-  addHook('beforePageLoads', 'generate-did', () => {
+  addHook(constants.HOOKS.BEFORE_PAGE_LOADS, 'generate-did', () => {
     WebCardinal.root.disableHeader = true;
   });
 
-  addHook('whenPageClose', 'generate-did', () => {
+  addHook(constants.HOOKS.WHEN_PAGE_CLOSE, 'generate-did', () => {
     WebCardinal.root.disableHeader = false;
   });
 
-  addHook("beforeAppLoads", async () => {
+  addHook(constants.HOOKS.BEFORE_PAGE_LOADS, 'landing-page', () => {
+    WebCardinal.root.disableHeader = true;
+  });
+
+
+  addHook(constants.HOOKS.BEFORE_APP_LOADS, async () => {
+
     // load fabric base Controller
     addControllers({FwController});
-
-    const openDSU = require("opendsu");
-    const didAPI = openDSU.loadAPI("w3cdid");
-    const scAPI = openDSU.loadAPI("sc");
-    const typicalBusinessLogicHub = didAPI.getTypicalBusinessLogicHub();
-    const onUserRemovedMessage = (message) => {
-      $$.disableAlerts();
-      typicalBusinessLogicHub.stop();
-      scAPI.getMainEnclave(async (err, mainEnclave) => {
-        if (err) {
-          console.log(err);
-        }
-
-        try{
-          await $$.promisify(mainEnclave.writeKey)(constants.CREDENTIAL_KEY, constants.CREDENTIAL_DELETED);
-          await $$.promisify(scAPI.deleteSharedEnclave)();
-          //scAPI.refreshSecurityContext();
-        }catch(err){
-          try{
-            scAPI.refreshSecurityContext();
-            await $$.promisify(scAPI.deleteSharedEnclave)();
-            await $$.promisify(mainEnclave.writeKey)(constants.CREDENTIAL_KEY, constants.CREDENTIAL_DELETED);
-          }catch(e){
-            console.log(e);
-          }
-        }
-        return $$.forceTabRefresh();
-      });
-    }
-
-    typicalBusinessLogicHub.strongSubscribe(constants.MESSAGE_TYPES.USER_REMOVED, onUserRemovedMessage);
-    // load Custom Components
-    await import("../components/tab-navigator/dsu-tab-panel.js");
+    await setupGlobalErrorHandlers();
   })
 
-  addHook("beforePageLoads", "home", async () => {
+  addHook(constants.HOOKS.BEFORE_PAGE_LOADS, "home", async () => {
     const gtinResolver = require("gtin-resolver");
     const openDSU = require("opendsu");
     const scAPI = openDSU.loadAPI("sc");
     const w3cdid = openDSU.loadAPI("w3cdid");
     const LogService = gtinResolver.loadApi("services").LogService;
 
-    await watchAndHandleExecution(async ()=>{
+    await watchAndHandleExecution(async () => {
       let userRights = await utils.getUserRights();
       FwController.prototype.userRights = userRights;
-      FwController.prototype.canWrite = ()=>{
+      FwController.prototype.canWrite = () => {
         return userRights === constants.USER_RIGHTS.WRITE;
       };
     });
@@ -133,46 +136,51 @@ function finishInit(){
       FwController.prototype.storageService = storageService;
 
       const mainEnclave = await $$.promisify(scAPI.getMainEnclave)();
-      let credential = await $$.promisify(mainEnclave.readKey)(constants.CREDENTIAL_KEY);
-      let did = await $$.promisify(mainEnclave.readKey)(constants.IDENTITY_KEY);
-      userGroupName = constants.DID_GROUP_MAP[credential.groupDID.slice(credential.groupDID.lastIndexOf(":") + 1)];
+      let did = await scAPI.getMainDIDAsync();
+
       let loginData = {
         userId: config.identity.name,
         action: "Access wallet",
         userDID: did,
-        userGroup: userGroupName
+        userGroup: window.currentGroup
       }
 
       let logService = new LogService(constants.LOGIN_LOGS_TABLE);
       if (!window.loggedIn) {
-        logService.loginLog(loginData, (err, result) => {
-          if (err) {
-            console.log("Failed to audit wallet access:", err);
+
+        setTimeout(async ()=>{
+          let ID = await storageService.getUniqueIdAsync();
+          let lock = await MessagesService.acquireLock(ID, 60000, 100, 500);
+          logService.loginLog(loginData, async (err, result) => {
+            if (err) {
+              console.log("Failed to audit wallet access:", err);
+            }
+            await MessagesService.releaseLock(ID, lock);
+          });
+        }, 0);
+
+        const didDomain = await $$.promisify(scAPI.getDIDDomain)();
+        const groupDIDDocument = await $$.promisify(w3cdid.resolveDID)(`did:ssi:group:${didDomain}:ePI_Administration_Group`);
+        let adminUserList;
+
+        try {
+          adminUserList = await $$.promisify(groupDIDDocument.listMembersByIdentity)();
+          const memberDID_Document = await $$.promisify(w3cdid.resolveDID)(did);
+          loginData.messageType = constants.MESSAGE_TYPES.USER_LOGIN;
+          const crypto = require("opendsu").loadAPI("crypto");
+          loginData.messageId = crypto.encodeBase58(crypto.generateRandom(32));
+          for (let i = 0; i < adminUserList.length; i++) {
+            let adminDID_Document = await $$.promisify(w3cdid.resolveDID)(adminUserList[i]);
+            await $$.promisify(memberDID_Document.sendMessage)(JSON.stringify(loginData), adminDID_Document);
           }
-        });
+        } catch (e) {
+          console.log("Error sending login message to admins: ", e);
+        }
+
         window.loggedIn = true;
       }
-
-      const didDomain = await $$.promisify(scAPI.getDIDDomain)();
-      const groupDIDDocument = await $$.promisify(w3cdid.resolveDID)(`did:ssi:group:${didDomain}:ePI_Administration_Group`);
-      let adminUserList;
-
-      try {
-        adminUserList = await $$.promisify(groupDIDDocument.listMembersByIdentity)();
-        const memberDID_Document = await $$.promisify(w3cdid.resolveDID)(did);
-        loginData.messageType = constants.MESSAGE_TYPES.USER_LOGIN;
-        const crypto = require("opendsu").loadAPI("crypto");
-        loginData.messageId = crypto.encodeBase58(crypto.generateRandom(32));
-        for (let i = 0; i < adminUserList.length; i++) {
-          let adminDID_Document = await $$.promisify(w3cdid.resolveDID)(adminUserList[i]);
-          await $$.promisify(memberDID_Document.sendMessage)(JSON.stringify(loginData), adminDID_Document);
-        }
-      } catch (e) {
-        console.log("Error sending login message to admins: ", e);
-      }
-
     } catch (e) {
-      console.log("Could not initialise properly FwController", e);
+      console.log("Could not initialise properly", e);
       $$.showErrorAlert("Could not initialise the app properly. It is a good idea to close all browser windows and try again!");
     }
 
@@ -183,13 +191,24 @@ function finishInit(){
       console.log("Could not initialise properly FwController", e);
       $$.showErrorAlert("Could not initialise the app properly. It is a good idea to close all browser windows and try again!");
     }
+    WebCardinal.root.disableHeader = false;
   });
 
-  define('dsu-leaflet', 'leaflet-component/dsu-leaflet');
+  define('epi-card', 'epi-card/template');
   define('page-template', {shadow: true});
+  define('df-upload-file', 'upload-file/template');
+  define('df-select-dropdown', 'select-dropdown/template');
+  define('df-barcode-generator', 'barcode-generator/template');
+
+// components form external library
+  customElements.define("df-date-input", WebcDateInput);
+  customElements.define("df-accordion-item", WebcAccordionItem);
+  customElements.define("df-accordion", WebcAccordion);
+  customElements.define("df-tab-panel", WebcTabNavigator);
+
 }
 
-if(config.identity.name){
+if (config.identity.name) {
   //we finish the init only if proper user details retrieval was executed
   finishInit();
 }

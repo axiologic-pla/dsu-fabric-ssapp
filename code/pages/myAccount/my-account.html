@@ -1,0 +1,70 @@
+<link href="pages/myAccount/my-account.css" rel="stylesheet"/>
+
+<page-template>
+    <span slot="page-title">User Info</span>
+    <div slot="page-content">
+        <webc-container controller="HolderController">
+            <button class="download-debug-info-btn page-action-btn" data-tag="download-debug">Download Debug Info
+            </button>
+
+            <div class="content-container">
+                <div class="d-flex">
+                    <label class="user-label ml-3">User Identity:</label>
+                    <!--                    <psk-label class="user-label ml-3" label="User Identity:"></psk-label>-->
+                    <div class="d-flex align-items-center">
+                        <label for="copy-did"
+                               class="standard-label pl-3 pr-3 mr-3 ml-3 token string did">{{@did}}</label>
+                        <button class="default-button" id="copy-did" data-tag="copy-text">
+                            <i class="fa fa-copy" style="color:white"></i>
+                        </button>
+
+                        <!--                        <psk-label class="standard-label pl-3 pr-3 mr-3 ml-3 token string did" label="@did"></psk-label>-->
+                        <!--                        <psk-button button-class="btn btn-success" event-data="@did" event-name="copy-text">-->
+                        <!--                            <psk-icon color="rgb(255, 255, 255)" icon="copy"></psk-icon>-->
+                        <!--                        </psk-button>-->
+                    </div>
+                </div>
+
+                <div class="pl-3" id="readableContainer">
+                    <div data-if="@isInvalidCredential">
+                        <p><strong>Invalid credential specified</strong></p>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="d-flex">
+                        <p class="user-label">Wallet settings: (build version - {{@appVersion}})</p>
+                        <div data-if="@editableFeatures">
+                            <button class="page-action-btn ml-3" data-tag="edit-settings" slot="true">EDIT</button>
+                        </div>
+
+                    </div>
+
+                    <div id="environmentContainer">
+                    </div>
+                </div>
+                <!--hidden for MVP1-->
+                <div class="wallet-ssi hiddenElement">
+                    <p class="ml-3">To configure the import API please use the following Wallet Identifier in your
+                        API-Hub
+                        config:</p>
+                    <div class="d-flex">
+                        <label for="copy-keyssi">{{@walletKeySSI}}</label>
+                        <button id="copy-keyssi" class="default-button" data-tag="copy-text">
+                            <i class="fa fa-copy" style="color:white"></i>
+                        </button>
+
+                        <!--                        <psk-label class="standard-label token string walletKeySSI pr-3 pl-3 mr-3 text-wrap"-->
+                        <!--                                   label="@walletKeySSI"></psk-label>-->
+                        <!--                        <psk-button button-class="btn btn-success" event-data="@walletKeySSI" event-name="copy-text">-->
+                        <!--                            <psk-icon color="rgb(255, 255, 255)" icon="copy"></psk-icon>-->
+                        <!--                        </psk-button>-->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- <psk-list-feedbacks></psk-list-feedbacks>-->
+        </webc-container>
+    </div>
+</page-template>

@@ -1,8 +1,13 @@
 <link href="pages/editBatch/add-batch.css" rel="stylesheet"/>
 <link href="assets/css/disabled-component.css" rel="stylesheet"/>
-<psk-page title="Edit batch">
-    <h6>
+
+<page-template>
+    <span slot="page-title">Edit Batch</span>
+    <div slot="page-content">
         <webc-container controller="addBatchController">
+            <section data-if="@pageIsLoading">
+                <webc-spinner></webc-spinner>
+            </section>
 
             <div class="form-label batch-version"> version: {{@batch.version}}</div>
 
@@ -35,20 +40,23 @@
                         <div class="p-0 col-sm-12 col-lg-6">
                             <i class="fa fa-pencil-square-o editable-icon"></i>
                             <div class="form-label pl-3">Expiry date</div>
-                            <div class="background-container col mb-3" data-if="@batch.enableExpiryDay">
 
-                                <psk-date-input data-format="DD MM YYYY" placeholder="dd/mm/yyyy" required slot="true"
-                                                value="@batch.expiryForDisplay"></psk-date-input>
-                                <psk-date-input data-format="MM YYYY" placeholder="mm/yyyy" required slot="false"
-                                                type="month"
-                                                value="@batch.expiryForDisplay"></psk-date-input>
+                            <div class="background-container col mb-3" data-if="@batch.enableExpiryDay">
+                                <df-date-input type="date" slot="true"
+                                               data-format="DD MM YYYY"
+                                               placeholder="dd/mm/yyyy" required
+                                               value="@batch.expiryForDisplay"></df-date-input>
+                                <df-date-input type="month" slot="false"
+                                               data-format="MM YYYY"
+                                               placeholder="mm/yyyy" required
+                                               value="@batch.expiryForDisplay"></df-date-input>
                             </div>
                         </div>
                         <div class="col-sm-12 col-lg-auto ml-auto p-0">
-                            <psk-checkbox checkbox-label="Enable day selection"
-                                          checked="@batch.enableExpiryDay"
-                                          name="enableExpiryDay"
-                                          value="@batch.enableExpiryDay"></psk-checkbox>
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="enable-day-checkbox" value="@batch.enableExpiryDay">
+                                <span class="checkbox-label">Enable day selection</span>
+                            </div>
                         </div>
                     </div>
                     <div>
@@ -97,31 +105,43 @@
                     </div>
 
                     <div class="d-flex flex-row mt-5">
-                        <psk-button data-tag="cancel" label="Cancel" class="batch-cancel-btn"></psk-button>
+                        <button data-tag="cancel" class="default-button batch-cancel-btn">Cancel</button>
+                        <!--                        <psk-button data-tag="cancel" label="Cancel" class="batch-cancel-btn"></psk-button>-->
                         <div data-if="@editMode">
-                            <psk-button class="submit-batch-btn" data-tag="update-batch" id="submit-batch"
-                                        label="Update batch"
-                                        slot="true"></psk-button>
-                            <psk-button class="submit-batch-btn" data-tag="add-batch" label="Add batch"
-                                        slot="false"></psk-button>
+                            <button class="default-button" data-tag="update-batch" id="submit-batch" slot="true">Update
+                                batch
+                            </button>
+                            <button class="default-button" data-tag="add-batch" slot="false">Add batch</button>
+
+                            <!--                            <psk-button class="submit-batch-btn" data-tag="update-batch" id="submit-batch"-->
+                            <!--                                        label="Update batch"-->
+                            <!--                                        slot="true"></psk-button>-->
+                            <!--                            <psk-button class="submit-batch-btn" data-tag="add-batch" label="Add batch"-->
+                            <!--                                        slot="false"></psk-button>-->
                         </div>
 
                     </div>
                 </div>
                 <div class="col-5 align-self-start p-0">
-                    <div data-if="@editMode">
-                        <div class="read-only-container col mb-3 mt-2 pl-3" slot="true">
+                    <div class="product-gtin-container">
+                        <div class="read-only-container col mb-3 mt-2 pl-3 hidden">
                             <div class="form-label">Product Code</div>
                             <input class="form-control" placeholder="-" readonly type="text"
                                    value="@batch.gtin"/>
                         </div>
-                        <i class="fa fa-pencil-square-o editable-icon" slot="false"></i>
-                        <div class="background-container col pl-3 mb-3 pl-3" slot="false">
-                            <div class="form-label">Product Code</div>
-                            <psk-select class="default-select" required slot="false"
-                                        view-model="@products"></psk-select>
-                        </div>
+                        <div class="read-write-container hidden">
+                            <i class="fa fa-pencil-square-o editable-icon"></i>
+                            <div class="background-container col pl-3 mb-3 pl-3">
+                                <div class="form-label">Product Code</div>
+                                <df-select-dropdown data-view-model="@products" shadow></df-select-dropdown>
 
+                                <!--                               <select id="products-code-select" class="df-select default-select"
+                                                                       data-for="@products.options" data-for-option="rerender"
+                                                                       model-value="@value">
+                                                                   <option value="@value">{{@label}}</option>
+                                                               </select>-->
+                            </div>
+                        </div>
                     </div>
                     <div class="read-only-container col mb-3 mt-2 pl-3">
                         <div class="form-label">Brand / invented name</div>
@@ -153,16 +173,15 @@
                         <div class="select-label d-flex flex-column justify-content-center">Manage serial numbers
                         </div>
                         <div class="custom-select d-flex flex-column justify-content-center">
-                            <psk-select required value="" view-model="@serial_update_options"></psk-select>
+                            <select class="df-select" data-for="@serial_update_options.options"
+                                    data-for-option="rerender" value="@serial_update_options.value">
+                                <option disabled="@disabled" selected="@selected" value="@value">{{@label}}</option>
+                            </select>
                         </div>
                     </div>
-                    <dsu-leaflet></dsu-leaflet>
+                    <epi-card></epi-card>
                 </div>
             </div>
-
-
         </webc-container>
-    </h6>
-</psk-page>
-
-
+    </div>
+</page-template>

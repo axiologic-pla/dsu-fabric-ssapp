@@ -1,8 +1,14 @@
 <link href="pages/editProduct/manage-product.css" rel="stylesheet"/>
 <link href="assets/css/disabled-component.css" rel="stylesheet"/>
-<psk-page title="Manage Product">
-    <h6>
+
+<page-template>
+    <span slot="page-title">Manage Product</span>
+    <div slot="page-content">
         <webc-container controller="ManageProductController">
+            <section data-if="@pageIsLoading">
+                <webc-spinner></webc-spinner>
+            </section>
+
             <div class="form-label product-version"> version: {{@product.version}}</div>
 
             <div class="d-flex flex-row justify-content-around mt-5 manage-product-container"
@@ -49,8 +55,17 @@
                             <div class="form-label">Product Photo</div>
                             <i class="fa fa-pencil-square-o editable-icon"></i>
                             <div class="d-flex justify-content-start mt-1">
-                                <psk-img-input class="product-image" event-name="product-photo-selected"
+                                <!--<psk-img-input class="product-image" event-name="product-photo-selected"
                                                src="@product.photo"></psk-img-input>
+
+-->
+                                <div class="outer-container product-image" data-tag="product-photo-selected">
+                                    <div class="display-img-container">
+                                        <img src="@product.photo" alt="Product photo"/>
+                                        <i class="fa fa-pencil-square-o"></i>
+                                    </div>
+                                    <input type="file" class="form-control-file form-control-sm product-photo-input" style="display: none;">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -136,12 +151,17 @@
 
                     </div>
 
-                    <psk-tab-navigator default="0" id="orange-tab-navigator">
-                        <psk-tab title="Leaflets Management">
-                            <dsu-leaflet></dsu-leaflet>
-                        </psk-tab>
-
-                        <psk-tab title="Markets Management">
+                    <df-tab-panel>
+                        <div slot="tab" tab-name="leaflets">
+                            <div class="nav-tab-title" data-tag="change-tab">Leaflet management</div>
+                        </div>
+                        <div slot="content" class="shadow-border">
+                            <epi-card></epi-card>
+                        </div>
+                        <div slot="tab" tab-name="markets">
+                            <div class="nav-tab-title" data-tag="change-tab">Market management</div>
+                        </div>
+                        <div slot="content" class="shadow-border">
                             <div class="d-flex flex-column">
                                 <ul data-for="@product.markets">
                                     <li class="epi-card-container d-flex mb-2">
@@ -168,23 +188,26 @@
                                 </div>
 
                             </div>
-                        </psk-tab>
-                    </psk-tab-navigator>
+                        </div>
+                    </df-tab-panel>
                 </div>
             </div>
             <div class="d-flex flex-row justify-content-around mt-5">
                 <div class="col-5 align-self-start p-0">
                     <div class="d-flex flex-row product-form-buttons">
-                        <psk-button data-tag="cancel" id="cancel-product">Cancel</psk-button>
-                        <psk-button userrights="@userrights" data-tag="add-product" id="submit-product">
-                            {{@submitLabel}}
-                        </psk-button>
+                        <button class="default-button" data-tag="cancel" id="cancel-product">Cancel</button>
+                        <button class="default-button" userrights="@userrights" data-tag="add-product"
+                                id="submit-product">{{@submitLabel}}
+                        </button>
+                        <!--                        <psk-button data-tag="cancel" id="cancel-product">Cancel</psk-button>-->
+                        <!--                        <psk-button userrights="@userrights" data-tag="add-product" id="submit-product">-->
+                        <!--                            {{@submitLabel}}-->
+                        <!--                        </psk-button>-->
                     </div>
                 </div>
                 <div class="col-5 align-self-start p-0">
                 </div>
             </div>
         </webc-container>
-    </h6>
-</psk-page>
-
+    </div>
+</page-template>

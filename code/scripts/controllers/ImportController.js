@@ -2,10 +2,11 @@ import MessagesService from "../services/MessagesService.js";
 import FailedLogDataSource from "../datasources/Import/FailedLogDataSource.js";
 import SuccessLogDataSource from "../datasources/Import/SuccessLogDataSource.js";
 import utils from "../utils.js";
+import constants from "../constants.js";
 
 const {FwController} = WebCardinal.controllers;
 
-export default class importController extends FwController {
+export default class ImportController extends FwController {
 
   constructor(...props) {
 
@@ -14,14 +15,13 @@ export default class importController extends FwController {
     const dbAPI = require("opendsu").loadAPI("db");
 
     this.model = {
-      selectedTab: 0,
+      selectedTabIndex: 0,
       filesChooser: {
         label: "Select files",
         accept: ".json",
-        listFiles: false,
         filesAppend: true,
-        "event-name": "uploadProducts",
-        "list-files": false
+        uploadedFiles: [],
+        "list-files": true,
       },
       importIsDisabled: true,
       retryBtnIsDisabled: true,
@@ -32,19 +32,24 @@ export default class importController extends FwController {
       failedDataSource: new FailedLogDataSource(this.storageService),
     };
 
-    this.on('uploadProducts', (event) => {
-      this.filesArray = event.data || [];
+    /*    this.on(constants.HTML_EVENTS.UPLOADPRODUCTS, (event) => {
+          this.filesArray = event.detail || [];
+          this.model.importIsDisabled = this.filesArray.length === 0;
+        });*/
+    this.model.onChange("filesChooser.uploadedFiles", () => {
+      this.filesArray = this.model.filesChooser.uploadedFiles || [];
       this.model.importIsDisabled = this.filesArray.length === 0;
-      if (this.filesArray.length !== 0) {
-        this.model.filesChooser.listFiles = true;
-        this.model.filesChooser["list-files"] = true;
-      }
-    });
 
+    })
     let self = this;
 
-    async function digest(messages) {
+    async function digest(messages, progressModalModel = {}) {
+      let progressModal = this.showProgressModal(progressModalModel);
+
+      await this.predigest(messages);
+
       let failedMessages = [];
+
       for (let msg of messages) {
         let promisified = $$.promisify(MessagesService.processMessagesWithoutGrouping);
         let error;
@@ -59,20 +64,19 @@ export default class importController extends FwController {
         }
 
         let handler = this.getHandlerForMessageDigestingProcess(messages, this.prepareModalInformation);
-        window.WebCardinal.loader.hidden = true;
         //managing popus ...
         await handler(error, undigested);
+        progressModal.updateCurrentStep();
       }
-
+      progressModal.hide();
       await this.manageProcessedMessages(failedMessages);
+
       if (failedMessages.length) {
         this.model.retryAll = false;
       }
 
       this.filesArray = [];
       this.model.importIsDisabled = this.filesArray.length === 0;
-      this.model.filesChooser.listFiles = false;
-      this.model.filesChooser["list-files"] = false;
     }
 
     this.onTagClick("import", async () => {
@@ -80,16 +84,21 @@ export default class importController extends FwController {
         return;
       }
       this.model.importIsDisabled = true;
+      this.model.filesChooser.uploadedFiles = [];
       let messages;
       try {
-        window.WebCardinal.loader.hidden = false;
         messages = await this.getMessagesFromFiles(this.filesArray);
-
       } catch (err) {
         this.showErrorModal(`Unable to read selected files.`, "Error");
+        return;
+      }
+      let progressModalModel = {
+        steps: messages.length, updateProgressInfo: function (currentStep, steps) {
+          return `Processing file ${currentStep} of ${steps}`
+        }
       }
 
-      await digest.call(self, messages);
+      await digest.call(self, messages, progressModalModel);
 
     });
     /*
@@ -103,7 +112,15 @@ export default class importController extends FwController {
           window.open(`${window.location.origin}/mappingEngine/${domain}/logs`, '_blank');
         })
     */
-
+    this.onTagClick('change-tab', async (model, target, event) => {
+      let tabName = target.getAttribute("tab-name");
+      if (tabName === "successful-actions") {
+        await this.model.successDataSource.forceUpdate(true);
+      }
+      if (tabName === "failed-actions") {
+        await this.model.failedDataSource.forceUpdate(true);
+      }
+    })
 
     this.onTagClick("prev-page", async (model, target, event) => {
       let dataSource;
@@ -145,19 +162,19 @@ export default class importController extends FwController {
     let foundIcon = this.querySelector(".fa-check");
     let notFoundIcon = this.querySelector(".fa-ban");
     if (searchInput) {
-      searchInput.addEventListener("search", async (event) => {
+      searchInput.addEventListener(constants.HTML_EVENTS.SEARCH, async (event) => {
         notFoundIcon.style.display = "none";
         foundIcon.style.display = "none";
         if (event.target.value) {
-          let results = await $$.promisify(this.storageService.filter)('import-logs', `itemCode == ${event.target.value}`);
+          let results = await $$.promisify(this.storageService.filter)('import-logs', ["__timestamp > 0", `itemCode == ${event.target.value}`], "dsc");
           if (results && results.length > 0) {
             foundIcon.style.display = "inline";
             this.model.successDataSource.filterResult = results.filter(item => item.status === "success");
             this.model.failedDataSource.filterResult = results.filter(item => item.status !== "success");
             if (results[0].status === "success") {
-              this.model.selectedTab = 0;
+              this.model.selectedTabIndex = 0;
             } else {
-              this.model.selectedTab = 1;
+              this.model.selectedTabIndex = 1;
             }
           } else {
             notFoundIcon.style.display = "inline";
@@ -181,6 +198,19 @@ export default class importController extends FwController {
       let auditDetails = await utils.getLogDetails(model.details);
       //keep compatibility with old log version
       auditDetails = auditDetails.logInfo || auditDetails;
+
+      // create a copy of the audit details for the 'view message' modal
+      let auditDetailsDeepCopy = JSON.parse(JSON.stringify(auditDetails));
+      if (auditDetailsDeepCopy.imageData) {
+        try {
+          let imageSize = this.getSizeFromBase64(auditDetailsDeepCopy.imageData);
+          auditDetailsDeepCopy.imageData = imageSize;
+        } catch (err) {
+          auditDetailsDeepCopy.imageData = "There has been an error while calculating the size of the image.";
+        }
+      }
+      auditDetailsDeepCopy = JSON.stringify(auditDetailsDeepCopy, null, 4);
+
       if (auditDetails.invalidFields) {
         secondMessage = auditDetails.invalidFields;
         this.model.actionModalModel.secondMessageData = secondMessage;
@@ -190,7 +220,7 @@ export default class importController extends FwController {
 
       const formattedJSON = JSON.stringify(auditDetails, null, 4);
 
-      this.model.actionModalModel.messageData = formattedJSON;
+      this.model.actionModalModel.messageData = auditDetailsDeepCopy;
 
       this.showModalFromTemplate('view-message-modal',
         () => {
@@ -206,7 +236,7 @@ export default class importController extends FwController {
         }, {model: this.model});
     })
 
-    this.onTagEvent("retry-all-click", "change", async (model, target, evt) => {
+    this.onTagEvent("retry-all-click", constants.HTML_EVENTS.CHANGE, (model, target, evt) => {
       this.querySelectorAll(".failed-message").forEach((elem) => {
         elem.checked = target.checked;
         elem.value = target.checked;
@@ -216,7 +246,7 @@ export default class importController extends FwController {
 
     })
 
-    this.onTagEvent("retry-item-click", "change", (model, target, evt) => {
+    this.onTagEvent("retry-item-click", constants.HTML_EVENTS.CHANGE, (model, target, evt) => {
       if (!target.checked) {
         document.querySelector("#retry-all-checkbox").checked = target.checked;
       }
@@ -246,17 +276,22 @@ export default class importController extends FwController {
       return async (model, target, event) => {
         let messages = await getSelectedFailed.call(this, prepareFnc);
         if (messages.length > 0) {
-          this.model.selectedTab = 1;
-          window.WebCardinal.loader.hidden = false;
+          this.model.selectedTabIndex = 1;
 
+          window.WebCardinal.loader.hidden = false;
+          this.progressModal = this.showProgressModal();
           await MessagesService.processMessages(messages, MessagesService.getStorageService(this.storageService), async (undigestedMessages) => {
+            window.WebCardinal.loader.hidden = true;
             await this.manageProcessedMessages(undigestedMessages);
             await this.logUndigestedMessages(undigestedMessages);
+            this.progressModal.hide();
           });
 
           this.model.retryAll = false;
 
           this.querySelector("#retry-all-checkbox").checked = false;
+          this.model.retryBtnIsDisabled = true;
+          this.model.forceRetryBtnIsDisabled = true;
         }
       }
     }
@@ -264,14 +299,19 @@ export default class importController extends FwController {
     this.onTagClick("retry-failed", async (model, target, event) => {
       let messages = await getSelectedFailed.call(this);
       if (messages.length > 0) {
-        this.model.selectedTab = 1;
-        window.WebCardinal.loader.hidden = false;
-
-        await digest.call(self, messages);
+        this.model.selectedTabIndex = 1;
+        let progressModalModel = {
+          steps: messages.length, updateProgressInfo: function (currentStep, steps) {
+            return `Processing message ${currentStep} of ${steps}`
+          }
+        }
+        await digest.call(self, messages, progressModalModel);
 
         this.model.retryAll = false;
 
         this.querySelector("#retry-all-checkbox").checked = false;
+        this.model.retryBtnIsDisabled = true;
+        this.model.forceRetryBtnIsDisabled = true;
       }
     });
 
@@ -280,7 +320,106 @@ export default class importController extends FwController {
       msg.force = true;
       return msg;
     }));
+  }
 
+  formatBytes(bytes, decimals = 2) {
+    if (bytes === 0) return '0 Bytes';
+
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(decimals)) + ' ' + sizes[i];
+  }
+
+  getSizeFromBase64(base64Image) {
+    const byteCharacters = atob(base64Image);
+    // return byteCharacters.length;
+
+    const formattedSize = this.formatBytes(byteCharacters.length);
+    console.log(`Image Size: ${formattedSize}`);
+    return formattedSize;
+  }
+
+  async predigest(messages) {
+    let digestLog = await this.buildDigestLog(messages);
+    let auditEnclave = await this.getEnclaveBypassingAnyCache();
+    let id = await auditEnclave.getUniqueIdAsync();
+    let secret = await MessagesService.acquireLock(id, 60000, 100, 500);
+    let pk = require("opendsu").loadApi("crypto").generateRandom(32);
+    let batchId;
+    try {
+      batchId = await auditEnclave.startOrAttachBatchAsync();
+    } catch (err) {
+      throw err;
+    }
+
+    try {
+      await $$.promisify(auditEnclave.insertRecord)(undefined, "logs", pk, digestLog)
+      await MessagesService.releaseLock(id, secret)
+      await auditEnclave.commitBatchAsync(batchId);
+    } catch (err) {
+      const insertError = createOpenDSUErrorWrapper(`Failed to insert record in enclave`, err);
+      try {
+        await auditEnclave.cancelBatchAsync(batchId);
+      } catch (e) {
+        console.log(createOpenDSUErrorWrapper(`Failed to cancel batch`, e, insertError));
+      }
+      alert("There was an error during audit save: " + insertError.message + " " + insertError.stack);
+    }
+  }
+
+  async getEnclaveBypassingAnyCache() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        let keySSI = await $$.promisify(this.storageService.getKeySSI, this.storageService)();
+        let storageDSU = await $$.promisify(this.storageService.getDSU, this.storageService)();
+        storageDSU.marked = true;
+        let auditEnclave = require("opendsu").loadApi("enclave").initialiseWalletDBEnclave(keySSI);
+        auditEnclave.on("initialised", async () => {
+          let storageDSU = await $$.promisify(auditEnclave.getDSU, auditEnclave)();
+          if (storageDSU.marked) {
+            return reject(Error('Failed to obtain a clean sharedEnclave instance'));
+          }
+          resolve(auditEnclave);
+        })
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
+  async buildDigestLog(messages) {
+    let summary = [];
+    let log = {
+      reason: `The processing of ${messages.length} message(s) has been initiated.`,
+      logInfo: {summary, messages}
+    };
+    // we try to be sure that we capture the username of the current user even if there was a problem and the message array is empty
+    let dummyMessage = await utils.ensureMinimalInfoOnMessage({});
+    log.username = dummyMessage.senderId;
+
+    for (let index in messages) {
+      let msg = messages[index];
+      let summaryItem = `[${index}] Message type ${msg.messageType} for `;
+      let identifiedTarget = false;
+      let target = msg.product || msg.batch || msg.videos || msg;
+      if (target.productCode) {
+        summaryItem += `GTIN=${target.productCode} `;
+        identifiedTarget = true;
+      }
+      if (target.batch) {
+        summaryItem += `Batch=${target.batch} `;
+        identifiedTarget = true;
+      }
+
+      if (!identifiedTarget) {
+        summaryItem += "unidentified product/batch (possible wrong message format)";
+      }
+      summary.push(summaryItem);
+    }
+    return log;
   }
 
   prepareModalInformation(err, undigested, messages) {
@@ -345,21 +484,25 @@ export default class importController extends FwController {
   }
 
   async manageProcessedMessages(undigestedMessages) {
-    window.WebCardinal.loader.hidden = true;
     this.querySelector(".prev-page-btn[msgType='success']").disabled = true;
     this.querySelector(".next-page-btn[msgType='success']").disabled = false;
-    this.model.successDataSource.importLogs = [];
-    await this.model.successDataSource.goToPageByIndex(0);
+
+
     this.querySelector(".prev-page-btn[msgType='failed']").disabled = true;
     this.querySelector(".next-page-btn[msgType='failed']").disabled = false;
-    this.model.failedDataSource.importLogs = [];
-    await this.model.failedDataSource.goToPageByIndex(0);
+
 
     if (undigestedMessages.length === 0) {
-      this.model.selectedTab = 0;
+      document.querySelector("df-tab-panel").setAttribute("selectedTabIndex", 0);
+      await this.model.successDataSource.forceUpdate(true);
+      await this.model.successDataSource.goToPageByIndex(0);
     } else {
-      this.model.selectedTab = 1;
+      document.querySelector("df-tab-panel").setAttribute("selectedTabIndex", 1);
+      await this.model.failedDataSource.forceUpdate(true);
+      await this.model.failedDataSource.goToPageByIndex(0);
     }
+
   }
 
 }
+

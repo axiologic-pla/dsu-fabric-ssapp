@@ -7,6 +7,7 @@ import Countries from "../models/Countries.js";
 
 const {FwController} = WebCardinal.controllers;
 const mappings = require("gtin-resolver").loadApi("mappings");
+const LogService = require("gtin-resolver").loadApi("services").LogService;
 const gtinResolverUtils = require("gtin-resolver").getMappingsUtils();
 const arrayBufferToBase64 = gtinResolverUtils.arrayBufferToBase64;
 const ModelMessageService = require("gtin-resolver").loadApi("services").ModelMessageService;
@@ -15,9 +16,15 @@ const gtinResolver = require("gtin-resolver");
 export default class ManageProductController extends FwController {
   constructor(...props) {
     super(...props);
-    this.model = {disabledFeatures: this.disabledFeatures, userrights: this.userRights, languageTypeCards: []};
+    this.model = {
+      disabledFeatures: this.disabledFeatures,
+      userrights: this.userRights,
+      languageTypeCards: [],
+      pageIsLoading: true
+    };
     let state = this.history.location.state;
     this.state = state;
+
     this.submitButton = this.querySelector("#submit-product");
     this.cancelButton = this.querySelector("#cancel-product");
     if (state && state.gtin) {
@@ -55,13 +62,10 @@ export default class ManageProductController extends FwController {
 
           this.model.languageTypeCards = attachments ? attachments.languageTypeCards : [];
           this.model.languageTypeCardsForDisplay = attachments ? attachments.languageTypeCards : [];
-          this.initialCards = JSON.parse(JSON.stringify(this.model.languageTypeCards));
           if (attachments && attachments.productPhoto) {
             this.model.product.photo = attachments.productPhoto;
           }
-          this.initialCards = JSON.parse(JSON.stringify(this.model.languageTypeCards));
-          this.initialModel = JSON.parse(JSON.stringify(this.model));
-
+          this.saveInitialState();
         });
         // ensureHolderCredential();
         this.model.product.videos.defaultSource = atob(this.model.product.videos.defaultSource);
@@ -72,10 +76,12 @@ export default class ManageProductController extends FwController {
     } else {
       this.model.submitLabel = "Save Product";
       this.model.product = new Product();
+      this.model.languageTypeCardsForDisplay = [];
       this.model.product.videos.defaultSource = atob(this.model.product.videos.defaultSource);
       this.videoInitialDefaultSource = this.model.product.videos.defaultSource;
       // ensureHolderCredential();
       this.validateGTIN(this.model.product.gtin);
+      this.saveInitialState();
 
     }
 
@@ -87,74 +93,68 @@ export default class ManageProductController extends FwController {
 
     this.model.videoSourceUpdated = false;
 
-
     this.addEventListeners();
 
   }
 
-  handlerUnknownError(state, product){
-    if(!this.canWrite()){
+  saveInitialState() {
+    this.initialCards = JSON.parse(JSON.stringify(this.model.languageTypeCards));
+    this.initialModel = JSON.parse(JSON.stringify(this.model));
+    this.model.pageIsLoading = false;
+  }
+
+  handlerUnknownError(state, product) {
+    this.model.pageIsLoading = false;
+    if (!this.canWrite()) {
       this.showErrorModalAndRedirect("Failed to retrieve information about the selected product", "Error", {tag: "products"});
       return;
     }
 
-    gtinResolver.DSUFabricUtils.checkIfWeHaveDataForThis(state.gtin, undefined, (err)=>{
-      if(!err){
-        return this.showErrorModal(
-            new Error(`Would you like to recover?`),
-            'Unknown error while loading data.',
-            async ()=>{
-              //yes
-              setTimeout(async ()=>{
-                this.createWebcModal({
-                  disableExpanding: true,
-                  disableClosing: true,
-                  disableFooter: true,
-                  modalTitle: "Info",
-                  modalContent: "Recovery process in progress..."
-                });
-                let recoveryMessage = await utils.initMessage("Product");
-                recoveryMessage.product = product;
-                if(!recoveryMessage.product){
-                  recoveryMessage.product = {
-                    productCode:state.gtin
-                  };
-                }
-                if(!recoveryMessage.product.productCode){
-                  recoveryMessage.product.productCode = state.gtin;
-                }
-                if(!recoveryMessage.product.inventedName){
-                  recoveryMessage.product.inventedName = product ? product.description : "recovered data";
-                }
-                if(!recoveryMessage.product.nameMedicinalProduct){
-                  recoveryMessage.product.nameMedicinalProduct = product ? product.name : "recovered data";
-                }
-                recoveryMessage.force = true;
-                //by setting this refreshState if all goes when we will return to edit the product
-                this.refreshState = {
-                  tag: "home",
-                  state: {
-                    refreshTo:
-                        {
-                          tag: "manage-product",
-                          state: {gtin: state.gtin}
-                        }
-                  }
-                };
-                this.sendMessagesToProcess([recoveryMessage]);
-              }, 100);
-            },
-            ()=>{
-              console.log("Rejected the recover process by choosing no option.");
-              this.showErrorModalAndRedirect("Refused the recovery process. Redirecting...", "Info", {tag: "products"});
-            },
-            {
+    gtinResolver.DSUFabricUtils.checkIfWeHaveDataForThis(state.gtin, undefined, (err) => {
+      if (!err) {
+        return this.showErrorModal(new Error(`Would you like to recover?`), 'Unknown error while loading data.', async () => {
+          //yes
+          setTimeout(async () => {
+            this.createWebcModal({
               disableExpanding: true,
-              cancelButtonText: 'No',
-              confirmButtonText: 'Yes',
-              id: 'feedback-modal'
+              disableClosing: true,
+              disableFooter: true,
+              modalTitle: "Info",
+              modalContent: "Recovery process in progress..."
+            });
+            let recoveryMessage = await utils.initMessage("Product");
+            recoveryMessage.product = product;
+            if (!recoveryMessage.product) {
+              recoveryMessage.product = {
+                productCode: state.gtin
+              };
             }
-        )
+            if (!recoveryMessage.product.productCode) {
+              recoveryMessage.product.productCode = state.gtin;
+            }
+            if (!recoveryMessage.product.inventedName) {
+              recoveryMessage.product.inventedName = product ? product.name : "recovered data";
+            }
+            if (!recoveryMessage.product.nameMedicinalProduct) {
+              recoveryMessage.product.nameMedicinalProduct = product ? product.description : "recovered data";
+            }
+            recoveryMessage.force = true;
+            //by setting this refreshState if all goes when we will return to edit the product
+            this.refreshState = {
+              tag: "home", state: {
+                refreshTo: {
+                  tag: "manage-product", state: {gtin: state.gtin}
+                }
+              }
+            };
+            this.sendMessagesToProcess([recoveryMessage]);
+          }, 100);
+        }, () => {
+          console.log("Rejected the recover process by choosing no option.");
+          this.showErrorModalAndRedirect("Refused the recovery process. Redirecting...", "Info", {tag: "products"});
+        }, {
+          disableExpanding: true, cancelButtonText: 'No', confirmButtonText: 'Yes', id: 'feedback-modal'
+        })
       }
 
       this.showErrorModalAndRedirect("Unable to verify if data exists in Blockchain. Try later!", "Error", {tag: "products"});
@@ -177,11 +177,12 @@ export default class ManageProductController extends FwController {
   }
 
   manageUpdateButtonState(updateButton) {
-    updateButton.disabled = JSON.stringify(this.model.languageTypeCards) === JSON.stringify(this.initialCards) && JSON.stringify(this.model.product) === JSON.stringify(this.initialModel.product) && !this.productPhoto;
+    updateButton.disabled = JSON.stringify(this.model.languageTypeCardsForDisplay) === JSON.stringify(this.initialCards) && JSON.stringify(this.model.product) === JSON.stringify(this.initialModel.product) && !this.productPhoto;
   }
 
   addEventListeners() {
-    this.onTagEvent("productcode-edit", "focusout", (model, target, event) => {
+
+    this.onTagEvent("productcode-edit", constants.HTML_EVENTS.FOCUSOUT, (model, target, event) => {
       this.validateGTIN(target.value);
     })
 
@@ -191,17 +192,14 @@ export default class ManageProductController extends FwController {
 
     this.onTagClick("add-market", (event) => {
       this.model.actionModalModel = {
-        acceptButtonText: 'Add Market',
-        action: "submit-add-market"
+        acceptButtonText: 'Add Market', action: "submit-add-market"
       }
       this.editMarket(event);
     })
 
     this.onTagClick("edit-market", (event) => {
       this.model.actionModalModel = {
-        acceptButtonText: 'Update Market',
-        action: "submit-update-market",
-        marketId: event.marketId
+        acceptButtonText: 'Update Market', action: "submit-update-market", marketId: event.marketId
       }
       this.editMarket(event);
     });
@@ -228,14 +226,35 @@ export default class ManageProductController extends FwController {
       this.model.videoSourceUpdated = this.videoInitialDefaultSource !== this.model.product.videos.defaultSource;
     })
 
-    this.on("product-photo-selected", (event) => {
-      this.productPhoto = event.data;
-      this.submitButton.disabled = false;
+    this.querySelector(".product-photo-input").addEventListener("change", (event) => {
+      let filesArray = Array.from(event.target.files);
+
+      if (filesArray.length === 0) {
+        return;
+      }
+      let reader = new FileReader();
+      reader.onload = (e) => {
+        let imageDataUrl = e.target.result;
+        fetch(imageDataUrl).then(res => res.arrayBuffer())
+          .then((imageContent) => {
+            this.productPhoto = imageContent;
+            this.model.product.photo = gtinResolverUtils.getImageAsBase64(imageContent);
+          });
+        this.src = imageDataUrl;
+      };
+      reader.readAsDataURL(filesArray[0]);
+    })
+
+    this.onTagClick("product-photo-selected", (model, target, event) => {
+      let fileChooser = target.querySelector("input");
+      fileChooser.dispatchEvent(new MouseEvent("click"));
+      event.stopImmediatePropagation();
+
     });
 
-    this.on('openFeedback', (e) => {
-      this.feedbackEmitter = e.detail;
-    });
+    /*    this.on('openFeedback', (e) => {
+          this.feedbackEmitter = e.detail;
+        });*/
 
 
     this.onTagClick("add-product", async (model, target, event) => {
@@ -247,7 +266,7 @@ export default class ManageProductController extends FwController {
         try {
           productInDB = await $$.promisify(this.storageService.getRecord)(constants.PRODUCTS_TABLE, product.gtin);
           if (productInDB) {
-            this.showErrorModal("Cannot save the product. Provided product code is already used.");
+            this.notificationHandler.reportUserRelevantWarning("Product code validation failed. Provided product code is already used.")
             this.toggleFormButtons(false);
             return;
           }
@@ -267,19 +286,14 @@ export default class ManageProductController extends FwController {
     this.cancelButton.disabled = val;
   }
 
-  async saveProduct(product) {
-    if (!this.isValid(product)) {
-      return;
-    }
-
+  async confirmSave(product) {
     this.createWebcModal({
       disableExpanding: true,
       disableClosing: true,
       disableFooter: true,
       modalTitle: "Info",
-      modalContent: "Saving product..."
+      modalContent: `Saving product...`
     });
-
     let message = await utils.initMessage("Product");
 
     try {
@@ -327,6 +341,28 @@ export default class ManageProductController extends FwController {
     }
   }
 
+  async saveProduct(product) {
+    if (!this.isValid(product)) {
+      return;
+    }
+    // show diffs just if edit product on create skip this step
+    if (this.state) {
+      this.model.diffs = this.getDiffs();
+      this.showModalFromTemplate("view-edit-changes/template", async () => {
+        await this.confirmSave(product);
+      }, () => {
+        return
+      }, {
+        disableClosing: true,
+        model: this.model,
+        controller: "modals/PreviewEditChangesController"
+      })
+    } else {
+      await this.confirmSave(product);
+    }
+
+  }
+
   async sendMessagesToProcess(messageArr) {
     //process video source if any change for video fields in product or language cards
     if (this.model.videoSourceUpdated) {
@@ -365,6 +401,30 @@ export default class ManageProductController extends FwController {
     }
   }
 
+  getDiffs() {
+    let result = [];
+    try {
+      let mappingLogService = mappings.getMappingLogsInstance(this.storageService, new LogService());
+      let diffs = mappingLogService.getDiffsForAudit(this.model.product, this.initialModel.product);
+      let epiDiffs = mappingLogService.getDiffsForAudit(this.model.languageTypeCards, this.initialCards);
+      Object.keys(diffs).forEach(key => {
+        if (key === "photo") {
+          result.push(utils.getPhotoDiffViewObj(diffs[key], key, constants.MODEL_LABELS_MAP.PRODUCT));
+          return;
+        }
+        result.push(utils.getPropertyDiffViewObj(diffs[key], key, constants.MODEL_LABELS_MAP.PRODUCT));
+      });
+      Object.keys(epiDiffs).forEach(key => {
+        result.push(utils.getEpiDiffViewObj(epiDiffs[key]));
+      });
+
+    } catch (e) {
+      console.log(e);
+    }
+
+    return result
+  }
+
   validateGTIN(gtinValue) {
     let gtinValidationResult = gtinResolver.validationUtils.validateGTIN(gtinValue);
     this.model.gtinIsValid = gtinValidationResult.isValid;
@@ -373,6 +433,8 @@ export default class ManageProductController extends FwController {
 
   showMessageError(undigestedMessages) {
     let errors = [];
+    const errorMessage = "There was an error during saving process.";
+    const shownErrors = [{message: errorMessage}]
     if (undigestedMessages.length > 0) {
       undigestedMessages.forEach(msg => {
         if (errors.findIndex((elem) => elem.message === msg.reason.originalMessage || elem.message === msg.reason.debug_message || elem.message === msg.reason) < 0) {
@@ -382,20 +444,21 @@ export default class ManageProductController extends FwController {
           } else {
             obj = msg.error || {originalMessage: msg.reason};
           }
-          errors.push({message: obj.originalMessage || obj.debug_message || obj.message});
+          const error = new Error(obj.originalMessage || obj.debug_message || obj.message);
+          errors.push(error);
         }
       })
 
+      console.log(errors);
       this.showModalFromTemplate("digest-messages-error-modal", () => {
 
         this.navigateToPageTag("products");
       }, () => {
-
-      }, {model: {errors: errors}});
+      }, {model: {errors: shownErrors}});
     } else {
       if (this.refreshState) {
         //this.refreshState is controlled above in unknownHandler before force recovery
-        console.log("Refreshing the manage product page after recovery");
+        this.notificationHandler.reportUserRelevantInfo("Refreshing the manage product page after recovery");
         return setTimeout(() => {
           this.navigateToPageTag(this.refreshState.tag, this.refreshState.state);
         }, 500);
@@ -413,12 +476,14 @@ export default class ManageProductController extends FwController {
     let validationResult = product.validate();
 
     if (Array.isArray(validationResult)) {
-      this.showErrorModal(validationResult[0]);
+      validationResult.forEach((err) => {
+        this.notificationHandler.reportUserRelevantWarning(err);
+      })
       return false;
     }
 
     if (!this.model.gtinIsValid) {
-      this.showErrorModal("Invalid GTIN.");
+      this.notificationHandler.reportUserRelevantWarning("Invalid product code.")
       return false;
     }
 
@@ -431,44 +496,36 @@ export default class ManageProductController extends FwController {
     }
     let existingCountryMarketIds = this.model.product.markets.map(market => market.marketId);
     let countriesList = event.marketId ? Countries.getList().map(country => {
-        return {
-          label: country.name,
-          value: country.code
-        }
-      }) :
-      Countries.getList().filter(country => !existingCountryMarketIds
-        .includes(country.code)).map(country => {
-        return {
-          label: country.name,
-          value: country.code
-        }
-      });
+      return {
+        label: country.name, value: country.code, selected: false
+      }
+    }) : Countries.getList().filter(country => !existingCountryMarketIds
+      .includes(country.code)).map(country => {
+      return {
+        label: country.name, value: country.code, selected: false
+      }
+    });
+
+    if (!event.marketId) {
+      countriesList[0].selected = true;
+    } else {
+      let selectedCountry = countriesList.find(item => item.value === event.marketId)
+      selectedCountry.selected = true;
+    }
 
     this.model.marketModel = {
       validationFailed: false,
       countriesCodes: {
         options: countriesList,
-        value: event.marketId || countriesList[0].value,
-        label: "Select Country"
-      },
-      nationalCode: {
+        value: event.marketId || countriesList[0].value
+      }, nationalCode: {
         value: event.nationalCode || "",
-        placeholder: "Enter national code",
-        label: "National Code",
-
         isValid: true
-      },
-      mahName: {
+      }, mahName: {
         value: event.mahName || "",
-        placeholder: "Enter MAH name",
-        label: "MAH Name",
-
         isValid: true
-      },
-      legalEntityName: {
-        value: event.legalEntityName || "",
-        placeholder: "Enter legal entity name",
-        label: "Legal Entity Name",
+      }, legalEntityName: {
+        value: event.legalEntityName || "", placeholder: "Enter legal entity name", label: "",
 
         isValid: true
       }
@@ -499,6 +556,7 @@ export default class ManageProductController extends FwController {
 
     if (validationFailed) {
       this.model.marketModel.validationFailed = true;
+      this.notificationHandler.reportUserRelevantWarning("All fields are required.");
     } else {
       this.model.marketModel.validationFailed = false;
       this.model.selectedMarket = market;

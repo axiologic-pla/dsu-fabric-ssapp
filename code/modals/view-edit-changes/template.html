@@ -1,0 +1,80 @@
+<link href="modals/view-edit-changes/style.css" rel="stylesheet">
+<div class="custom-modal-header header-color" slot="header">
+    <h5>Update data</h5>
+</div>
+<main class="view-changes">
+    <div class="changes-header">
+        <div class="changes-column">Property</div>
+        <div class="changes-column">Old value</div>
+        <div class="changes-column">New value</div>
+    </div>
+    <div data-for="@diffs" class="changes-content">
+        <div class="changes-row">
+            <div class="changes-column"> {{@changedProperty}}</div>
+            <div class="changes-column middle-column" data-if="@oldValue.directDisplay">
+                <div slot="true">
+                    <div data-if="@isPhoto">
+                        <img slot="true" class="product-image" src="@oldValue.value" alt="Product photo old value"/>
+                        <div slot="false" data-if="@oldValue.isDate">
+                            <div slot="true" data-if="@oldValue.enableExpiryDay">
+                                <df-date-input slot=true type="date" readonly
+                                               data-format="DD MM YYYY"
+                                               placeholder="dd/mm/yyyy" required
+                                               value="@oldValue.value"></df-date-input>
+                                <df-date-input type="month" slot="false" readonly
+                                               data-format="MM YYYY"
+                                               placeholder="mm/yyyy" required
+                                               value="@oldValue.value"></df-date-input>
+                            </div>
+                            <div slot="false">{{@oldValue.value}}</div>
+
+                        </div>
+                    </div>
+
+
+                </div>
+                <div slot="false">
+                    <div class="view-as-link" data-tag="view-changed-value" data-version="old" data-type="@dataType">
+                        view
+                    </div>
+                </div>
+            </div>
+            <div class="changes-column" data-if="@newValue.directDisplay">
+                <div slot="true">
+                    <div data-if="@isPhoto">
+                        <img slot="true" class="product-image" src="@newValue.value" alt="Product photo new value"/>
+                        <div slot="false" data-if="@newValue.isDate">
+                            <div slot="true" data-if="@newValue.enableExpiryDay">
+                                <df-date-input slot=true type="date" readonly
+                                               data-format="DD MM YYYY"
+                                               placeholder="dd/mm/yyyy" required
+                                               value="@newValue.value"></df-date-input>
+                                <df-date-input type="month" slot="false" readonly
+                                               data-format="MM YYYY"
+                                               placeholder="mm/yyyy" required
+                                               value="@newValue.value"></df-date-input>
+                            </div>
+                            <div slot="false">{{@newValue.value}}</div>
+
+                        </div>
+                    </div>
+
+                </div>
+                <div slot="false">
+                    <div class="view-as-link" data-tag="view-changed-value" data-version="new" data-type="@dataType">
+                        view
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+</main>
+<footer class="modal-action-menu" slot="footer">
+    <button class="page-action-btn" data-close>Cancel</button>
+    <button class="page-action-btn" data-confirm>Accept</button>
+</footer>
+
+

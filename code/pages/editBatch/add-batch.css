@@ -1,3 +1,9 @@
+.product-gtin-container {
+    --select-padding: 0.375rem 0.75rem 0.375rem 0px;
+    --select-border: none;
+    --select-margin: 0px 0px 0px -4px;
+}
+
 .add-batch-container[userrights="readonly"]:before {
     content: "Read only mode";
     color: #328569;
@@ -21,6 +27,26 @@
     opacity: 1;
 }
 
+.submit-batch-btn {
+    background-color: #328569;
+    border: none;
+    box-shadow: none;
+    color: white;
+    padding: 10px 16px;
+    margin-right: 10px;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+}
+
+.submit-batch-btn:not(:disabled) {
+    cursor: pointer;
+}
+
+.submit-batch-btn:disabled {
+    background: #dee2e6;
+    color: grey;
+}
+
 .batch-version {
     position: absolute;
     top: 32px;
@@ -28,7 +54,6 @@
 }
 
 
-psk-input div input,
 psk-textarea div textarea,
 .context-group {
     box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.3);
@@ -63,7 +88,7 @@ psk-checkbox .form-check-inline {
 .background-container textarea:focus,
 .background-container .form-control,
 .background-container .form-control:focus,
-psk-date-input .form-control[readonly],
+df-date-input .form-control[readonly],
 .read-only-container .form-control[readonly] {
     border: none;
     background: none;
@@ -74,8 +99,9 @@ psk-date-input .form-control[readonly],
     overflow: auto;
 }
 
-psk-select .form-control,
-psk-select .form-control:focus {
+/*
+select.form-control,
+select.form-control:focus {
     background: none;
     box-shadow: none;
     padding: 0px;
@@ -84,6 +110,7 @@ psk-select .form-control:focus {
     overflow: auto;
     border-color: black;
 }
+*/
 
 .background-container input::placeholder,
 .background-container textarea::placeholder {
@@ -134,13 +161,8 @@ psk-select.default-select select {
     padding-right: 15px;
 }
 
-psk-date-input .form-group {
-    margin: 0px;
-    width: calc(100% + 25px);
-    position: relative;
-}
 
-psk-date-input .formated-date:before {
+df-date-input::part(input-element):before {
     left: 0px;
 }
 
@@ -173,7 +195,7 @@ psk-date-input .formated-date:before {
 .custom-select {
     position: relative;
     width: fit-content;
-    height: 100%;
+    height: calc(1.5em + 0.75rem + 5px);
     background: none;
     overflow: hidden;
     border: 1px solid #328569;
@@ -203,17 +225,11 @@ psk-date-input .formated-date:before {
     margin-top: 15px;
 }
 
-input[type="date"]::after {
-    content: '\f073';
-    font-family: 'FontAwesome';
-    color: black;
-    font-weight: bolder;
-    position: absolute;
-    right: 15px;
-    top: 6px;
+df-date-input::part(input-element) {
+    font-family: sans-serif;
 }
 
-input[type="date"]::-webkit-calendar-picker-indicator {
-    background: none;
-    z-index: 1;
+.hidden {
+    display: none;
 }
+

@@ -21,6 +21,8 @@ a:hover {
     top: 0;
     left: 50%;
     transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
 }
 
 .menu webc-link span {
@@ -79,6 +81,7 @@ a:hover {
 
 .menu webc-link span img {
     height: 41px;
+    max-height: 41px;
 }
 
 .menu webc-link span p {

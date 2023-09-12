@@ -3,24 +3,30 @@
 </div>
 <main>
     <div class="code-container">
-        <psk-code id="view-json" language="json">
-            {{@actionModalModel.messageData}}
-        </psk-code>
+        <div id="view-json">
+            <pre> <code> {{@actionModalModel.messageData}} </code></pre>
+        </div>
     </div>
 </main>
 <footer class="modal-action-menu" slot="footer">
-    <psk-button class="marketplace-manager-button" data-close label="@actionModalModel.denyButtonText"></psk-button>
-    <psk-button class="marketplace-manager-button" data-confirm label="@actionModalModel.acceptButtonText">
-        <psk-icon icon="download"></psk-icon>
-    </psk-button>
+    <button class="default-button" data-close>{{@actionModalModel.denyButtonText}}</button>
+    <button class="default-button" data-confirm>
+        {{@actionModalModel.acceptButtonText}}
+        <i class="fa fa-download"></i>
+    </button>
 
+<!--    <psk-button class="marketplace-manager-button" data-close label="@actionModalModel.denyButtonText"></psk-button>-->
+<!--    <psk-button class="marketplace-manager-button" data-confirm label="@actionModalModel.acceptButtonText">-->
+<!--        <psk-icon icon="download"></psk-icon>-->
+<!--    </psk-button>-->
 </footer>
 <style>
     .language-json {
         max-height: 55vh;
         max-width: 99vw;
     }
-    webc-modal{
+
+    webc-modal {
         --max-width: 992px;
     }
 </style>

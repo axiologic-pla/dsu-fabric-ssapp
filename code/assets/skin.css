@@ -2,13 +2,23 @@ body {
     background: url("../assets/images/background.svg");
 }
 
+:root {
+    --select-padding: 0.375rem 0.75rem;
+    --select-color: #495057;
+    --select-background-color: #fff;
+    --select-border: 1px solid #ced4da;
+    --select-border-radius: 0.25rem;
+    --select-transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+    --select-margin: 0px;
+}
+
 webc-app-container {
     --background: transparent;
     position: relative;
 }
 
-webc-app-error-toast{
-    z-index: 100;
+webc-app-error-toast {
+    z-index: 1000;
 }
 
 webc-app-menu[mode=vertical] {
@@ -24,6 +34,15 @@ webc-app-menu[mode=mobile] {
     --background: #328569;
 }
 
+webc-spinner.text-below .circle-fade:after {
+    content: "Checking for permissions...";
+    position: absolute;
+    display: block;
+    top: 50px;
+    left: -78px;
+    width: 300px;
+}
+
 webc-modal {
     --header-button-background: none !important;
     --confirm-button-background: #328569;
@@ -33,14 +52,29 @@ webc-modal::part(position) {
     overflow: auto;
 }
 
+webc-modal::part(dialog) {
+    max-height: 95vh;
+    height: 95%;
+}
+
+
+webc-modal::part(content) {
+    min-width: 785px;
+    max-width: 95%;
+    max-height: 95vh;
+    margin: auto;
+    height: fit-content;
+}
+
 webc-modal::part(main) {
     word-break: break-word;
+    overflow: auto;
+    height: 100%;
 }
 
-webc-modal .header-color {
-    color: #565656 !important;
+.webc-modal-content::part(header) {
+    --header-color: #565656;
 }
-
 
 psk-page::part(page-main) {
     height: 100%;
@@ -174,4 +208,67 @@ button.btn.btn-primary:disabled {
     border: 1px solid #dee2e6;
     background: #dee2e6;
     color: grey;
+}
+
+.toast-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    width: 40%;
+    right: 0;
+    align-items: end;
+    padding: 10px;
+    background: none;
+    pointer-events: none;
+    z-index: 1000;
+}
+
+.toast-text {
+    color: #000;
+    padding: 1.25rem;
+}
+
+.toast {
+    display: flex;
+    opacity: 100%;
+    background-color: #FFFFFF;
+    justify-content: space-between;
+    width: 100%;
+    border-top: 3px solid;
+    border-radius: 8px;
+}
+
+.toast.info {
+    border-top-color: #33D29C;
+}
+
+.toast.warn {
+    border-top-color: #FEC02D;
+}
+
+.toast.error {
+    border-top-color: #EF4C61;
+
+}
+
+.toast-close-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    pointer-events: all;
+    padding: 10px;
+}
+
+.nav-tab-title {
+    padding: 8px 16px;
+    background: transparent;
+}
+
+.hidden {
+    display: none;
 }

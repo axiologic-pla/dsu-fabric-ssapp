@@ -8,8 +8,8 @@
     grid-template-columns: repeat(6, 1fr) 40px;
 }
 
-.import-btn {
-    height: 36px;
+div[slot="content"] {
+    box-shadow: rgba(0, 0, 0, 0.25) 0px 0px 10px;
 }
 
 .pagination-container {
@@ -53,8 +53,30 @@
     display: none;
 }
 
-webc-spinner {
-    left: 250px;
+webc-spinner > .circle-fade {
+    left: 125px;
+}
+
+.page-container {
+    outline: none !important;
+    background: #fff;
+    font-family: "Open Sans", "Helvetica Neue", sans-serif;
+    scroll-behavior: smooth;
+    overflow-y: auto;
+    height: 100%;
+    display: block;
+}
+
+
+.page-content {
+    color: #565656;
+    padding: 0 45px 30px;
+}
+
+@media (max-width: 1366px) {
+    .page-content {
+        flex-direction: column;
+    }
 }
 
 @media screen and (max-width: 960px) {

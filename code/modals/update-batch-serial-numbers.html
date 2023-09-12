@@ -2,15 +2,25 @@
     <h5>{{@actionModalModel.title}}</h5>
 </div>
 <main>
+    <div class="checkbox-container">
+        <input type="checkbox" value="@actionModalModel.resetAll">
+        <span class="checkbox-label">{{@actionModalModel.resetButtonLabel}}</span>
+    </div>
+<!--
     <psk-checkbox  checkbox-label="@actionModalModel.resetButtonLabel" name="@actionModalModel.type" value="@actionModalModel.resetAll"></psk-checkbox>
+-->
     <textarea class="w-100" value="@actionModalModel.serialNumbers"></textarea>
     <div data-if="@actionModalModel.decommissionedType">
-        <psk-select required slot="true" view-model="@actionModalModel.reason"></psk-select>
+        <!--use of data-if can cause lost of eventListener -->
+        <df-select-dropdown required slot="true" data-view-model="@actionModalModel.reason"></df-select-dropdown>
     </div>
 </main>
 <footer class="modal-action-menu" slot="footer">
-    <psk-button class="marketplace-manager-button" data-close label="@actionModalModel.denyButtonText"></psk-button>
-    <psk-button class="marketplace-manager-button" data-confirm label="@actionModalModel.acceptButtonText"></psk-button>
+    <button class="default-button" data-close>{{@actionModalModel.denyButtonText}}</button>
+    <button class="default-button" data-confirm>{{@actionModalModel.acceptButtonText}}</button>
+
+<!--    <psk-button class="marketplace-manager-button" data-close label="@actionModalModel.denyButtonText"></psk-button>-->
+<!--    <psk-button class="marketplace-manager-button" data-confirm label="@actionModalModel.acceptButtonText"></psk-button>-->
 </footer>
 <style>
     textarea{

@@ -1,0 +1,17 @@
+{
+  "workDir": ".",
+  "dependencies": [
+    {
+      "name": "web-components",
+      "src": "https://github.com/webcardinal/external-deps-components.git",
+      "actions": [
+        {
+          "type": "smartClone",
+          "target": "./code/components",
+          "collectLog": false
+        }
+      ]
+    }
+  ]
+
+}

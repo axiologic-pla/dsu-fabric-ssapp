@@ -23,9 +23,8 @@ export default class HolderController extends FwController {
       credentialsAPI.parseJWTSegments(this.model.credential.token, async (parseError, jwtContent) => {
         if (parseError) {
           this.model.isInvalidCredential = true;
-          return console.log('Error parsing user credential', parseError);
+          return this.showErrorModalAndRedirect('Error parsing user credential', "Error", {tag: "home"});
         }
-        //console.log('Parsed credential', jwtContent);
         const {jwtHeader, jwtPayload} = jwtContent;
         this.model.readableCredential = JSON.stringify({jwtHeader, jwtPayload}, null, 4);
 
@@ -35,37 +34,42 @@ export default class HolderController extends FwController {
           readableCredentialElement.remove();
         }
 
-        readableCredentialElement = document.createElement('psk-code');
+        readableCredentialElement = document.createElement('div');
         readableCredentialElement.id = "readableCredential";
         readableCredentialElement.language = "json";
-        readableCredentialElement.innerHTML = this.model.readableCredential;
+        readableCredentialElement.innerHTML = `<pre><code> ${this.model.readableCredential} </code></pre>`;
         readableContainer.appendChild(readableCredentialElement);
+        /*
+         * hidden for MVP1
         this.DSUStorage.enableDirectAccess(() => {
           let sc = require("opendsu").loadAPI("sc");
           sc.getMainDSU((err, mainDSU) => {
             if (err) {
-              return console.log('Error getting mainDSU', err);
+               return this.notificationHandler.reportDevRelevantInfo('Error getting mainDSU', err);
+
+               //return console.log('Error getting mainDSU', err);
             }
-            /*
-            * hidden for MVP1
+
 
             mainDSU.getKeySSIAsString((err, keySSI) => {
                           this.model.walletKeySSI = keySSI
                         });
-            */
+
           })
         });
-
+     */
         await this.renderSettingsContainer();
       });
     }
     const scAPI = openDSU.loadAPI("sc");
     scAPI.getMainEnclave(async (err, mainEnclave) => {
       if (err) {
-        return console.log(err);
+        this.model.displayCredentialArea = false;
+        return this.notificationHandler.reportUserRelevantError('Could not retrieve credentials', err);
+        // return console.log(err);
       }
       try {
-        let did = await $$.promisify(mainEnclave.readKey)(constants.IDENTITY_KEY);
+        let did = await scAPI.getMainDIDAsync();
         this.model.did = did;
         let credential = await $$.promisify(mainEnclave.readKey)(constants.CREDENTIAL_KEY);
         this.model.displayCredentialArea = !!credential;
@@ -77,13 +81,17 @@ export default class HolderController extends FwController {
       }
     });
 
-    this.on('openFeedback', (e) => {
-      this.feedbackEmitter = e.detail;
-    });
+    /*    this.on('openFeedback', (e) => {
+          this.feedbackEmitter = e.detail;
+        });*/
 
-    this.on('copy-text', (e) => {
-      copyToClipboard(e.data);
-    });
+    this.onTagClick("copy-text", (event) => {
+      copyToClipboard(event.did);
+    })
+
+    // this.on('copy-text', (e) => {
+    //   copyToClipboard(e.data);
+    // });
 
     this.onTagClick("edit-settings", (model, target, event) => {
       let oldValue = this.model.envData;
@@ -102,7 +110,7 @@ export default class HolderController extends FwController {
               }
             );
           }).catch(err => {
-            console.log(err)
+            return this.notificationHandler.reportUserRelevantError('Could not retrieve credentials', err);
           })
         }, () => {
         },
@@ -133,7 +141,13 @@ export default class HolderController extends FwController {
     //hide keySSI properties from display in ui
     delete envFile["enclaveKeySSI"];
     delete envFile["sharedEnclaveKeySSI"];
-
+    //---------- get app version from server env file
+    delete envFile["appBuildVersion"];
+    const environmentJsPath = new URL("environment.js", window.top.location);
+    const response = await fetch(environmentJsPath);
+    const appEnvContent = await response.text();
+    this.model.appVersion = this.getAppBuildVersion(appEnvContent)
+    //-----------------------
     this.model.editableFeatures = !(!!envFile.lockFeatures);
     this.model.envData = envFile;
     const environmentContainer = this.element.querySelector('#environmentContainer');
@@ -141,10 +155,44 @@ export default class HolderController extends FwController {
     if (environmentDataElement) {
       environmentDataElement.remove();
     }
-    environmentDataElement = document.createElement('psk-code');
+    environmentDataElement = document.createElement('div');
     environmentDataElement.id = "environmentData";
     environmentDataElement.language = "json";
-    environmentDataElement.innerHTML = JSON.stringify(envFile, null, 4);
+    environmentDataElement.innerHTML = `<pre><code>${JSON.stringify(envFile, null, 4)}</code></pre>`;
     environmentContainer.appendChild(environmentDataElement);
+  }
+
+  getAppBuildVersion(str) {
+    //the purpose of regex is to extract the json part from
+    const regex = /{[\s\S]*}/gm;
+
+    let matches;
+    while ((matches = regex.exec(str)) !== null) {
+      // This is necessary to avoid infinite loops with zero-width matches
+      if (matches.index === regex.lastIndex) {
+        regex.lastIndex++;
+      }
+
+      if(matches.length){
+        //found it...
+        let envJSON = matches[0];
+        try{
+          envJSON = JSON.parse(envJSON);
+        }catch (err){
+          console.log("Failed to properly parse environment file for app version extraction. Switching to fallback method");
+          continue;
+        }
+        return envJSON["appBuildVersion"];
+      }
+    }
+
+    //this code should not be reached... but I'll let it here for fallback for the moment.
+    let appBuildVersionText = str.split(",").find(item => item.includes("appBuildVersion"));
+    let version = appBuildVersionText.split(":")[1];
+    version = version.trim();
+    if(version.indexOf("}")!==-1){
+      version = version.replaceAll("}", "");
+    }
+    return version;
   }
 }
