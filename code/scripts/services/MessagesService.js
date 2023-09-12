@@ -103,7 +103,7 @@ function getStorageService(dsuStorage) {
 
     dsuStorage.failureAwareCommit = async function(failedMessages, callback){
         let error;
-        if(failedMessages.length){
+        if(failedMessages && failedMessages.length){
             try{
                 await $$.promisify(_logFailedMessages)(failedMessages, dsuStorage);
             }catch(err){
