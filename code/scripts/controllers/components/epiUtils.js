@@ -29,7 +29,12 @@ async function getEpiContent(model, selectedLeafletCard) {
   let {gtinSSI, mountPath} = await LeafletService.getDSUBaseInfo(model);
   const openDSU = require("opendsu");
   const resolver = openDSU.loadAPI("resolver");
-  let constDSU = await $$.promisify(resolver.loadDSU)(gtinSSI);
+  let constDSU;
+  if (selectedLeafletCard.files && typeof selectedLeafletCard.files[0] === "string") {
+    const openDSU = require("opendsu");
+    const resolver = openDSU.loadAPI("resolver");
+    constDSU = await $$.promisify(resolver.loadDSU)(gtinSSI);
+  }
 
   for (let file of selectedLeafletCard.files) {
     if (typeof file !== "object") {
