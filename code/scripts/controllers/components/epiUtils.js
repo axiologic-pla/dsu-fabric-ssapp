@@ -26,10 +26,16 @@ async function getEpiContent(model, selectedLeafletCard) {
 
   let xmlContent;
   let leafletImages = {};
+  let {gtinSSI, mountPath} = await LeafletService.getDSUBaseInfo(model);
+  const openDSU = require("opendsu");
+  const resolver = openDSU.loadAPI("resolver");
+  let constDSU = await $$.promisify(resolver.loadDSU)(gtinSSI);
+
   for (let file of selectedLeafletCard.files) {
     if (typeof file !== "object") {
       //TODO create a service to get leaflet content and unify with get-leaflet api endpoint
-      let fileContent = await LeafletService.getLeafletFile(selectedLeafletCard.type.value, selectedLeafletCard.language.value, file, model);
+      let fileContent = await $$.promisify(constDSU.readFile)(`${mountPath}/${selectedLeafletCard.type.value}/${selectedLeafletCard.language.value}/${file}`);
+
       if (file.endsWith('.xml')) {
         xmlContent = fileContent.toString();
       } else {
