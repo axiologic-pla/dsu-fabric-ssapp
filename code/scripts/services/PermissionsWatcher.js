@@ -129,6 +129,8 @@ class PermissionsWatcher {
         await this.saveCredentials(creds);
         if (!window.lastGroupDID) {
           window.lastGroupDID = creds ? creds.groupCredential.groupDID : undefined;
+          const segments = creds.groupCredential.groupDID.split(":");
+          window.currentGroup = segments.pop();
         }
         if (window.lastGroupDID !== creds.groupCredential.groupDID) {
           this.notificationHandler.reportUserRelevantInfo("Your credentials have changed!");
@@ -138,7 +140,7 @@ class PermissionsWatcher {
         return true;
       }
     } catch (err) {
-      let knownStatusCodes = [404, 500];
+      let knownStatusCodes = [404];
       if (knownStatusCodes.indexOf(err.code) === -1) {
         throw err;
       }
