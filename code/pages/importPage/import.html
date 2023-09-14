@@ -1,23 +1,37 @@
 <link href="pages/importPage/import.css" rel="stylesheet"/>
-<psk-page>
+
+<div class="page-container">
     <webc-container controller="ImportController">
-        <div class="m-5">
+        <div class="m-5 page-content">
             <p>Select your files</p>
 
-            <psk-files-chooser data-view-model="@filesChooser" id="import-files">
-            </psk-files-chooser>
-            <button data-tag="import" disabled="@importIsDisabled" class="btn btn-secondary import-btn" type="button">
-                <label>Import selected files</label>
-            </button>
+            <!--      <psk-files-chooser data-view-model="@filesChooser" id="import-files">
+                  </psk-files-chooser>
+      -->
+            <div class="files-upload-container">
+                <df-upload-file data-view-model="@filesChooser" id="import-files"></df-upload-file>
 
+                <button data-tag="import" disabled="@importIsDisabled" class="default-button"
+                        type="button">
+                    Import selected files
+                </button>
+            </div>
             <hr/>
 
             <!-- removed for MVP1
                 <psk-button data-tag="view-all" label="View responses"></psk-button>-->
-            <psk-button data-tag="retry-failed" disabled="@retryBtnIsDisabled" label="Retry failed"
-                        style="float:right"></psk-button>
-            <psk-button data-tag="force-retry-failed" disabled="@forceRetryBtnIsDisabled" label="Force recover"
-                        style="float:right"></psk-button>
+
+            <button class="default-button" data-tag="retry-failed" disabled="@retryBtnIsDisabled" style="float:right">
+                Retry failed
+            </button>
+            <button class="default-button" data-tag="force-retry-failed" disabled="@forceRetryBtnIsDisabled"
+                    style="float:right">Force recover
+            </button>
+
+            <!--            <psk-button data-tag="retry-failed" disabled="@retryBtnIsDisabled" label="Retry failed"-->
+            <!--                        style="float:right"></psk-button>-->
+            <!--            <psk-button data-tag="force-retry-failed" disabled="@forceRetryBtnIsDisabled" label="Force recover"-->
+            <!--                        style="float:right"></psk-button>-->
 
             <h3>Import Logs</h3>
             <div>
@@ -28,8 +42,11 @@
                     <i class="fa fa-check"></i>
                 </span>
             </div>
-            <psk-tab-navigator id="orange-tab-navigator" selected="@selectedTab">
-                <psk-tab class="success-messages-tab" title="Successful Messages">
+            <df-tab-panel data-view-model="@" selectedtabindex="@selectedTabIndex">
+                <div slot="tab" data-tag="change-tab" tab-name="successful-actions">
+                    <div class="nav-tab-title">Successful Messages</div>
+                </div>
+                <div slot="content" class="success-messages-tab">
                     <webc-datatable datasource="@successDataSource" hide-pagination>
                         <div slot="header">Item Code</div>
                         <div slot="header">Message ID</div>
@@ -60,8 +77,11 @@
                         <button class="prev-page-btn" data-tag="prev-page" disabled msgType="success"> <<</button>
                         <button class="next-page-btn" data-tag="next-page" msgType="success"> >></button>
                     </div>
-                </psk-tab>
-                <psk-tab class="failed-messages-tab" title="Failed Messages">
+                </div>
+                <div slot="tab" data-tag="change-tab" tab-name="failed-actions">
+                    <div class="nav-tab-title">Failed Messages</div>
+                </div>
+                <div slot="content" class="failed-messages-tab">
                     <webc-datatable datasource="@failedDataSource" hide-pagination>
                         <div slot="header">Item Code</div>
                         <div slot="header">Message ID</div>
@@ -92,14 +112,87 @@
                         <div slot="no-data">
                             no data ...
                         </div>
+                        <div slot="loading"><span></span></div>
                     </webc-datatable>
                     <div class="failed-messages-page-btn pagination-container failed-datasource">
                         <button class="prev-page-btn" data-tag="prev-page" disabled msgType="failed"> <<</button>
                         <button class="next-page-btn" data-tag="next-page" msgType="failed"> >></button>
                     </div>
-                </psk-tab>
-            </psk-tab-navigator>
+                </div>
+            </df-tab-panel>
+            <!--     <psk-tab-navigator id="orange-tab-navigator" selected="@selectedTab">
+                     <psk-tab class="success-messages-tab" title="Successful Messages">
+                         <webc-datatable datasource="@successDataSource" hide-pagination>
+                             <div slot="header">Item Code</div>
+                             <div slot="header">Message ID</div>
+                             <div slot="header">Type</div>
+                             <div slot="header">Date</div>
+                             <div slot="header">Status</div>
+                             <div slot="header">Command</div>
+                             <div slot="header">Action</div>
+
+                             <div class="data-item">{{@itemCode}}</div>
+                             <div class="data-item">{{@itemMsgId}}</div>
+                             <div class="data-item">{{@itemType}}</div>
+                             <div class="data-item">{{@timeAgo}}</div>
+                             <div class="data-item">{{@status}}</div>
+                             <div class="data-item">{{@reason}}</div>
+                             <div class="data-item">
+                                 <button class="btn btn-link p-0 col align-self-center text-left" data-tag="view-message">
+                                     View
+                                     Message
+                                 </button>
+                             </div>
+                             <div slot="no-data">
+                                 no data ...
+                             </div>
+                             <div slot="loading"><span></span></div>
+                         </webc-datatable>
+                         <div class="success-messages-page-btn pagination-container success-datasource">
+                             <button class="prev-page-btn" data-tag="prev-page" disabled msgType="success"> <<</button>
+                             <button class="next-page-btn" data-tag="next-page" msgType="success"> >></button>
+                         </div>
+                     </psk-tab>
+                     <psk-tab class="failed-messages-tab" title="Failed Messages">
+                         <webc-datatable datasource="@failedDataSource" hide-pagination>
+                             <div slot="header">Item Code</div>
+                             <div slot="header">Message ID</div>
+                             <div slot="header">Type</div>
+                             <div slot="header">Date</div>
+                             <div slot="header">Status</div>
+                             <div slot="header">Action</div>
+                             <div slot="header">
+                                 <input data-tag="retry-all-click" id="retry-all-checkbox" type="checkbox">
+                             </div>
+
+                             <div class="data-item">{{@itemCode}}</div>
+                             <div class="data-item">{{@itemMsgId}}</div>
+                             <div class="data-item">{{@itemType}}</div>
+                             <div class="data-item">{{@timeAgo}}</div>
+                             <div class="data-item">{{@status}}</div>
+                             <div class="data-item">
+                                 <button class="btn btn-link p-0 col align-self-center text-left" data-tag="view-message">
+                                     View
+                                     Message
+                                 </button>
+                             </div>
+                             <div class="data-item">
+                                 <input class="failed-message" data-tag="retry-item-click" name="@itemId" slot="true"
+                                        type="checkbox">
+                             </div>
+
+                             <div slot="no-data">
+                                 no data ...
+                             </div>
+                         </webc-datatable>
+                         <div class="failed-messages-page-btn pagination-container failed-datasource">
+                             <button class="prev-page-btn" data-tag="prev-page" disabled msgType="failed"> <<</button>
+                             <button class="next-page-btn" data-tag="next-page" msgType="failed"> >></button>
+                         </div>
+                     </psk-tab>
+                 </psk-tab-navigator>-->
         </div>
     </webc-container>
-</psk-page>
+</div>
+
 

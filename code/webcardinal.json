@@ -1,19 +1,19 @@
 {
-  "theme": "citrus-theme",
   "version": "1.0.0-alpha",
-  "logLevel": "warn",
   "identity": {
     "avatar": "assets/images/factory.png",
     "name": "DSU Fabric",
     "email": "MyOrganisation@example.com"
   },
-  "pagesFallback": {
-    "name": "404",
-    "src": "./404.html"
-  },
+  "logLevel": "none",
   "pages": [
     {
       "path": "/",
+      "name": "Landing page",
+      "tag": "landing-page",
+      "indexed": false
+    },
+    {
       "name": "Generate DID",
       "tag": "generate-did",
       "indexed": false
@@ -24,7 +24,9 @@
     },
     {
       "name": "My Account",
-      "tag": "my-account"
+      "tag": "my-account",
+      "src": "./myAccount/my-account.html",
+      "path": "./my-account"
     },
     {
       "name": "Products",
@@ -43,6 +45,12 @@
       "tag": "audit",
       "src": "./auditPage/audit.html",
       "path": "./audit"
+    },
+    {
+      "name": "Logout",
+      "tag": "logout",
+      "src": "./logoutPage/logout.html",
+      "path": "./logout"
     },
     {
       "name": "Add batch",

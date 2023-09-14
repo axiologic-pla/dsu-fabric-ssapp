@@ -1,0 +1,23 @@
+
+.df-select {
+    display: block;
+    width: 100%;
+    height: calc(1.5em + 0.75rem + 2px);
+    padding: var(--select-padding);
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--select-color);
+    background-color: var(--select-background-color);
+    background-clip: padding-box;
+    border: var(--select-border);
+    border-radius: var(--select-border-radius);
+    transition: var(--select-transition);
+    margin: var(--select-margin);
+}
+
+select.df-select:focus,
+select.df-select:focus-visible {
+    outline: none;
+}
+

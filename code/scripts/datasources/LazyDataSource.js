@@ -29,8 +29,13 @@ export class LazyDataSource extends DataSource {
     notFoundIcon.style.display = "none";
     foundIcon.style.display = "none";
     if (inputValue) {
-      await $$.promisify(this.storageService.refresh, this.storageService)();
-      let result = await $$.promisify(this.storageService.filter, this.storageService)(this.tableName, `${this.searchField} == ${inputValue}`, "dsc");
+      try{
+        await $$.promisify(this.storageService.refresh, this.storageService)();
+      }catch(err){
+        //ignorable error when legacyDSU
+      }
+
+      let result = await $$.promisify(this.storageService.filter, this.storageService)(this.tableName, ["__timestamp > 0", `${this.searchField} == ${inputValue}`], "dsc");
 
       if (result && result.length > 0) {
         foundIcon.style.display = "inline";
@@ -69,7 +74,11 @@ export class LazyDataSource extends DataSource {
           this.dataSourceRezults = [...this.dataSourceRezults, ...moreItems,];
         }
       } else {
-        await $$.promisify(this.storageService.refresh, this.storageService)();
+        try{
+          await $$.promisify(this.storageService.refresh, this.storageService)();
+        }catch(err){
+          //ignorable error when legacyDSU
+        }
         this.dataSourceRezults = await $$.promisify(this.storageService.filter, this.storageService)(this.tableName, "__timestamp > 0", "dsc", this.itemsOnPage * 2);
       }
 

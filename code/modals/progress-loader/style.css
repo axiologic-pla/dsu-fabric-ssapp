@@ -1,0 +1,51 @@
+webc-modal::part(header) {
+    background: #328569;
+    --header-button-color: #FFFFFF;
+    --header-border: none;
+    --padding: 5px 17px;
+    border-radius: 5px 5px 0px 0px;
+}
+
+webc-modal .header-color {
+    color: #FFFFFF !important;
+}
+
+webc-modal .header-color h5 {
+    margin: 0px;
+    font-size: 1rem;
+}
+
+webc-modal::part(content) {
+    max-width: 430px;
+    min-width: 430px;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 5px 5px 0px 0px;
+}
+
+.text-container {
+    font-size: 0.85rem;
+}
+
+.df-progress-bar {
+    margin-top: 18px;
+}
+
+.df-progress-bar [name=track] {
+    background: #E5E9E7;
+    border-radius: 10px;
+    height: 10px;
+    width: 100%;
+}
+
+.df-progress-bar [name=slider]{
+    background: #328569;
+    border-radius: 10px;
+    height: 10px;
+    top: -10px;
+    position: relative;
+    -webkit-transition: width 0s;
+    -moz-transition: width 0s;
+    -o-transition: width 0s;
+    transition: width 0s;
+}

@@ -1,0 +1,9 @@
+<link href="components/select-dropdown/style.css" rel="stylesheet">
+<webc-container data-view-model="@" controller="components/SelectController">
+
+    <select class="df-select" data-for="@options" data-for-option="rerender" model-value="@value">
+        <option disabled="@disabled" selected="@selected" value="@value">{{@label}}</option>
+    </select>
+
+</webc-container>
+

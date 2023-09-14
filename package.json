@@ -1,12 +1,13 @@
 {
     "name": "ssapp-template",
-    "version": "v1.4.0",
+    "version": "v2023.2.0",
     "description": "SSApp Template",
     "main": "index.js",
     "scripts": {
         "build": "node ./../node_modules/octopus/scripts/buildDSU.js",
         "update": "npm install",
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "postinstall": "node ./../node_modules/octopus/scripts/run dependencies devmode"
     },
     "repository": {
         "type": "git",

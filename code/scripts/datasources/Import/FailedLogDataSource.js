@@ -12,6 +12,21 @@ export default class FailedLogDataSource extends DataSource {
     this.importLogs = [];
     this.hasMoreLogs = false;
     this.filterResult = [];
+    let self = this;
+
+    function refresh(noUiUpdate) {
+      if (!noUiUpdate) {
+        setTimeout(async () => {
+          await self.forceUpdate(true);
+        }, 0)
+
+      }
+      setTimeout(() => {
+        self.enclaveDB.onCommitBatch(refresh);
+      })
+    }
+
+    refresh(true);
   }
 
   getMappedResult(data) {
@@ -42,9 +57,9 @@ export default class FailedLogDataSource extends DataSource {
     let importLogs = [];
     try {
       if (this.importLogs.length > 0) {
-        let moreItems = await $$.promisify(this.enclaveDB.filter)('import-logs', [`__timestamp < ${this.importLogs[this.importLogs.length - 1].__timestamp}`, 'status != success'], "dsc", this.itemsOnPage);
-        if (moreItems && moreItems.length > 0 && moreItems[moreItems.length - 1].pk !== this.importLogs[this.importLogs.length - 1].pk) {
-          this.importLogs = [...this.importLogs, ...moreItems];
+        let moreItems = await $$.promisify(this.enclaveDB.filter)('import-logs', [`__timestamp > ${this.importLogs[0].__timestamp}`, 'status != success'], "dsc", this.itemsOnPage);
+        if (moreItems && moreItems.length > 0 && moreItems[moreItems.length - 1].pk !== this.importLogs[0].pk) {
+          this.importLogs = [...moreItems, ...this.importLogs];
         }
       } else {
         this.importLogs = await $$.promisify(this.enclaveDB.filter)('import-logs', ['__timestamp > 0', 'status != success'], "dsc", this.itemsOnPage * 2);

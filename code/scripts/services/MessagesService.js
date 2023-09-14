@@ -46,108 +46,71 @@ function skipMessages(messages){
     return undigestedMessages;
 }
 
+async function _acquireLock(identifier, period, attempts, timeout){
+    const opendsu = require("opendsu");
+    const utils = opendsu.loadApi("utils");
+    const lockApi = opendsu.loadApi("lock");
+    const crypto = opendsu.loadApi("crypto");
+    let secret = crypto.encodeBase58(crypto.generateRandom(32));
+
+    let lockAcquired;
+    let noAttempts = attempts;
+    while(noAttempts>0){
+        noAttempts--;
+        lockAcquired = await lockApi.lockAsync(identifier, secret, period);
+        if(!lockAcquired){
+            await utils.sleepAsync(timeout);
+        }else{
+            break;
+        }
+        if(noAttempts === 0){
+            if (window.confirm("Other user is working on a shared resource. Do you want to wait for him to finish?")) {
+                noAttempts = attempts;
+            }
+        }
+    }
+    if (!lockAcquired) {
+        secret = undefined;
+    }
+
+    return secret;
+}
+
+async function _releaseLock(identifier, secret){
+    const opendsu = require("opendsu");
+    const lockApi = opendsu.loadApi("lock");
+    try{
+        await lockApi.unlockAsync(identifier, secret);
+    }catch(err){
+        console.error("Failed to release lock", err);
+    }
+}
+
 function getStorageService(dsuStorage) {
     if(dsuStorage.wrapped){
        return dsuStorage;
     }
 
-
     async function acquireLock(period, attempts, timeout){
         let identifier = await dsuStorage.getUniqueIdAsync();
-
-        const opendsu = require("opendsu");
-        const utils = opendsu.loadApi("utils");
-        const lockApi = opendsu.loadApi("lock");
-        const crypto = opendsu.loadApi("crypto");
-        let secret = crypto.encodeBase58(crypto.generateRandom(32));
-
-        let lockAcquired;
-        let noAttempts = attempts;
-        while(noAttempts>0){
-            noAttempts--;
-            lockAcquired = await lockApi.lockAsync(identifier, secret, period);
-            if(!lockAcquired){
-                await utils.sleepAsync(timeout);
-            }else{
-                break;
-            }
-            if(noAttempts === 0){
-                if (window.confirm("Other user is editing right now. Do you want to wait for him to finish?")) {
-                    noAttempts = attempts;
-                }
-            }
-        }
-        if (!lockAcquired) {
-            secret = undefined;
-        }
-
-        return secret;
+        return await _acquireLock(identifier, period, attempts, timeout);
     }
 
     async function releaseLock(secret){
         let identifier = await dsuStorage.getUniqueIdAsync();
-
-        const opendsu = require("opendsu");
-        const lockApi = opendsu.loadApi("lock");
-        try{
-            await lockApi.unlockAsync(identifier, secret);
-        }catch(err){
-            console.error("Failed to release lock", err);
-        }
-    }
-
-
-    let originalCommit = dsuStorage.commitBatch;
-    let originalBegin = dsuStorage.beginBatch;
-    let originalCancel = dsuStorage.cancelBatch;
-
-    dsuStorage.commitBatch = function(forDID, callback){
-        //originalCommit.call(dsuStorage, ...args);
-        if(typeof forDID === "function"){
-            callback = forDID;
-            forDID = undefined;
-        }
-        callback();
-    }
-
-    dsuStorage.beginBatch = function(forDID){
-        originalBegin.call(dsuStorage, forDID);
-    }
-
-    dsuStorage.cancelBatch = function(...args){
-        originalCancel.call(dsuStorage, ...args);
+        await _releaseLock(identifier, secret);
     }
 
     dsuStorage.failureAwareCommit = async function(failedMessages, callback){
-        let lock;
         let error;
-        lock = await acquireLock(60000, 100, 500);
-        if(!lock){
-            callback(new Error("Not able to acquire lock to save the undigested messages."));
-        }
-
-        if(failedMessages.length){
-            await $$.promisify(dsuStorage.cancelBatch)();
-
+        if(failedMessages && failedMessages.length){
             try{
-                await $$.promisify(dsuStorage.refresh, dsuStorage)();
-                originalBegin.call(dsuStorage);
                 await $$.promisify(_logFailedMessages)(failedMessages, dsuStorage);
             }catch(err){
                 console.log(err);
                 error = err;
             }
         }
-
-        try{
-            await $$.promisify(originalCommit, dsuStorage)();
-        }catch(err){
-            console.log(err);
-            alert(err);
-            error = err;
-        }
-
-        await releaseLock(lock);
         callback(error, undefined);
     }
 
@@ -204,14 +167,7 @@ async function processMessages(messages, dsuStorage, callback) {
             messagesPipe.onNewGroup(async (groupMessages) => {
                 let isForceRecovery = false;
                 try {
-                    if(groupMessages.length && groupMessages[0] && groupMessages[0].force){
-                        isForceRecovery = true;
-                        $$.disableBrowserConfirm();
-                    }
                     undigestedMessages = [...undigestedMessages, ...await mappingEngine.digestMessages(groupMessages)];
-                    if(isForceRecovery){
-                        $$.enableBrowserConfirm();
-                    }
                 } catch (err) {
                     if(isForceRecovery){
                         $$.enableBrowserConfirm();
@@ -330,5 +286,8 @@ export default {
     processMessages,
     digestMessagesOneByOne,
     processMessagesWithoutGrouping,
-    getStorageService
+    getStorageService,
+    acquireLock:_acquireLock,
+    releaseLock:_releaseLock
 }
+

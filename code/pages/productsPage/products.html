@@ -6,13 +6,13 @@
     <h6 slot="page-content">
         <webc-container controller="ProductsController">
             <div class="d-flex justify-content-end" userrights="@userrights">
-                <button class="page-action-btn" data-tag="import">IMPORT</button>
+                <button class="secondary-button" data-tag="import">IMPORT</button>
                 <!--                <button class="page-action-btn" data-tag="get-transferred-product">GET TRANSFERRED PRODUCT
                                 </button>-->
-                <button class="page-action-btn" data-tag="add-product">+ ADD PRODUCT</button>
+                <button class="secondary-button" data-tag="add-product">+ ADD PRODUCT</button>
             </div>
 
-            <div class="products-container" userrights="@userrights">
+            <div class="products-container" >
                 <div class="search-container">
                     Search by product code <input id="code-search" placeholder="Search by code" type="search">
                     <span class="validity">
@@ -20,7 +20,7 @@
                                 <i class="fa fa-check"></i>
                              </span>
                 </div>
-                <webc-datatable datasource="@prodDataSource" hide-pagination>
+                <webc-datatable datasource="@prodDataSource" class="products-table" hide-pagination userrights="@userrights">
                     <div class="fist-table-header first-column" slot="header">Brand / invented name</div>
                     <div slot="header">Name of Medicinal Product</div>
                     <div slot="header">Product Code</div>
