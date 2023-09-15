@@ -292,7 +292,7 @@ export default class ManageProductController extends FwController {
   }
 
   async confirmSave(product) {
-    this.createWebcModal({
+    this.infoSavingModal = this.createWebcModal({
       disableExpanding: true,
       disableClosing: true,
       disableFooter: true,
@@ -342,6 +342,7 @@ export default class ManageProductController extends FwController {
       }
 
     } catch (e) {
+      infoSavingModal.destroy();
       this.showErrorModal(e.message);
     }
   }
@@ -454,11 +455,13 @@ export default class ManageProductController extends FwController {
         }
       })
 
+      this.infoSavingModal.destroy();
       console.log(errors);
       this.showModalFromTemplate("digest-messages-error-modal", () => {
 
         this.navigateToPageTag("products");
       }, () => {
+        this.navigateToPageTag("products");
       }, {model: {errors: shownErrors}});
     } else {
       if (this.refreshState) {
