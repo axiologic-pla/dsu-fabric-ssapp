@@ -47,10 +47,23 @@
       "path": "./audit"
     },
     {
+      "name": "Blockchain Status",
+      "tag": "blockchain_status",
+      "src": "./blockchainStatus/blockchainStatus.html",
+      "path": "./blockchainStatus"
+    },
+    {
       "name": "Logout",
       "tag": "logout",
       "src": "./logoutPage/logout.html",
       "path": "./logout"
+    },
+    {
+      "name": "Scan details",
+      "src": "./blockchainStatus/scan-details.html",
+      "tag": "scan-details",
+      "path": "./scan-details",
+      "indexed": false
     },
     {
       "name": "Add batch",

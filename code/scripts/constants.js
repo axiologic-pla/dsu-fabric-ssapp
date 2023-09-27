@@ -2,6 +2,7 @@ export default {
   'PACKAGES_STORAGE_PATH': "/app/data/packages.json",
   'DATA_STORAGE_PATH': "/app/data",
   'PRODUCTS_TABLE': "products",
+  'BLOCKCHAIN_SCANS_TABLE': "blockchain_scans",
   'LOGS_TABLE': "logs",
   'LOGIN_LOGS_TABLE': "login_logs",
   'SERIAL_NUMBERS_LOGS_TABLE': "serial_numbers_logs",

@@ -2,9 +2,10 @@ import constants from "../constants.js";
 
 function attachHandlers(controller, datasource, searchInputSelector = "#code-search", prevPageTag = "prev-page", nextPageTag = "next-page") {
   let searchInput = controller.querySelector(searchInputSelector || "#code-search");
-  let foundIcon = searchInput.parentElement.querySelector(".fa-check");
-  let notFoundIcon = searchInput.parentElement.querySelector(".fa-ban");
   if (searchInput) {
+    let foundIcon = searchInput.parentElement.querySelector(".fa-check");
+    let notFoundIcon = searchInput.parentElement.querySelector(".fa-ban");
+
     /*clean all listeners and attach new listener */
     let new_element = searchInput.cloneNode(true);
     new_element.addEventListener(constants.HTML_EVENTS.SEARCH, async (event) => {
