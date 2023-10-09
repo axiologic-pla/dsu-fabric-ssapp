@@ -36,6 +36,10 @@ function UIProgressService(){
     }
     closeProgress();
   }
+
+  this.popupActive = () => {
+    return !!screen;
+  }
 }
 
 let instance;
