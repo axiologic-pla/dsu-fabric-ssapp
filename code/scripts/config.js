@@ -151,7 +151,8 @@ function finishInit() {
         userId: config.identity.name,
         action: "Access wallet",
         userDID: did,
-        userGroup: window.currentGroup
+        userGroup: window.currentGroup,
+        actionDate: new Date().toISOString()
       }
 
       let logService = new LogService(constants.LOGIN_LOGS_TABLE);
