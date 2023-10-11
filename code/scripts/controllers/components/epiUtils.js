@@ -2,6 +2,10 @@ const gtinResolver = require("gtin-resolver");
 const LeafletService = gtinResolver.DSUFabricUtils;
 const utils = require("gtin-resolver").utils;
 
+//other rtl language codes to be used for later:  "arc", "arz", "ckb", "dv", "fa", "ha", "he", "khw", "ks", "ps", "sd", "ur", "uz_AF", "yi"
+let rtlLangCodes = ["ar", "he"];
+
+
 async function getPreviewModel(model, selectedLeafletCard) {
   let previewModalTitle = `Preview ${selectedLeafletCard.language.label} ${selectedLeafletCard.type.label}`;
 
@@ -19,7 +23,12 @@ async function getPreviewModel(model, selectedLeafletCard) {
 
   let {xmlContent, leafletImages} = await getEpiContent(model, selectedLeafletCard);
   let epiData = {xmlContent, leafletImages, productName, productDescription};
-  return {previewModalTitle, epiData};
+  let textDirection = "LTR";
+  if (rtlLangCodes.find((rtlLAng) => rtlLAng === selectedLeafletCard.language.value)) {
+    textDirection = "RTL"
+  }
+
+  return {previewModalTitle, epiData, textDirection};
 }
 
 async function getEpiContent(model, selectedLeafletCard) {

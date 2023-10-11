@@ -218,6 +218,10 @@ main {
     top: 2px;
 }
 
+div[dir="RTL"] .leaflet-accordion-item:before {
+    float: left;
+}
+
 .leaflet-accordion-item.active:before {
     background-image: url("./assets/images/accordion-close.svg");
 }
