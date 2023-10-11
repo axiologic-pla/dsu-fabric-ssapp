@@ -66,23 +66,25 @@ export default class FailedLogDataSource extends DataSource {
       }
 
       window.WebCardinal.loader.hidden = true;
+      if (document.querySelector(".failed-messages-page-btn")) {
+        this.importLogs.length > this.itemsOnPage ? document.querySelector(".failed-messages-page-btn").hidden = false : document.querySelector(".failed-messages-page-btn").hidden = true;
 
-      this.importLogs.length > this.itemsOnPage ? document.querySelector(".failed-messages-page-btn").hidden = false : document.querySelector(".failed-messages-page-btn").hidden = true;
+        importLogs = this.importLogs.slice(startOffset, startOffset + dataLengthForCurrentPage);
+        this.hasMoreLogs = this.importLogs.length >= startOffset + dataLengthForCurrentPage + 1;
 
-      importLogs = this.importLogs.slice(startOffset, startOffset + dataLengthForCurrentPage);
-      this.hasMoreLogs = this.importLogs.length >= startOffset + dataLengthForCurrentPage + 1;
+        if (!this.hasMoreLogs) {
+          document.querySelector(".failed-messages-page-btn .next-page-btn").disabled = true;
+        } else {
+          document.querySelector(".failed-messages-page-btn .next-page-btn").disabled = false;
+        }
 
-      if (!this.hasMoreLogs) {
-        document.querySelector(".failed-messages-page-btn .next-page-btn").disabled = true;
-      } else {
-        document.querySelector(".failed-messages-page-btn .next-page-btn").disabled = false;
+        if (!importLogs.length > 0) {
+          document.querySelector(".failed-messages-page-btn").style.display = "none";
+        } else {
+          document.querySelector(".failed-messages-page-btn").style.display = "flex";
+        }
       }
 
-      if (!importLogs.length > 0) {
-        document.querySelector(".failed-messages-page-btn").style.display = "none";
-      } else {
-        document.querySelector(".failed-messages-page-btn").style.display = "flex";
-      }
 
     } catch (e) {
       console.log(e);
