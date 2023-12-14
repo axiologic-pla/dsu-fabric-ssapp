@@ -45,13 +45,15 @@ export default class EpiComponentController extends FwController {
 
       utils.displayLoader();
       let selectedEpi = epiUtils.getSelectedEpiCard(this.model.languageTypeCards, epiModel.language.value, epiModel.type.value);
-      let {previewModalTitle, epiData} = await epiUtils.getPreviewModel(this.model, selectedEpi);
-      this.model.previewModalTitle = previewModalTitle;
-      this.model.epiData = epiData;
 
       this.showModalFromTemplate("preview-epi/template", () => {
       }, () => {
-      }, {disableExpanding: true, disableFooter: true, model: this.model, controller: "modals/PreviewEpiController"});
+      }, {
+        disableExpanding: true,
+        disableFooter: true,
+        model: await epiUtils.getPreviewModel(this.model, selectedEpi),
+        controller: "modals/PreviewEpiController"
+      });
       utils.hideLoader();
 
     })

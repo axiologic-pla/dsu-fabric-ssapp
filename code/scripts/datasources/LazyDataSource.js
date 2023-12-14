@@ -29,9 +29,9 @@ export class LazyDataSource extends DataSource {
     notFoundIcon.style.display = "none";
     foundIcon.style.display = "none";
     if (inputValue) {
-      try{
+      try {
         await $$.promisify(this.storageService.refresh, this.storageService)();
-      }catch(err){
+      } catch (err) {
         //ignorable error when legacyDSU
       }
 
@@ -74,9 +74,9 @@ export class LazyDataSource extends DataSource {
           this.dataSourceRezults = [...this.dataSourceRezults, ...moreItems,];
         }
       } else {
-        try{
+        try {
           await $$.promisify(this.storageService.refresh, this.storageService)();
-        }catch(err){
+        } catch (err) {
           //ignorable error when legacyDSU
         }
         this.dataSourceRezults = await $$.promisify(this.storageService.filter, this.storageService)(this.tableName, "__timestamp > 0", "dsc", this.itemsOnPage * 2);
@@ -85,11 +85,15 @@ export class LazyDataSource extends DataSource {
       resultData = this.dataSourceRezults.slice(startOffset, startOffset + dataLengthForCurrentPage);
       this.hasMoreLogs = this.dataSourceRezults.length >= startOffset + dataLengthForCurrentPage + 1;
 
-      document.querySelector(`.pagination-container.${this.name}-datasource`).hidden = this.dataSourceRezults.length <= this.itemsOnPage
+      if (document.querySelector(`.pagination-container.${this.name}-datasource`)) {
+        document.querySelector(`.pagination-container.${this.name}-datasource`).hidden = this.dataSourceRezults.length <= this.itemsOnPage
+      }
 
-      document.querySelectorAll(".search-container").forEach(item => {
-        item.hidden = resultData.length === 0;
-      })
+      if (document.querySelectorAll(".search-container")) {
+        document.querySelectorAll(".search-container").forEach(item => {
+          item.hidden = resultData.length === 0;
+        })
+      }
 
     } catch (e) {
       console.log("Error on get async page data  ", e);

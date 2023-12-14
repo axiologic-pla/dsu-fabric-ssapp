@@ -1,0 +1,37 @@
+.scan-button-container {
+    display: flex;
+    justify-content: right;
+}
+
+.scans-container .webc-datatable--container {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    border: 1px solid #dee2e6;
+    border-radius: 7px;
+}
+
+webc-datatable.scans-table[userrights="readonly"] span.edit-rights {
+    display: none;
+}
+
+.fist-table-header {
+    border-top-left-radius: 7px;
+}
+
+.last-table-header {
+    border-top-right-radius: 7px;
+}
+
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.pagination-container .next-page-btn {
+    margin-left: 15px;
+}
+
+.pagination-container .prev-page-btn {
+    margin-right: 15px;
+}

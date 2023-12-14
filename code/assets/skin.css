@@ -59,7 +59,7 @@ webc-modal::part(dialog) {
 
 
 webc-modal::part(content) {
-    min-width: 785px;
+    min-width: min(75vw, 785px);
     max-width: 95%;
     max-height: 95vh;
     margin: auto;

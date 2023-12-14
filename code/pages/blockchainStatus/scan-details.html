@@ -1,0 +1,29 @@
+<link href="pages/blockchainStatus/scan-details.css" rel="stylesheet"/>
+
+<page-template>
+        <span slot="page-title">
+            Scan Results
+        </span>
+    <h6 slot="page-content">
+        <webc-container controller="ScanDetailsController">
+            <div class="summary-container">
+                <span>Summary: </span>
+                <span>Total: {{@summaryTotal}}</span>
+                <span>Successful: {{@successfulNumber}}</span>
+                <span>Failed data: {{@failedDataNumber}}</span>
+                <span>Failed keys: {{@failedKeyNumber}}</span>
+            </div>
+            <div class="scan-button-container">
+                <button class="secondary-button" data-tag="recover-failed">Recover</button>
+            </div>
+
+            <div class="scan-details-container" data-for="@scanResults">
+                <div class="details-row">
+                    <div>{{@gtin}}</div>
+                    <div>{{@batch}}</div>
+                </div>
+
+            </div>
+        </webc-container>
+    </h6>
+</page-template>

@@ -51,7 +51,6 @@ export default class SuccessLogDataSource extends DataSource {
 
   async getPageDataAsync(startOffset, dataLengthForCurrentPage) {
     window.WebCardinal.loader.hidden = false;
-
     if (this.filterResult.length > 0) {
       window.WebCardinal.loader.hidden = true;
       document.querySelector(".success-messages-page-btn").hidden = true;
@@ -69,21 +68,23 @@ export default class SuccessLogDataSource extends DataSource {
         this.importLogs = await $$.promisify(this.enclaveDB.filter)('import-logs', ['__timestamp > 0', 'status == success'], "dsc", this.itemsOnPage * 2);
       }
       window.WebCardinal.loader.hidden = true;
-      this.importLogs.length > this.itemsOnPage ? document.querySelector(".success-messages-page-btn").hidden = false : document.querySelector(".success-messages-page-btn").hidden = true;
+      if (document.querySelector(".success-messages-page-btn")) {
+        this.importLogs.length > this.itemsOnPage ? document.querySelector(".success-messages-page-btn").hidden = false : document.querySelector(".success-messages-page-btn").hidden = true;
 
-      importLogs = this.importLogs.slice(startOffset, startOffset + dataLengthForCurrentPage);
-      this.hasMoreLogs = this.importLogs.length >= startOffset + dataLengthForCurrentPage + 1;
+        importLogs = this.importLogs.slice(startOffset, startOffset + dataLengthForCurrentPage);
+        this.hasMoreLogs = this.importLogs.length >= startOffset + dataLengthForCurrentPage + 1;
 
-      if (!this.hasMoreLogs) {
-        document.querySelector(".success-messages-page-btn .next-page-btn").disabled = true;
-      } else {
-        document.querySelector(".success-messages-page-btn .next-page-btn").disabled = false;
-      }
+        if (!this.hasMoreLogs) {
+          document.querySelector(".success-messages-page-btn .next-page-btn").disabled = true;
+        } else {
+          document.querySelector(".success-messages-page-btn .next-page-btn").disabled = false;
+        }
 
-      if (!importLogs.length > 0) {
-        document.querySelector(".success-messages-page-btn").style.display = "none";
-      } else {
-        document.querySelector(".success-messages-page-btn").style.display = "flex";
+        if (!importLogs.length > 0) {
+          document.querySelector(".success-messages-page-btn").style.display = "none";
+        } else {
+          document.querySelector(".success-messages-page-btn").style.display = "flex";
+        }
       }
     } catch (e) {
       console.log(e);

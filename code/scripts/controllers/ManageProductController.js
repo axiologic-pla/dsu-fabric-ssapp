@@ -228,8 +228,13 @@ export default class ManageProductController extends FwController {
 
     this.querySelector(".product-photo-input").addEventListener("change", (event) => {
       let filesArray = Array.from(event.target.files);
+      let allowedExtension = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/bmp'];
 
       if (filesArray.length === 0) {
+        return;
+      }
+      if (allowedExtension.indexOf(filesArray[0].type) < 0) {
+        this.notificationHandler.reportUserRelevantWarning("Invalid Image Upload: The file you attempted to upload is not a valid image format or is corrupted. Please ensure you are uploading a supported image file (e.g., JPG, PNG, GIF) and that the file is not damaged.")
         return;
       }
       let reader = new FileReader();
@@ -287,7 +292,7 @@ export default class ManageProductController extends FwController {
   }
 
   async confirmSave(product) {
-    this.createWebcModal({
+    this.infoSavingModal = this.createWebcModal({
       disableExpanding: true,
       disableClosing: true,
       disableFooter: true,
@@ -337,6 +342,7 @@ export default class ManageProductController extends FwController {
       }
 
     } catch (e) {
+      infoSavingModal.destroy();
       this.showErrorModal(e.message);
     }
   }
@@ -449,11 +455,13 @@ export default class ManageProductController extends FwController {
         }
       })
 
+      this.infoSavingModal.destroy();
       console.log(errors);
       this.showModalFromTemplate("digest-messages-error-modal", () => {
 
         this.navigateToPageTag("products");
       }, () => {
+        this.navigateToPageTag("products");
       }, {model: {errors: shownErrors}});
     } else {
       if (this.refreshState) {
